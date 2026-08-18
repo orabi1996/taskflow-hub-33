@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth-context";
 import {
   ServerCog,
@@ -12,6 +13,8 @@ import {
   Grid3X3,
   SearchCheck,
   Mail,
+  Stethoscope,
+  Lock,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/")({
@@ -80,19 +83,30 @@ function SettingsIndex() {
       adminOnly: true,
     },
     {
+      to: "/admin/permissions-diagnose",
+      icon: Stethoscope,
+      title: "تشخيص الصلاحيات",
+      desc: "لماذا تُحجب أي شاشة أو إعداد عن أي مستخدم — سبب الحجب لكل شاشة على حدة.",
+      adminOnly: true,
+    },
+    {
       to: "/admin/email-provider",
       icon: Mail,
       title: "مزوّد البريد الإلكتروني",
       desc: "إعداد مزوّد إرسال رسائل النظام (الدعوات، إعادة تعيين كلمة المرور، التنبيهات).",
       adminOnly: true,
     },
-  ].filter((it) => !it.adminOnly || isAdmin);
+  ].map((it) => ({ ...it, locked: it.adminOnly && !isAdmin }));
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {items.map((it) => (
-        <Link key={it.to} to={it.to}>
-          <Card className="p-5 hover:shadow-md transition-all hover:border-primary/40 h-full">
+      {items.map((it) => {
+        const body = (
+          <Card
+            className={`p-5 h-full transition-all ${
+              it.locked ? "opacity-60" : "hover:shadow-md hover:border-primary/40"
+            }`}
+          >
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <it.icon className="h-5 w-5 text-primary" />
@@ -100,14 +114,30 @@ function SettingsIndex() {
               <div className="flex-1">
                 <div className="font-semibold mb-1 flex items-center gap-2">
                   {it.title}
-                  <ArrowLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                  {it.locked ? (
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ArrowLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
                 </div>
                 <div className="text-sm text-muted-foreground">{it.desc}</div>
+                {it.locked && (
+                  <Badge variant="outline" className="mt-2 text-xs">
+                    محجوب: يتطلب دور admin
+                  </Badge>
+                )}
               </div>
             </div>
           </Card>
-        </Link>
-      ))}
+        );
+
+        return it.locked ? (
+          <div key={it.to} title="يتطلب دور admin">{body}</div>
+        ) : (
+          <Link key={it.to} to={it.to}>{body}</Link>
+        );
+      })}
     </div>
   );
 }
+

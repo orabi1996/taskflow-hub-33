@@ -33,6 +33,7 @@ import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.aud
 import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/_app.projects.$projectId'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
+import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
 import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
 import { Route as AppAdminPermissionsRouteImport } from './routes/_app.admin.permissions'
 import { Route as AppAdminHierarchyRouteImport } from './routes/_app.admin.hierarchy'
@@ -163,6 +164,12 @@ const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminPermissionsDiagnoseRoute =
+  AppAdminPermissionsDiagnoseRouteImport.update({
+    id: '/permissions-diagnose',
+    path: '/permissions-diagnose',
+    getParentRoute: () => AppAdminRoute,
+  } as any)
 const AppAdminPermissionsCheckRoute =
   AppAdminPermissionsCheckRouteImport.update({
     id: '/permissions-check',
@@ -237,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/admin/hierarchy': typeof AppAdminHierarchyRoute
   '/admin/permissions': typeof AppAdminPermissionsRoute
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
+  '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/projects/dashboard': typeof AppProjectsDashboardRoute
@@ -271,6 +279,7 @@ export interface FileRoutesByTo {
   '/admin/hierarchy': typeof AppAdminHierarchyRoute
   '/admin/permissions': typeof AppAdminPermissionsRoute
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
+  '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/projects/dashboard': typeof AppProjectsDashboardRoute
@@ -308,6 +317,7 @@ export interface FileRoutesById {
   '/_app/admin/hierarchy': typeof AppAdminHierarchyRoute
   '/_app/admin/permissions': typeof AppAdminPermissionsRoute
   '/_app/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
+  '/_app/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
   '/_app/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/_app/projects/dashboard': typeof AppProjectsDashboardRoute
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/admin/hierarchy'
     | '/admin/permissions'
     | '/admin/permissions-check'
+    | '/admin/permissions-diagnose'
     | '/admin/roles'
     | '/projects/$projectId'
     | '/projects/dashboard'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin/hierarchy'
     | '/admin/permissions'
     | '/admin/permissions-check'
+    | '/admin/permissions-diagnose'
     | '/admin/roles'
     | '/projects/$projectId'
     | '/projects/dashboard'
@@ -415,6 +427,7 @@ export interface FileRouteTypes {
     | '/_app/admin/hierarchy'
     | '/_app/admin/permissions'
     | '/_app/admin/permissions-check'
+    | '/_app/admin/permissions-diagnose'
     | '/_app/admin/roles'
     | '/_app/projects/$projectId'
     | '/_app/projects/dashboard'
@@ -615,6 +628,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRolesRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/_app/admin/permissions-diagnose': {
+      id: '/_app/admin/permissions-diagnose'
+      path: '/permissions-diagnose'
+      fullPath: '/admin/permissions-diagnose'
+      preLoaderRoute: typeof AppAdminPermissionsDiagnoseRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/_app/admin/permissions-check': {
       id: '/_app/admin/permissions-check'
       path: '/permissions-check'
@@ -694,6 +714,7 @@ interface AppAdminRouteChildren {
   AppAdminHierarchyRoute: typeof AppAdminHierarchyRoute
   AppAdminPermissionsRoute: typeof AppAdminPermissionsRoute
   AppAdminPermissionsCheckRoute: typeof AppAdminPermissionsCheckRoute
+  AppAdminPermissionsDiagnoseRoute: typeof AppAdminPermissionsDiagnoseRoute
   AppAdminRolesRoute: typeof AppAdminRolesRoute
 }
 
@@ -703,6 +724,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminHierarchyRoute: AppAdminHierarchyRoute,
   AppAdminPermissionsRoute: AppAdminPermissionsRoute,
   AppAdminPermissionsCheckRoute: AppAdminPermissionsCheckRoute,
+  AppAdminPermissionsDiagnoseRoute: AppAdminPermissionsDiagnoseRoute,
   AppAdminRolesRoute: AppAdminRolesRoute,
 }
 
