@@ -1,38 +1,92 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
-import { ServerCog, ArrowLeft, Bot, Boxes, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import {
+  ServerCog,
+  ArrowLeft,
+  Bot,
+  Boxes,
+  ShieldCheck,
+  Network,
+  UserCog,
+  Grid3X3,
+  SearchCheck,
+  Mail,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/")({
   component: SettingsIndex,
 });
 
 function SettingsIndex() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+
   const items = [
     {
       to: "/settings/modules",
       icon: Boxes,
       title: "أنظمة الشركة (Modules)",
       desc: "خريطة الأنظمة الفرعية للشركة (ERP، المنصة التعليمية، Edumall، Cpay…) وإسناد الموظفين لكل نظام.",
+      adminOnly: false,
     },
     {
       to: "/settings/smtp",
       icon: ServerCog,
       title: "إعدادات SMTP",
       desc: "إعداد خادم البريد الصادر (Host, Port, Credentials) واختبار الإرسال.",
+      adminOnly: false,
     },
     {
       to: "/settings/automation",
       icon: Bot,
       title: "محرك الأتمتة",
       desc: "قواعد تلقائية لتنبيه الفريق على المهام المتأخرة، المواعيد القريبة، وانتهاء العقود.",
+      adminOnly: false,
     },
     {
       to: "/settings/audit",
       icon: ShieldCheck,
       title: "سجل التدقيق الأمني",
       desc: "جميع الأحداث الحساسة في النظام: تسجيل الدخول، تغيير الصلاحيات، التعديلات الإدارية.",
+      adminOnly: false,
     },
-  ];
+    {
+      to: "/admin/hierarchy",
+      icon: Network,
+      title: "الهيكل التنظيمي",
+      desc: "الأقسام، المسميات الوظيفية، وشجرة التبعية الإدارية بين الموظفين.",
+      adminOnly: true,
+    },
+    {
+      to: "/admin/roles",
+      icon: UserCog,
+      title: "إدارة الأدوار",
+      desc: "منح وسحب أدوار المستخدمين (إداري، مدير عام، مدير، موظف، دعم فني).",
+      adminOnly: true,
+    },
+    {
+      to: "/admin/permissions",
+      icon: Grid3X3,
+      title: "مصفوفة الصلاحيات",
+      desc: "عرض تفصيلي لما يستطيع كل دور فعله داخل كل شاشة في النظام.",
+      adminOnly: true,
+    },
+    {
+      to: "/admin/permissions-check",
+      icon: SearchCheck,
+      title: "فحص الصلاحيات",
+      desc: "اختبار صلاحيات مستخدم محدد والتحقق من وصوله للبيانات الحساسة.",
+      adminOnly: true,
+    },
+    {
+      to: "/admin/email-provider",
+      icon: Mail,
+      title: "مزوّد البريد الإلكتروني",
+      desc: "إعداد مزوّد إرسال رسائل النظام (الدعوات، إعادة تعيين كلمة المرور، التنبيهات).",
+      adminOnly: true,
+    },
+  ].filter((it) => !it.adminOnly || isAdmin);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
