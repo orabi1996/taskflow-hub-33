@@ -30,6 +30,15 @@ function SettingsLayout() {
     { to: "/settings/smtp", label: "SMTP", icon: ServerCog, exact: false },
     { to: "/settings/automation", label: "الأتمتة", icon: Bot, exact: false },
     { to: "/settings/audit", label: "سجل التدقيق", icon: ShieldCheck, exact: false },
+    ...(isAdmin
+      ? [
+          { to: "/admin/hierarchy", label: "الهيكل التنظيمي", icon: Network, exact: false },
+          { to: "/admin/roles", label: "إدارة الأدوار", icon: UserCog, exact: false },
+          { to: "/admin/permissions", label: "مصفوفة الصلاحيات", icon: Grid3X3, exact: false },
+          { to: "/admin/permissions-check", label: "فحص الصلاحيات", icon: SearchCheck, exact: false },
+          { to: "/admin/email-provider", label: "مزوّد البريد", icon: Mail, exact: false },
+        ]
+      : []),
   ];
 
   const isActive = (to: string, exact: boolean) =>
