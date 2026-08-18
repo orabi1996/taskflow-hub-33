@@ -36,6 +36,7 @@ function SettingsLayout() {
           { to: "/admin/roles", label: "إدارة الأدوار", icon: UserCog, exact: false },
           { to: "/admin/permissions", label: "مصفوفة الصلاحيات", icon: Grid3X3, exact: false },
           { to: "/admin/permissions-check", label: "فحص الصلاحيات", icon: SearchCheck, exact: false },
+          { to: "/admin/permissions-diagnose", label: "تشخيص الصلاحيات", icon: Stethoscope, exact: false },
           { to: "/admin/email-provider", label: "مزوّد البريد", icon: Mail, exact: false },
         ]
       : []),
