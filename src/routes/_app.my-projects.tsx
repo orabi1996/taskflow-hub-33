@@ -93,7 +93,9 @@ function MyProjectsPage() {
   const { user, roles } = useAuth();
   const isPrivileged = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
   const [projects, setProjects] = useState<Project[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+
   const [editing, setEditing] = useState<Project | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -270,12 +272,31 @@ function MyProjectsPage() {
     [projects]
   );
 
+  const visibleProjects = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return projects;
+    return projects.filter((p) =>
+      [p.name, p.description, p.country, p.contract_number, p.contact_email]
+        .some((v) => (v ?? "").toString().toLowerCase().includes(q))
+    );
+  }, [projects, query]);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">مشاريعي</h1>
-        <p className="text-muted-foreground mt-1">المشاريع التي تم تعيينك مسؤولاً عنها</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">مشاريعي</h1>
+          <p className="text-muted-foreground mt-1">المشاريع التي تم تعيينك مسؤولاً عنها</p>
+        </div>
+        <div className="relative w-full sm:w-80">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ابحث في المشاريع (اسم، دولة، رقم عقد...)"
+          />
+        </div>
       </div>
+
 
       {alerts.length > 0 && (
         <Card className="p-4 border-amber-500/30 bg-amber-500/5">
@@ -309,14 +330,17 @@ function MyProjectsPage() {
 
       {loading ? (
         <div className="text-center text-muted-foreground py-12">جارٍ التحميل...</div>
-      ) : projects.length === 0 ? (
+      ) : visibleProjects.length === 0 ? (
         <Card className="p-12 text-center">
           <FolderKanban className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground">لا يوجد مشاريع مسندة إليك بعد.</p>
+          <p className="text-muted-foreground">
+            {projects.length === 0 ? "لا يوجد مشاريع مسندة إليك بعد." : "لا توجد نتائج مطابقة للبحث."}
+          </p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((p) => {
+          {visibleProjects.map((p) => {
+
             const a = getAlert(p);
             return (
               <Card key={p.id} className="p-5 hover:shadow-[var(--shadow-elegant)] transition-[var(--transition-smooth)]">

@@ -55,6 +55,8 @@ interface Profile {
 interface Dept { id: string; name: string; parent_id: string | null }
 interface Position { id: string; title: string; department_id: string }
 interface RoleRow { id: string; user_id: string; role: AppRole }
+interface ModuleRow { id: string; name: string; parent_id: string | null }
+interface EmpModule { id: string; user_id: string; module_id: string; is_primary: boolean }
 
 function EmployeesSettings() {
   const { user, roles: myRoles } = useAuth();
@@ -66,27 +68,38 @@ function EmployeesSettings() {
   const [depts, setDepts] = useState<Dept[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [roleRows, setRoleRows] = useState<RoleRow[]>([]);
+  const [modules, setModules] = useState<ModuleRow[]>([]);
+  const [empModules, setEmpModules] = useState<EmpModule[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkRole, setBulkRole] = useState<AppRole | "">("");
+  const [bulkModule, setBulkModule] = useState("");
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
+  const [moduleFilter, setModuleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [addRole, setAddRole] = useState<Record<string, AppRole>>({});
+
 
   const load = async () => {
     setLoading(true);
     try {
-      const [p, d, jp, r] = await Promise.all([
+      const [p, d, jp, r, m, em] = await Promise.all([
         supabase.from("profiles")
           .select("id, full_name, email, job_title, is_active, department_id, job_position_id, manager_id")
           .order("full_name"),
         supabase.from("departments").select("id, name, parent_id").order("sort_order"),
         supabase.from("job_positions").select("id, title, department_id").order("sort_order"),
         supabase.from("user_roles").select("id, user_id, role"),
+        supabase.from("company_modules").select("id, name, parent_id").order("sort_order"),
+        supabase.from("employee_modules").select("id, user_id, module_id, is_primary"),
       ]);
       if (p.error) throw p.error;
       setProfiles((p.data ?? []) as Profile[]);
       setDepts((d.data ?? []) as Dept[]);
       setPositions((jp.data ?? []) as Position[]);
       setRoleRows((r.data ?? []) as RoleRow[]);
+      setModules((m.data ?? []) as ModuleRow[]);
+      setEmpModules((em.data ?? []) as EmpModule[]);
     } catch (e) {
       logError(e, { scope: "employeesSettings.load" });
       toast.error("فشل تحميل بيانات الموظفين");
@@ -98,17 +111,97 @@ function EmployeesSettings() {
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
   const rolesOf = (uid: string) => roleRows.filter((r) => r.user_id === uid);
+  const primaryModuleOf = (uid: string) =>
+    empModules.find((e) => e.user_id === uid && e.is_primary) ?? empModules.find((e) => e.user_id === uid);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return profiles.filter((p) => {
       if (q && !(p.full_name ?? "").toLowerCase().includes(q) && !(p.email ?? "").toLowerCase().includes(q)) return false;
       if (deptFilter !== "all" && p.department_id !== deptFilter) return false;
+      if (moduleFilter !== "all") {
+        const pm = empModules.find((e) => e.user_id === p.id && e.is_primary) ?? empModules.find((e) => e.user_id === p.id);
+        if ((pm?.module_id ?? "none") !== moduleFilter) return false;
+      }
       if (statusFilter === "active" && !p.is_active) return false;
       if (statusFilter === "blocked" && p.is_active) return false;
       return true;
     });
-  }, [profiles, search, deptFilter, statusFilter]);
+  }, [profiles, search, deptFilter, statusFilter, moduleFilter, empModules]);
+
+  const setPrimaryModule = async (uid: string, moduleId: string | null) => {
+    setBusy(`mod-${uid}`);
+    try {
+      const { error: delErr } = await supabase.from("employee_modules").delete().eq("user_id", uid).eq("is_primary", true);
+      if (delErr) throw delErr;
+      if (moduleId) {
+        const { error } = await supabase.from("employee_modules").insert({ user_id: uid, module_id: moduleId, is_primary: true });
+        if (error) throw error;
+      }
+      await load();
+      toast.success("تم تحديث النظام التابع له");
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.module" });
+      toast.error("فشل تحديث النظام");
+    } finally { setBusy(null); }
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+
+  const bulkSetAccess = async (active: boolean) => {
+    if (selected.length === 0) return;
+    setBusy("bulk");
+    try {
+      const ids = selected.filter((id) => active || id !== user?.id);
+      const { error } = await supabase.from("profiles").update({ is_active: active } as never).in("id", ids);
+      if (error) throw error;
+      await load();
+      setSelected([]);
+      toast.success(`تم تحديث ${ids.length} موظف`);
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.bulkAccess" });
+      toast.error("فشل التحديث الجماعي");
+    } finally { setBusy(null); }
+  };
+
+  const bulkGrantRole = async () => {
+    if (!bulkRole || selected.length === 0) return;
+    setBusy("bulk");
+    try {
+      const rows = selected
+        .filter((uid) => !roleRows.some((r) => r.user_id === uid && r.role === bulkRole))
+        .map((uid) => ({ user_id: uid, role: bulkRole }));
+      if (rows.length === 0) { toast.info("الدور معيّن بالفعل للجميع"); return; }
+      const { error } = await supabase.from("user_roles").insert(rows);
+      if (error) throw error;
+      await load();
+      setSelected([]);
+      toast.success(`تم منح الدور لـ ${rows.length} موظف`);
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.bulkRole" });
+      toast.error("فشل منح الدور جماعياً");
+    } finally { setBusy(null); }
+  };
+
+  const bulkAssignModule = async () => {
+    if (!bulkModule || selected.length === 0) return;
+    setBusy("bulk");
+    try {
+      const { error: delErr } = await supabase.from("employee_modules").delete().in("user_id", selected).eq("is_primary", true);
+      if (delErr) throw delErr;
+      const { error } = await supabase.from("employee_modules")
+        .insert(selected.map((uid) => ({ user_id: uid, module_id: bulkModule, is_primary: true })));
+      if (error) throw error;
+      await load();
+      setSelected([]);
+      toast.success("تم إسناد النظام للموظفين المحددين");
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.bulkModule" });
+      toast.error("فشل الإسناد الجماعي");
+    } finally { setBusy(null); }
+  };
+
 
   const patchProfile = async (id: string, patch: Partial<Profile>, key: string) => {
     setBusy(key);
@@ -205,6 +298,14 @@ function EmployeesSettings() {
               {depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={moduleFilter} onValueChange={setModuleFilter}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الأنظمة</SelectItem>
+              <SelectItem value="none">بدون نظام</SelectItem>
+              {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -215,6 +316,31 @@ function EmployeesSettings() {
           </Select>
         </div>
 
+        {selected.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4 rounded-lg border bg-muted/40 p-3">
+            <span className="text-sm font-medium">محدد: {selected.length}</span>
+            <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as AppRole)}>
+              <SelectTrigger className="h-9 w-40"><SelectValue placeholder="منح دور" /></SelectTrigger>
+              <SelectContent>
+                {ALL_ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={bulkGrantRole} disabled={busy === "bulk" || !bulkRole}>منح</Button>
+            <Select value={bulkModule} onValueChange={setBulkModule}>
+              <SelectTrigger className="h-9 w-44"><SelectValue placeholder="إسناد نظام" /></SelectTrigger>
+              <SelectContent>
+                {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={bulkAssignModule} disabled={busy === "bulk" || !bulkModule}>إسناد</Button>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <Button size="sm" variant="outline" onClick={() => bulkSetAccess(true)} disabled={busy === "bulk"}>تفعيل الدخول</Button>
+            <Button size="sm" variant="destructive" onClick={() => bulkSetAccess(false)} disabled={busy === "bulk"}>إيقاف الدخول</Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelected([])}>إلغاء التحديد</Button>
+            {busy === "bulk" && <Loader2 className="h-4 w-4 animate-spin" />}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : filtered.length === 0 ? (
@@ -224,20 +350,38 @@ function EmployeesSettings() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-primary"
+                      checked={filtered.length > 0 && filtered.every((p) => selected.includes(p.id))}
+                      onChange={(e) => setSelected(e.target.checked ? filtered.map((p) => p.id) : [])}
+                    />
+                  </TableHead>
                   <TableHead>الموظف</TableHead>
                   <TableHead className="min-w-[170px]">القسم</TableHead>
+                  <TableHead className="min-w-[160px]">النظام (Classera / C-SMARX)</TableHead>
                   <TableHead className="min-w-[170px]">المسمى الوظيفي</TableHead>
                   <TableHead className="min-w-[170px]">المدير المباشر</TableHead>
                   <TableHead className="min-w-[260px]">الأدوار</TableHead>
                   <TableHead className="min-w-[130px]">صلاحية الدخول</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filtered.map((p) => {
                   const myPositions = positions.filter((x) => x.department_id === p.department_id);
                   const list = rolesOf(p.id);
                   return (
                     <TableRow key={p.id} className={p.is_active ? "" : "opacity-60"}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-primary"
+                          checked={selected.includes(p.id)}
+                          onChange={() => toggleSelect(p.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium">{p.full_name || "—"}</div>
                         <div className="text-xs text-muted-foreground">{p.email || "—"}</div>
@@ -254,6 +398,20 @@ function EmployeesSettings() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell>
+                        <Select
+                          value={primaryModuleOf(p.id)?.module_id ?? "none"}
+                          onValueChange={(v) => setPrimaryModule(p.id, v === "none" ? null : v)}
+                          disabled={busy === `mod-${p.id}`}
+                        >
+                          <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">بدون نظام</SelectItem>
+                            {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+
                       <TableCell>
                         <Select
                           value={p.job_position_id ?? "none"}
