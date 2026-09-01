@@ -396,6 +396,39 @@ export type Database = {
           },
         ]
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          recipient_email: string | null
+          status: string
+          subject: string | null
+          template_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          recipient_email?: string | null
+          status?: string
+          subject?: string | null
+          template_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          recipient_email?: string | null
+          status?: string
+          subject?: string | null
+          template_name?: string | null
+        }
+        Relationships: []
+      }
       employee_modules: {
         Row: {
           assigned_at: string
