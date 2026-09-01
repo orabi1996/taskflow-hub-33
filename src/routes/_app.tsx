@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_app")({
 
 
 function AppLayout() {
-  const { profile, roles, signOut } = useAuth();
+  const { profile, roles, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
