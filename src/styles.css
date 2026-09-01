@@ -57,117 +57,125 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 1rem; /* Material 3 shape: medium/large corners */
 
-  --background: oklch(0.985 0.005 240);
-  --foreground: oklch(0.21 0.04 250);
+  /* ===== Google Material 3 — light scheme (Google Blue baseline) ===== */
+  --background: oklch(0.985 0.004 264);      /* surface */
+  --foreground: oklch(0.24 0.014 264);       /* on-surface */
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.04 250);
+  --card: oklch(1 0 0);                       /* surface-container-lowest */
+  --card-foreground: oklch(0.24 0.014 264);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.04 250);
+  --popover-foreground: oklch(0.24 0.014 264);
 
-  /* Brand: deep teal-indigo */
-  --primary: oklch(0.45 0.13 230);
-  --primary-foreground: oklch(0.99 0 0);
-  --primary-glow: oklch(0.62 0.15 220);
+  /* Primary: Google Blue #0B57D0 */
+  --primary: oklch(0.474 0.183 264);
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.63 0.166 262);      /* #4285F4 */
 
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.25 0.04 250);
+  --secondary: oklch(0.935 0.014 264);        /* surface-container */
+  --secondary-foreground: oklch(0.28 0.03 264);
 
-  --muted: oklch(0.965 0.008 240);
-  --muted-foreground: oklch(0.5 0.025 250);
+  --muted: oklch(0.955 0.008 264);            /* surface-container-low */
+  --muted-foreground: oklch(0.52 0.02 264);   /* on-surface-variant */
 
-  --accent: oklch(0.74 0.14 65);          /* warm amber */
-  --accent-foreground: oklch(0.2 0.04 60);
+  --accent: oklch(0.56 0.15 148);             /* tertiary: Google Green #1E8E3E */
+  --accent-foreground: oklch(1 0 0);
 
-  --destructive: oklch(0.6 0.22 27);
-  --destructive-foreground: oklch(0.99 0 0);
+  --destructive: oklch(0.48 0.19 27);         /* error #B3261E */
+  --destructive-foreground: oklch(1 0 0);
 
-  --success: oklch(0.62 0.15 155);
-  --success-foreground: oklch(0.99 0 0);
+  --success: oklch(0.56 0.15 148);
+  --success-foreground: oklch(1 0 0);
 
-  --warning: oklch(0.78 0.16 80);
-  --warning-foreground: oklch(0.2 0.04 60);
+  --warning: oklch(0.79 0.16 80);             /* #F9AB00 */
+  --warning-foreground: oklch(0.26 0.05 70);
 
-  --info: oklch(0.6 0.13 240);
-  --info-foreground: oklch(0.99 0 0);
+  --info: oklch(0.474 0.183 264);
+  --info-foreground: oklch(1 0 0);
 
-  --border: oklch(0.92 0.01 240);
-  --input: oklch(0.92 0.01 240);
-  --ring: oklch(0.55 0.13 225);
+  --border: oklch(0.88 0.008 264);            /* outline-variant */
+  --input: oklch(0.78 0.012 264);             /* outline */
+  --ring: oklch(0.474 0.183 264);
 
-  --sidebar: oklch(0.99 0.005 240);
-  --sidebar-foreground: oklch(0.25 0.04 250);
-  --sidebar-primary: oklch(0.45 0.13 230);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.01 240);
-  --sidebar-accent-foreground: oklch(0.25 0.04 250);
-  --sidebar-border: oklch(0.92 0.01 240);
-  --sidebar-ring: oklch(0.55 0.13 225);
+  --sidebar: oklch(0.965 0.008 264);
+  --sidebar-foreground: oklch(0.26 0.02 264);
+  --sidebar-primary: oklch(0.474 0.183 264);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.92 0.02 264);
+  --sidebar-accent-foreground: oklch(0.26 0.02 264);
+  --sidebar-border: oklch(0.88 0.008 264);
+  --sidebar-ring: oklch(0.474 0.183 264);
 
-  /* Effects */
+  /* Effects — Material elevation (umbra + penumbra) */
   --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
-  --gradient-subtle: linear-gradient(180deg, oklch(0.99 0.005 240), oklch(0.96 0.012 240));
-  --shadow-elegant: 0 10px 30px -12px color-mix(in oklab, var(--primary) 28%, transparent);
-  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 4px 16px -8px oklch(0 0 0 / 0.06);
-  --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --gradient-subtle: linear-gradient(180deg, oklch(0.99 0.004 264), oklch(0.955 0.01 264));
+  --md-elev-1: 0 1px 2px 0 oklch(0 0 0 / 0.30), 0 1px 3px 1px oklch(0 0 0 / 0.15);
+  --md-elev-2: 0 1px 2px 0 oklch(0 0 0 / 0.30), 0 2px 6px 2px oklch(0 0 0 / 0.15);
+  --md-elev-3: 0 4px 8px 3px oklch(0 0 0 / 0.15), 0 1px 3px 0 oklch(0 0 0 / 0.30);
+  --md-elev-4: 0 6px 10px 4px oklch(0 0 0 / 0.15), 0 2px 3px 0 oklch(0 0 0 / 0.30);
+  --shadow-elegant: var(--md-elev-3);
+  --shadow-card: var(--md-elev-1);
+  --transition-smooth: all 0.2s cubic-bezier(0.2, 0, 0, 1); /* M3 standard easing */
   --blur-strength: 40px;
 }
 
-/* ============ Theme variants ============ */
+
+/* ============ Theme variants (Material tonal palettes) ============ */
 [data-theme="mint"] {
-  --primary: oklch(0.55 0.12 165);
-  --primary-glow: oklch(0.72 0.13 150);
-  --accent: oklch(0.78 0.12 145);
-  --ring: oklch(0.6 0.12 165);
+  --primary: oklch(0.52 0.13 165);
+  --primary-glow: oklch(0.68 0.13 160);
+  --accent: oklch(0.56 0.15 148);
+  --ring: oklch(0.52 0.13 165);
 }
 [data-theme="slate"] {
-  --primary: oklch(0.4 0.04 260);
-  --primary-glow: oklch(0.62 0.05 255);
-  --accent: oklch(0.7 0.05 250);
-  --ring: oklch(0.5 0.04 260);
+  --primary: oklch(0.42 0.02 264);
+  --primary-glow: oklch(0.58 0.02 264);
+  --accent: oklch(0.55 0.04 264);
+  --ring: oklch(0.42 0.02 264);
 }
 
 .dark {
-  --background: oklch(0.18 0.025 250);
-  --foreground: oklch(0.97 0.005 240);
+  /* ===== Google Material 3 — dark scheme ===== */
+  --background: oklch(0.21 0.008 264);       /* surface #131314 */
+  --foreground: oklch(0.93 0.006 264);
 
-  --card: oklch(0.22 0.03 250);
-  --card-foreground: oklch(0.97 0.005 240);
+  --card: oklch(0.25 0.01 264);              /* surface-container */
+  --card-foreground: oklch(0.93 0.006 264);
 
-  --popover: oklch(0.22 0.03 250);
-  --popover-foreground: oklch(0.97 0.005 240);
+  --popover: oklch(0.27 0.012 264);
+  --popover-foreground: oklch(0.93 0.006 264);
 
-  --primary: oklch(0.7 0.14 220);
-  --primary-foreground: oklch(0.18 0.025 250);
-  --primary-glow: oklch(0.78 0.13 215);
+  --primary: oklch(0.80 0.09 260);           /* #A8C7FA */
+  --primary-foreground: oklch(0.28 0.11 264);/* #062E6F */
+  --primary-glow: oklch(0.87 0.06 258);
 
-  --secondary: oklch(0.27 0.03 250);
-  --secondary-foreground: oklch(0.97 0.005 240);
+  --secondary: oklch(0.30 0.012 264);
+  --secondary-foreground: oklch(0.93 0.006 264);
 
-  --muted: oklch(0.27 0.03 250);
-  --muted-foreground: oklch(0.7 0.02 250);
+  --muted: oklch(0.28 0.01 264);
+  --muted-foreground: oklch(0.75 0.012 264);
 
-  --accent: oklch(0.78 0.15 65);
-  --accent-foreground: oklch(0.2 0.04 60);
+  --accent: oklch(0.78 0.14 148);
+  --accent-foreground: oklch(0.24 0.06 148);
 
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(0.99 0 0);
+  --destructive: oklch(0.72 0.15 22);        /* #F2B8B5 tone */
+  --destructive-foreground: oklch(0.25 0.09 27);
 
-  --success: oklch(0.7 0.15 155);
-  --success-foreground: oklch(0.18 0.025 250);
+  --success: oklch(0.78 0.14 148);
+  --success-foreground: oklch(0.22 0.06 148);
 
-  --warning: oklch(0.82 0.16 80);
-  --warning-foreground: oklch(0.2 0.04 60);
+  --warning: oklch(0.85 0.15 82);
+  --warning-foreground: oklch(0.25 0.05 70);
 
-  --info: oklch(0.7 0.13 240);
-  --info-foreground: oklch(0.18 0.025 250);
+  --info: oklch(0.80 0.09 260);
+  --info-foreground: oklch(0.28 0.11 264);
 
-  --border: oklch(1 0 0 / 0.1);
-  --input: oklch(1 0 0 / 0.14);
-  --ring: oklch(0.65 0.12 225);
+  --border: oklch(1 0 0 / 0.12);
+  --input: oklch(1 0 0 / 0.22);
+  --ring: oklch(0.80 0.09 260);
+
 
   --sidebar: oklch(0.2 0.025 250);
   --sidebar-foreground: oklch(0.97 0.005 240);
@@ -776,3 +784,145 @@
   }
   .app-ambient::before, .app-ambient::after { display: none; }
 }
+
+/* ============================================================
+   Google Material 3 layer — surfaces, elevation, state layers
+   ============================================================ */
+@layer components {
+  .md-surface {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--md-elev-1);
+    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  }
+  .md-elev-1 { box-shadow: var(--md-elev-1); }
+  .md-elev-2 { box-shadow: var(--md-elev-2); }
+  .md-elev-3 { box-shadow: var(--md-elev-3); }
+}
+
+/* Material state layer on interactive elements */
+.md-state {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.md-state::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+.md-state:hover::before { opacity: 0.08; }
+.md-state:focus-visible::before { opacity: 0.10; }
+.md-state:active::before { opacity: 0.12; }
+
+/* Material shape + elevation for shared app chrome */
+.hover-lift { transition: box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.2s cubic-bezier(0.2, 0, 0, 1); }
+.hover-lift:hover { transform: none; box-shadow: var(--md-elev-2); }
+
+.nav-link[data-active="true"] {
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+  color: var(--primary);
+  border-radius: 9999px;
+}
+.nav-link { border-radius: 9999px; }
+.nav-link::after { display: none; }
+
+/* ============================================================
+   Material 3 auth screen (overrides the previous glass theme)
+   ============================================================ */
+.auth-bg {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1100px 620px at 12% -10%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 62%),
+    radial-gradient(900px 520px at 105% 8%, color-mix(in oklab, var(--primary-glow) 14%, transparent), transparent 60%),
+    radial-gradient(760px 520px at 50% 115%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 62%);
+}
+.auth-bg::before { display: none; }
+.auth-bg > .auth-bg-image { display: none; }
+.auth-bg > .auth-bg-veil { display: none; }
+.auth-bg-mesh { display: none; }
+.auth-particles { display: none; }
+
+.auth-card {
+  background: var(--card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 28px; /* M3 extra-large */
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  box-shadow: var(--md-elev-3);
+}
+.auth-card::before { display: none; }
+
+.auth-hero-photo {
+  background: linear-gradient(160deg,
+    color-mix(in oklab, var(--primary) 16%, var(--card)) 0%,
+    color-mix(in oklab, var(--primary) 9%, var(--card)) 55%,
+    color-mix(in oklab, var(--accent) 8%, var(--card)) 100%);
+  color: var(--foreground);
+}
+.auth-hero-photo::after { display: none; }
+.auth-hero-photo :is(.text-stone-900, .text-stone-800, .text-stone-700) { color: var(--foreground); }
+.auth-hero-photo .text-stone-700 { color: var(--muted-foreground); }
+
+.auth-form-side {
+  background: var(--card);
+  border-inline-start: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+}
+
+.gold-divider {
+  background: var(--gradient-primary);
+  box-shadow: none;
+}
+
+.feature-card-light {
+  background: color-mix(in oklab, var(--primary) 6%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 16px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+.feature-card-light .fc-icon {
+  background: color-mix(in oklab, var(--primary) 14%, var(--card));
+  color: var(--primary);
+  border-radius: 12px;
+}
+
+/* Material filled text field (soft container + focus underline ring) */
+.auth-input-soft {
+  background: color-mix(in oklab, var(--muted) 92%, transparent);
+  border: 1px solid color-mix(in oklab, var(--input) 55%, transparent);
+  border-radius: 12px;
+  box-shadow: none;
+  transition: background 0.15s cubic-bezier(0.2, 0, 0, 1), border-color 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+.auth-input-soft:hover {
+  background: color-mix(in oklab, var(--muted) 100%, transparent);
+  border-color: color-mix(in oklab, var(--input) 80%, transparent);
+}
+.auth-input-soft:focus-within {
+  background: var(--card);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.auth-input-soft[data-invalid="true"] { border-color: var(--destructive); background: color-mix(in oklab, var(--destructive) 6%, var(--card)); }
+.auth-input-soft[data-invalid="true"]:focus-within { box-shadow: 0 0 0 1px var(--destructive); }
+
+/* Material filled button */
+.auth-cta {
+  border-radius: 9999px;
+  box-shadow: var(--md-elev-1);
+  transition: box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1), filter 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+.auth-cta:hover:not(:disabled) { transform: none; box-shadow: var(--md-elev-2); }
+.auth-cta:active:not(:disabled) { box-shadow: var(--md-elev-1); }
+.auth-cta::after { display: none; }
+
+.auth-alert { border-radius: 12px; }
+.auth-alert-error { background: color-mix(in oklab, var(--destructive) 10%, var(--card)); }
+.auth-alert-success { background: color-mix(in oklab, var(--success) 12%, var(--card)); }
+.auth-alert-info { background: color-mix(in oklab, var(--primary) 10%, var(--card)); }
