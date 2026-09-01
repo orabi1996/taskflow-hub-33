@@ -81,6 +81,15 @@ function AppLayout() {
     window.dispatchEvent(event);
   };
 
+  // Avoid flashing the employee-shaped UI before roles are known.
+  if (authLoading) {
+    return (
+      <div className="min-h-screen app-ambient flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen app-ambient relative">
       <CommandPalette />
