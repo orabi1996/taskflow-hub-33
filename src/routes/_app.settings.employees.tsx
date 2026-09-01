@@ -298,6 +298,14 @@ function EmployeesSettings() {
               {depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={moduleFilter} onValueChange={setModuleFilter}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الأنظمة</SelectItem>
+              <SelectItem value="none">بدون نظام</SelectItem>
+              {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -308,6 +316,31 @@ function EmployeesSettings() {
           </Select>
         </div>
 
+        {selected.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4 rounded-lg border bg-muted/40 p-3">
+            <span className="text-sm font-medium">محدد: {selected.length}</span>
+            <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as AppRole)}>
+              <SelectTrigger className="h-9 w-40"><SelectValue placeholder="منح دور" /></SelectTrigger>
+              <SelectContent>
+                {ALL_ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={bulkGrantRole} disabled={busy === "bulk" || !bulkRole}>منح</Button>
+            <Select value={bulkModule} onValueChange={setBulkModule}>
+              <SelectTrigger className="h-9 w-44"><SelectValue placeholder="إسناد نظام" /></SelectTrigger>
+              <SelectContent>
+                {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={bulkAssignModule} disabled={busy === "bulk" || !bulkModule}>إسناد</Button>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <Button size="sm" variant="outline" onClick={() => bulkSetAccess(true)} disabled={busy === "bulk"}>تفعيل الدخول</Button>
+            <Button size="sm" variant="destructive" onClick={() => bulkSetAccess(false)} disabled={busy === "bulk"}>إيقاف الدخول</Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelected([])}>إلغاء التحديد</Button>
+            {busy === "bulk" && <Loader2 className="h-4 w-4 animate-spin" />}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : filtered.length === 0 ? (
@@ -317,14 +350,24 @@ function EmployeesSettings() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-primary"
+                      checked={filtered.length > 0 && filtered.every((p) => selected.includes(p.id))}
+                      onChange={(e) => setSelected(e.target.checked ? filtered.map((p) => p.id) : [])}
+                    />
+                  </TableHead>
                   <TableHead>الموظف</TableHead>
                   <TableHead className="min-w-[170px]">القسم</TableHead>
+                  <TableHead className="min-w-[160px]">النظام (Classera / C-SMARX)</TableHead>
                   <TableHead className="min-w-[170px]">المسمى الوظيفي</TableHead>
                   <TableHead className="min-w-[170px]">المدير المباشر</TableHead>
                   <TableHead className="min-w-[260px]">الأدوار</TableHead>
                   <TableHead className="min-w-[130px]">صلاحية الدخول</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filtered.map((p) => {
                   const myPositions = positions.filter((x) => x.department_id === p.department_id);
