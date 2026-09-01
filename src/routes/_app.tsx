@@ -119,7 +119,7 @@ function AppLayout() {
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1">{navLinks}</nav>
+          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-x-auto">{navLinks}</nav>
 
           <div className="flex items-center gap-1">
             <Button
