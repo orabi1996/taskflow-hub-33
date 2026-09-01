@@ -25,7 +25,7 @@ const ProjectModulesManager = lazy(() => import("@/components/projects/ProjectMo
 
 const TabFallback = () => <Skeleton className="h-32 w-full" />;
 
-export const Route = createFileRoute("/_app/projects/$projectId")({
+export const Route = createFileRoute("/_app/projects/$projectId/")({
   component: ProjectDetailPage,
 });
 

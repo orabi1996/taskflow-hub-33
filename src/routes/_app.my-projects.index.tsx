@@ -33,7 +33,7 @@ import { ar } from "date-fns/locale";
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25MB
 
-export const Route = createFileRoute("/_app/my-projects")({
+export const Route = createFileRoute("/_app/my-projects/")({
   component: MyProjectsPage,
 });
 
