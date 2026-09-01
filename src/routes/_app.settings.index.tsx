@@ -15,6 +15,7 @@ import {
   Mail,
   Stethoscope,
   Lock,
+  Users,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/")({
@@ -26,6 +27,13 @@ function SettingsIndex() {
   const isAdmin = roles.includes("admin");
 
   const items = [
+    {
+      to: "/settings/employees",
+      icon: Users,
+      title: "الموظفون والصلاحيات",
+      desc: "كل الموظفين في مكان واحد: القسم، المسمى الوظيفي، المدير المباشر، الأدوار، وتفعيل أو إيقاف صلاحية الدخول للنظام.",
+      adminOnly: true,
+    },
     {
       to: "/settings/modules",
       icon: Boxes,

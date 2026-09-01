@@ -1,5 +1,6 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
