@@ -14,6 +14,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AiAssistant } from "@/components/AiAssistant";
 
 export const Route = createFileRoute("/_app")({
+  // Session lives in browser storage/cookies, so the gate must run client-side only.
+  ssr: false,
   beforeLoad: async () => {
     const session = await ensureAuthSessionFromCookies();
     if (!session) throw redirect({ to: "/auth" });
