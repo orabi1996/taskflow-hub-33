@@ -83,19 +83,23 @@ function EmployeesSettings() {
   const load = async () => {
     setLoading(true);
     try {
-      const [p, d, jp, r] = await Promise.all([
+      const [p, d, jp, r, m, em] = await Promise.all([
         supabase.from("profiles")
           .select("id, full_name, email, job_title, is_active, department_id, job_position_id, manager_id")
           .order("full_name"),
         supabase.from("departments").select("id, name, parent_id").order("sort_order"),
         supabase.from("job_positions").select("id, title, department_id").order("sort_order"),
         supabase.from("user_roles").select("id, user_id, role"),
+        supabase.from("company_modules").select("id, name, parent_id").order("sort_order"),
+        supabase.from("employee_modules").select("id, user_id, module_id, is_primary"),
       ]);
       if (p.error) throw p.error;
       setProfiles((p.data ?? []) as Profile[]);
       setDepts((d.data ?? []) as Dept[]);
       setPositions((jp.data ?? []) as Position[]);
       setRoleRows((r.data ?? []) as RoleRow[]);
+      setModules((m.data ?? []) as ModuleRow[]);
+      setEmpModules((em.data ?? []) as EmpModule[]);
     } catch (e) {
       logError(e, { scope: "employeesSettings.load" });
       toast.error("فشل تحميل بيانات الموظفين");
@@ -107,17 +111,97 @@ function EmployeesSettings() {
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
   const rolesOf = (uid: string) => roleRows.filter((r) => r.user_id === uid);
+  const primaryModuleOf = (uid: string) =>
+    empModules.find((e) => e.user_id === uid && e.is_primary) ?? empModules.find((e) => e.user_id === uid);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return profiles.filter((p) => {
       if (q && !(p.full_name ?? "").toLowerCase().includes(q) && !(p.email ?? "").toLowerCase().includes(q)) return false;
       if (deptFilter !== "all" && p.department_id !== deptFilter) return false;
+      if (moduleFilter !== "all") {
+        const pm = empModules.find((e) => e.user_id === p.id && e.is_primary) ?? empModules.find((e) => e.user_id === p.id);
+        if ((pm?.module_id ?? "none") !== moduleFilter) return false;
+      }
       if (statusFilter === "active" && !p.is_active) return false;
       if (statusFilter === "blocked" && p.is_active) return false;
       return true;
     });
-  }, [profiles, search, deptFilter, statusFilter]);
+  }, [profiles, search, deptFilter, statusFilter, moduleFilter, empModules]);
+
+  const setPrimaryModule = async (uid: string, moduleId: string | null) => {
+    setBusy(`mod-${uid}`);
+    try {
+      const { error: delErr } = await supabase.from("employee_modules").delete().eq("user_id", uid).eq("is_primary", true);
+      if (delErr) throw delErr;
+      if (moduleId) {
+        const { error } = await supabase.from("employee_modules").insert({ user_id: uid, module_id: moduleId, is_primary: true });
+        if (error) throw error;
+      }
+      await load();
+      toast.success("تم تحديث النظام التابع له");
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.module" });
+      toast.error("فشل تحديث النظام");
+    } finally { setBusy(null); }
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+
+  const bulkSetAccess = async (active: boolean) => {
+    if (selected.length === 0) return;
+    setBusy("bulk");
+    try {
+      const ids = selected.filter((id) => active || id !== user?.id);
+      const { error } = await supabase.from("profiles").update({ is_active: active } as never).in("id", ids);
+      if (error) throw error;
+      await load();
+      setSelected([]);
+      toast.success(`تم تحديث ${ids.length} موظف`);
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.bulkAccess" });
+      toast.error("فشل التحديث الجماعي");
+    } finally { setBusy(null); }
+  };
+
+  const bulkGrantRole = async () => {
+    if (!bulkRole || selected.length === 0) return;
+    setBusy("bulk");
+    try {
+      const rows = selected
+        .filter((uid) => !roleRows.some((r) => r.user_id === uid && r.role === bulkRole))
+        .map((uid) => ({ user_id: uid, role: bulkRole }));
+      if (rows.length === 0) { toast.info("الدور معيّن بالفعل للجميع"); return; }
+      const { error } = await supabase.from("user_roles").insert(rows);
+      if (error) throw error;
+      await load();
+      setSelected([]);
+      toast.success(`تم منح الدور لـ ${rows.length} موظف`);
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.bulkRole" });
+      toast.error("فشل منح الدور جماعياً");
+    } finally { setBusy(null); }
+  };
+
+  const bulkAssignModule = async () => {
+    if (!bulkModule || selected.length === 0) return;
+    setBusy("bulk");
+    try {
+      const { error: delErr } = await supabase.from("employee_modules").delete().in("user_id", selected).eq("is_primary", true);
+      if (delErr) throw delErr;
+      const { error } = await supabase.from("employee_modules")
+        .insert(selected.map((uid) => ({ user_id: uid, module_id: bulkModule, is_primary: true })));
+      if (error) throw error;
+      await load();
+      setSelected([]);
+      toast.success("تم إسناد النظام للموظفين المحددين");
+    } catch (e) {
+      logError(e, { scope: "employeesSettings.bulkModule" });
+      toast.error("فشل الإسناد الجماعي");
+    } finally { setBusy(null); }
+  };
+
 
   const patchProfile = async (id: string, patch: Partial<Profile>, key: string) => {
     setBusy(key);
