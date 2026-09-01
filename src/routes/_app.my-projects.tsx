@@ -93,7 +93,9 @@ function MyProjectsPage() {
   const { user, roles } = useAuth();
   const isPrivileged = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
   const [projects, setProjects] = useState<Project[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+
   const [editing, setEditing] = useState<Project | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
