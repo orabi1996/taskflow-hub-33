@@ -375,6 +375,14 @@ function EmployeesSettings() {
                   return (
                     <TableRow key={p.id} className={p.is_active ? "" : "opacity-60"}>
                       <TableCell>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-primary"
+                          checked={selected.includes(p.id)}
+                          onChange={() => toggleSelect(p.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <div className="font-medium">{p.full_name || "—"}</div>
                         <div className="text-xs text-muted-foreground">{p.email || "—"}</div>
                       </TableCell>
@@ -390,6 +398,20 @@ function EmployeesSettings() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell>
+                        <Select
+                          value={primaryModuleOf(p.id)?.module_id ?? "none"}
+                          onValueChange={(v) => setPrimaryModule(p.id, v === "none" ? null : v)}
+                          disabled={busy === `mod-${p.id}`}
+                        >
+                          <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">بدون نظام</SelectItem>
+                            {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+
                       <TableCell>
                         <Select
                           value={p.job_position_id ?? "none"}
