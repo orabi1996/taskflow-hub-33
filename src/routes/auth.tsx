@@ -369,7 +369,7 @@ function AuthPage() {
                         className="h-1.5 rounded-full transition-all"
                         style={{
                           width: i === slideIndex ? "26px" : "8px",
-                          background: i === slideIndex ? "oklch(0.65 0.15 65)" : "oklch(0.85 0.04 70 / 0.6)",
+                          background: i === slideIndex ? "var(--primary)" : "color-mix(in oklab, var(--primary) 25%, transparent)",
                         }}
                       />
                     ))}
