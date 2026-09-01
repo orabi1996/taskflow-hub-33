@@ -327,33 +327,33 @@ function AuthPage() {
       <div className="w-full max-w-6xl mx-auto relative z-10 animate-scale-in">
         <div className="auth-card grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[560px] lg:min-h-[640px]">
           {/* HERO SIDE (towers are now in page background) */}
-          <div className="auth-hero-photo p-10 lg:p-12 flex flex-col justify-between text-stone-800 order-1 min-h-[280px] lg:min-h-0">
+          <div className="auth-hero-photo p-10 lg:p-12 flex flex-col justify-between text-foreground order-1 min-h-[280px] lg:min-h-0">
             <div className="hero-content flex flex-col h-full justify-between gap-8">
               <div className="flex items-center gap-3">
-                <div className="bg-white/90 rounded-2xl p-2.5 shadow-xl ring-1 ring-stone-200/60 backdrop-blur">
+                <div className="bg-card rounded-2xl p-2.5 md-elev-1 ring-1 ring-border">
                   <img src={classeraLogo} alt="Classera" className="h-9 w-auto" />
                 </div>
                 <div>
-                  <div className="font-bold text-base leading-tight tracking-wide text-stone-900">Classera</div>
-                  <div className="text-[11px] text-stone-700 leading-tight">منصّة إدارة المهام الذكية</div>
+                  <div className="font-bold text-base leading-tight tracking-wide text-foreground">Classera</div>
+                  <div className="text-[11px] text-muted-foreground leading-tight">منصّة إدارة المهام الذكية</div>
                 </div>
               </div>
 
               <div className="space-y-7 max-w-md">
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/70 backdrop-blur-md border border-amber-200/60 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-stone-700 shadow-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-primary">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                     أهلاً وسهلاً بكم
                   </div>
                   <div key={slideIndex} className="auth-form-fade">
-                    <h1 className="text-3xl lg:text-[2.6rem] font-bold leading-[1.15] tracking-tight text-stone-900">
+                    <h1 className="text-3xl lg:text-[2.6rem] font-bold leading-[1.15] tracking-tight text-foreground">
                       {HERO_SLIDES[slideIndex].title} <br />
-                      <span className="bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 bg-clip-text text-transparent">
+                      <span className="text-primary">
                         {HERO_SLIDES[slideIndex].highlight}
                       </span>
                     </h1>
                     <div className="gold-divider mt-3" />
-                    <p className="text-sm lg:text-[0.95rem] text-stone-700 leading-relaxed font-light mt-3">
+                    <p className="text-sm lg:text-[0.95rem] text-muted-foreground leading-relaxed font-light mt-3">
                       {HERO_SLIDES[slideIndex].desc}
                     </p>
                   </div>
@@ -419,8 +419,8 @@ function AuthPage() {
                 </>
               ) : (
                 <>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200/70 px-3 py-1 text-[11px] font-semibold text-amber-700 mb-3">
-                    <span className="text-amber-500">✦</span>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-[11px] font-semibold text-primary mb-3">
+                    <span className="text-primary">✦</span>
                     {greeting}
                   </div>
                   <h2 className="text-2xl lg:text-3xl font-bold mb-2 tracking-tight">
@@ -473,7 +473,7 @@ function AuthPage() {
                       <button
                         type="button"
                         onClick={() => { setEmailValue(emailSuggestion); setEmailSuggestion(null); }}
-                        className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/70 rounded-md px-2 py-1 inline-flex items-center gap-1 hover:bg-amber-100 transition"
+                        className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-1 inline-flex items-center gap-1 hover:bg-primary/15 transition"
                       >
                         <Info className="h-3 w-3" />
                         هل تقصد <span dir="ltr" className="font-semibold">{emailSuggestion}</span>؟
@@ -648,9 +648,9 @@ function AlertBox({ alert, onClose }: { alert: AuthAlert; onClose: () => void })
 function StatPill({ label, value }: { label: string; value: number }) {
   const display = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value.toLocaleString("ar-EG");
   return (
-    <div className="rounded-xl bg-white/70 backdrop-blur border border-amber-200/40 px-3 py-2 text-center shadow-sm">
-      <div className="text-lg font-bold text-stone-900 leading-tight tabular-nums">{display}</div>
-      <div className="text-[10px] text-stone-600 leading-tight mt-0.5">{label}</div>
+    <div className="rounded-2xl bg-primary/8 border border-border px-3 py-2 text-center">
+      <div className="text-lg font-bold text-foreground leading-tight tabular-nums">{display}</div>
+      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{label}</div>
     </div>
   );
 }
