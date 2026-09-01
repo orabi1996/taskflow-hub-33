@@ -271,6 +271,58 @@ function ReportsPage() {
     return Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
   }, [filtered, userDept, deptName]);
 
+  type DeptAgg = {
+    id: string; name: string; parentName: string | null; level: number;
+    employees: number; total: number; completed: number; pending: number;
+    postponed: number; cancelled: number; overdue: number; minutes: number;
+  };
+
+  const perDepartment = useMemo<DeptAgg[]>(() => {
+    const now = new Date();
+    const base = new Map<string, DeptAgg>();
+    const mk = (id: string, name: string, parentName: string | null, level: number): DeptAgg => ({
+      id, name, parentName, level, employees: 0, total: 0, completed: 0, pending: 0,
+      postponed: 0, cancelled: 0, overdue: 0, minutes: 0,
+    });
+    departments.forEach((d) => base.set(d.id, mk(d.id, d.name, d.parent_id ? (deptName.get(d.parent_id) ?? null) : null, d.parent_id ? 1 : 0)));
+    base.set("none", mk("none", "بدون قسم", null, 0));
+
+    const seen = new Map<string, Set<string>>();
+    filtered.forEach((r) => {
+      const key = userDept.get(r.user_id) ?? "none";
+      const agg = base.get(key) ?? base.get("none")!;
+      agg.total++;
+      if (r.status === "completed") agg.completed++;
+      if (r.status === "pending") agg.pending++;
+      if (r.status === "postponed") agg.postponed++;
+      if (r.status === "cancelled") agg.cancelled++;
+      if (r.status === "pending" && r.end_at && new Date(r.end_at) < now) agg.overdue++;
+      if (r.end_at) agg.minutes += Math.max(0, (new Date(r.end_at).getTime() - new Date(r.start_at).getTime()) / 60000);
+      const set = seen.get(agg.id) ?? new Set<string>();
+      set.add(r.user_id);
+      seen.set(agg.id, set);
+    });
+    base.forEach((a) => { a.employees = seen.get(a.id)?.size ?? 0; });
+    return Array.from(base.values())
+      .filter((a) => a.total > 0 || a.id !== "none")
+      .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "ar"));
+  }, [filtered, departments, userDept, deptName]);
+
+  // department totals including sub-departments
+  const perDepartmentRolled = useMemo(() => {
+    const byId = new Map(perDepartment.map((d) => [d.id, d]));
+    return perDepartment.map((d) => {
+      const scope = deptScope.get(d.id) ?? new Set([d.id]);
+      let total = 0, completed = 0, minutes = 0, employees = 0;
+      scope.forEach((id) => {
+        const x = byId.get(id);
+        if (!x) return;
+        total += x.total; completed += x.completed; minutes += x.minutes; employees += x.employees;
+      });
+      return { ...d, rolledTotal: total, rolledCompleted: completed, rolledMinutes: minutes, rolledEmployees: employees };
+    });
+  }, [perDepartment, deptScope]);
+
   const perProject = useMemo(() => {
     const map = new Map<string, { name: string; total: number; completed: number; pending: number; minutes: number }>();
     filtered.forEach((r) => {
@@ -531,6 +583,18 @@ function ReportsPage() {
             </Select>
           </div>
           <div className="w-44">
+            <Select value={deptFilter} onValueChange={setDeptFilter}>
+              <SelectTrigger><SelectValue placeholder="كل الأقسام" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأقسام</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.parent_id ? `— ${d.name}` : d.name}</SelectItem>
+                ))}
+                <SelectItem value="none">بدون قسم</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-44">
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
               <SelectTrigger><SelectValue placeholder="كل الموظفين" /></SelectTrigger>
               <SelectContent>
@@ -580,6 +644,7 @@ function ReportsPage() {
             <TabsTrigger value="radar">رادار الفريق</TabsTrigger>
             <TabsTrigger value="heatmap">الخريطة الحرارية</TabsTrigger>
             <TabsTrigger value="compare">مقارنة الفترات</TabsTrigger>
+            <TabsTrigger value="departments">الأقسام</TabsTrigger>
             <TabsTrigger value="employees">جدول الموظفين</TabsTrigger>
             <TabsTrigger value="sessions">الجلسات حسب الموظف والنظام</TabsTrigger>
           </TabsList>
@@ -799,6 +864,7 @@ function ReportsPage() {
                     <thead className="bg-muted/40">
                       <tr>
                         <th className="text-start px-4 py-3 font-semibold">الموظف</th>
+                        <th className="text-start px-4 py-3 font-semibold">القسم</th>
                         <th className="text-start px-4 py-3 font-semibold">المجموع</th>
                         {(["completed", "pending", "postponed", "cancelled"] as TaskStatus[]).map((s) => (
                           <th key={s} className="text-start px-4 py-3 font-semibold">{STATUS_LABEL[s]}</th>
@@ -812,8 +878,13 @@ function ReportsPage() {
                         const total = e.counts.completed + e.counts.pending + e.counts.postponed + e.counts.cancelled;
                         const rate = total ? (e.counts.completed / total) * 100 : 0;
                         return (
-                          <tr key={e.name} className="border-t hover:bg-muted/30 transition-colors">
+                          <tr key={e.id} className="border-t hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-3 font-medium">{e.name}</td>
+                            <td className="px-4 py-3">
+                              <button className="text-xs underline-offset-2 hover:underline text-muted-foreground" onClick={() => setDeptFilter(e.deptId ?? "none")}>
+                                {e.dept}
+                              </button>
+                            </td>
                             <td className="px-4 py-3"><Badge variant="secondary">{total}</Badge></td>
                             <td className="px-4 py-3">{e.counts.completed}</td>
                             <td className="px-4 py-3">{e.counts.pending}</td>
