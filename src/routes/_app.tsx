@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_app")({
       .maybeSingle();
     if (prof && prof.is_active === false) {
       await supabase.auth.signOut();
-      throw redirect({ to: "/auth", search: { blocked: "1" } as never });
+      throw redirect({ to: "/auth" });
     }
   },
   component: AppLayout,
