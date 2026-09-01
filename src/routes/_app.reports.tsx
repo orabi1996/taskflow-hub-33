@@ -12,7 +12,7 @@ import {
 import {
   BarChart3, Clock, CheckCircle2, PauseCircle, XCircle, Activity,
   Download, FileSpreadsheet, Printer, TrendingUp, TrendingDown,
-  Users, Briefcase, Target, Zap, Radio,
+  Users, Briefcase, Target, Zap, Radio, Network,
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area,
@@ -848,6 +848,134 @@ function ReportsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="departments" className="space-y-4">
+            <Card className="p-5">
+              <div className="font-semibold mb-3 flex items-center gap-2">
+                <Network className="h-4 w-4 text-primary" /> أداء الأقسام (شامل الأقسام الفرعية)
+              </div>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={perDepartmentRolled.filter((d) => d.rolledTotal > 0).slice(0, 12).map((d) => ({
+                    name: d.name, "منتهية": d.rolledCompleted, "غير منتهية": d.rolledTotal - d.rolledCompleted,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="منتهية" stackId="a" fill={COLORS.completed} radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="غير منتهية" stackId="a" fill={COLORS.pending} radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <div className="px-6 py-4 border-b flex flex-wrap items-center justify-between gap-2">
+                <div className="font-semibold">تقرير تفصيلي لكل قسم</div>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportToExcel(
+                  perDepartmentRolled.map((d) => ({
+                    "القسم": d.name,
+                    "القسم الأعلى": d.parentName ?? "—",
+                    "الموظفون": d.employees,
+                    "المهام": d.total,
+                    "منتهية": d.completed,
+                    "قيد التنفيذ": d.pending,
+                    "مؤجلة": d.postponed,
+                    "ملغاة": d.cancelled,
+                    "متأخرة": d.overdue,
+                    "الساعات": fmtHrs(d.minutes),
+                    "المهام شاملة الفرعية": d.rolledTotal,
+                    "منتهية شاملة الفرعية": d.rolledCompleted,
+                  })), `تقرير-الأقسام-${month}`, "الأقسام")}>
+                  <FileSpreadsheet className="h-4 w-4" /> تصدير
+                </Button>
+              </div>
+              {perDepartmentRolled.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">لا توجد أقسام معرّفة.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40">
+                      <tr>
+                        <th className="text-start px-4 py-3 font-semibold">القسم</th>
+                        <th className="text-start px-4 py-3 font-semibold">الموظفون</th>
+                        <th className="text-start px-4 py-3 font-semibold">المهام</th>
+                        <th className="text-start px-4 py-3 font-semibold">منتهية</th>
+                        <th className="text-start px-4 py-3 font-semibold">قيد التنفيذ</th>
+                        <th className="text-start px-4 py-3 font-semibold">مؤجلة/ملغاة</th>
+                        <th className="text-start px-4 py-3 font-semibold">متأخرة</th>
+                        <th className="text-start px-4 py-3 font-semibold">معدل الإنجاز</th>
+                        <th className="text-start px-4 py-3 font-semibold">الساعات</th>
+                        <th className="text-start px-4 py-3 font-semibold">شامل الفرعية</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {perDepartmentRolled.map((d) => {
+                        const rate = d.total ? (d.completed / d.total) * 100 : 0;
+                        const members = perEmployee.filter((e) => (e.deptId ?? "none") === d.id);
+                        const open = deptFilter === d.id;
+                        return (
+                          <>
+                            <tr key={d.id} className="border-t hover:bg-muted/30 transition-colors cursor-pointer"
+                                onClick={() => setDeptFilter(open ? "all" : d.id)}>
+                              <td className="px-4 py-3 font-medium">
+                                <span style={{ paddingInlineStart: d.level * 14 }}>
+                                  {d.level > 0 && <span className="text-muted-foreground">↳ </span>}{d.name}
+                                </span>
+                                {d.parentName && <div className="text-xs text-muted-foreground">ضمن: {d.parentName}</div>}
+                              </td>
+                              <td className="px-4 py-3">{d.employees}</td>
+                              <td className="px-4 py-3"><Badge variant="secondary">{d.total}</Badge></td>
+                              <td className="px-4 py-3">{d.completed}</td>
+                              <td className="px-4 py-3">{d.pending}</td>
+                              <td className="px-4 py-3">{d.postponed + d.cancelled}</td>
+                              <td className="px-4 py-3">
+                                {d.overdue > 0 ? <Badge variant="destructive">{d.overdue}</Badge> : "0"}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-20 rounded-full bg-muted overflow-hidden">
+                                    <div className="h-full transition-all duration-500" style={{ width: `${rate}%`, background: COLORS.completed }} />
+                                  </div>
+                                  <span className="text-xs font-medium">{rate.toFixed(0)}%</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 font-medium">{fmtHrs(d.minutes)}</td>
+                              <td className="px-4 py-3 text-xs text-muted-foreground">
+                                {d.rolledTotal} مهمة · {d.rolledCompleted} منتهية · {fmtHrs(d.rolledMinutes)}
+                              </td>
+                            </tr>
+                            {open && members.length > 0 && (
+                              <tr key={`${d.id}-members`} className="bg-muted/20 border-t">
+                                <td colSpan={10} className="px-6 py-3">
+                                  <div className="text-xs font-semibold mb-2">موظفو القسم</div>
+                                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                                    {members.map((e) => {
+                                      const t = e.counts.completed + e.counts.pending + e.counts.postponed + e.counts.cancelled;
+                                      return (
+                                        <div key={e.id} className="rounded-md border bg-background px-3 py-2 text-xs flex items-center justify-between gap-2">
+                                          <span className="font-medium">{e.name}</span>
+                                          <span className="text-muted-foreground">
+                                            {t} مهمة · {e.counts.completed} منتهية · {fmtHrs(e.minutes)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card>
           </TabsContent>
 
