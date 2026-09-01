@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Briefcase, LogOut, ListChecks, FolderKanban, Users2, BarChart3, ShieldCheck,
-  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Menu, Clock,
+  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Menu, Clock, LayoutDashboard,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -27,6 +27,7 @@ function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
   const isAdmin = roles.includes("admin");
+  const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
   const isSupport = (roles as string[]).includes("support");
   const canSettings = isAdmin || isSupport;
 
@@ -37,7 +38,12 @@ function AppLayout() {
 
   const navLinks = (
     <>
-      <NavLink to="/dashboard" icon={ListChecks} label="مهامي" onClick={() => setMobileOpen(false)} />
+      <NavLink
+        to="/dashboard"
+        icon={isAdminOrGM ? LayoutDashboard : ListChecks}
+        label={isAdminOrGM ? "لوحة التحكم" : "مهامي"}
+        onClick={() => setMobileOpen(false)}
+      />
       <NavLink to="/time" icon={Clock} label="الوقت" onClick={() => setMobileOpen(false)} />
       <NavLink to="/my-projects" icon={FolderHeart} label="مشاريعي" onClick={() => setMobileOpen(false)} />
       {isManager && (
