@@ -7,7 +7,7 @@ import { test, expect } from "vitest";
 
 const tree = readFileSync(resolve(process.cwd(), "src/routeTree.gen.ts"), "utf-8");
 const detail = readFileSync(
-  resolve(process.cwd(), "src/routes/_app.projects.$projectId.tsx"),
+  resolve(process.cwd(), "src/routes/_app.projects.$projectId.index.tsx"),
   "utf-8",
 );
 const dashboard = readFileSync(
