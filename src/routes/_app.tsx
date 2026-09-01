@@ -13,6 +13,9 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AiAssistant } from "@/components/AiAssistant";
+import brandLogoAsset from "@/assets/classera-smarx-logo.png.asset.json";
+
+const brandLogo = brandLogoAsset.url;
 
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
@@ -111,12 +114,12 @@ function AppLayout() {
               </SheetContent>
             </Sheet>
 
-            <div className="h-9 w-9 rounded-lg bg-[image:var(--gradient-primary)] flex items-center justify-center shrink-0">
-              <Briefcase className="h-5 w-5 text-primary-foreground" />
+            <div className="bg-white rounded-lg px-2.5 py-1.5 ring-1 ring-border shrink-0">
+              <img src={brandLogo} alt="Classera | C-SmarX" className="h-7 w-auto" />
             </div>
             <div className="leading-tight hidden sm:block">
               <div className="font-bold">نظام إدارة المهام</div>
-              <div className="text-xs text-muted-foreground">CRM</div>
+              <div className="text-xs text-muted-foreground">C-SmarX — Classera</div>
             </div>
           </div>
 
