@@ -114,12 +114,8 @@ function AppLayout() {
               </SheetContent>
             </Sheet>
 
-            <div className="shrink-0">
+            <div className="shrink-0" title="C-SmarX — من Classera">
               <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto" />
-            </div>
-            <div className="leading-tight hidden lg:block">
-              <div className="font-bold">C-SmarX</div>
-              <div className="text-xs text-muted-foreground">من Classera</div>
             </div>
           </div>
 
