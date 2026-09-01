@@ -175,7 +175,7 @@ function NavLink({
     <Link
       to={to}
       onClick={onClick}
-      className="nav-link px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/40 transition-colors flex items-center gap-2"
+      className="nav-link px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/40 transition-colors flex items-center gap-2 whitespace-nowrap shrink-0"
       activeProps={{ "data-active": "true" } as any}
     >
       <Icon className="h-4 w-4" />
