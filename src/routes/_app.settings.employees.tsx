@@ -55,6 +55,8 @@ interface Profile {
 interface Dept { id: string; name: string; parent_id: string | null }
 interface Position { id: string; title: string; department_id: string }
 interface RoleRow { id: string; user_id: string; role: AppRole }
+interface ModuleRow { id: string; name: string; parent_id: string | null }
+interface EmpModule { id: string; user_id: string; module_id: string; is_primary: boolean }
 
 function EmployeesSettings() {
   const { user, roles: myRoles } = useAuth();
@@ -66,10 +68,17 @@ function EmployeesSettings() {
   const [depts, setDepts] = useState<Dept[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [roleRows, setRoleRows] = useState<RoleRow[]>([]);
+  const [modules, setModules] = useState<ModuleRow[]>([]);
+  const [empModules, setEmpModules] = useState<EmpModule[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkRole, setBulkRole] = useState<AppRole | "">("");
+  const [bulkModule, setBulkModule] = useState("");
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
+  const [moduleFilter, setModuleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [addRole, setAddRole] = useState<Record<string, AppRole>>({});
+
 
   const load = async () => {
     setLoading(true);
