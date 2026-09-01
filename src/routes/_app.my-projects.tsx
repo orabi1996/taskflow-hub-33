@@ -270,12 +270,31 @@ function MyProjectsPage() {
     [projects]
   );
 
+  const visibleProjects = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return projects;
+    return projects.filter((p) =>
+      [p.name, p.description, p.country, p.contract_number, p.contact_email]
+        .some((v) => (v ?? "").toString().toLowerCase().includes(q))
+    );
+  }, [projects, query]);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">مشاريعي</h1>
-        <p className="text-muted-foreground mt-1">المشاريع التي تم تعيينك مسؤولاً عنها</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">مشاريعي</h1>
+          <p className="text-muted-foreground mt-1">المشاريع التي تم تعيينك مسؤولاً عنها</p>
+        </div>
+        <div className="relative w-full sm:w-80">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ابحث في المشاريع (اسم، دولة، رقم عقد...)"
+          />
+        </div>
       </div>
+
 
       {alerts.length > 0 && (
         <Card className="p-4 border-amber-500/30 bg-amber-500/5">
