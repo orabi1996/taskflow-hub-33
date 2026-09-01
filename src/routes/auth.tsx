@@ -337,7 +337,7 @@ function AuthPage() {
                 </div>
                 <div>
                   <div className="font-bold text-base leading-tight tracking-wide text-foreground">C-SmarX</div>
-                  <div className="text-[11px] text-muted-foreground leading-tight">منصّة إدارة المهام الذكية — شركة تابعة لـ Classera</div>
+                  <div className="text-[11px] text-muted-foreground leading-tight">من Classera</div>
                 </div>
               </div>
 

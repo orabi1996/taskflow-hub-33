@@ -114,12 +114,11 @@ function AppLayout() {
               </SheetContent>
             </Sheet>
 
-            <div className="bg-white rounded-lg px-2.5 py-1.5 ring-1 ring-border shrink-0">
-              <img src={brandLogo} alt="Classera | C-SmarX" className="h-7 w-auto" />
+            <div className="bg-white rounded-lg px-2 py-1 ring-1 ring-border shrink-0 hidden md:block">
+              <img src={brandLogo} alt="Classera | C-SmarX" className="h-6 w-auto" />
             </div>
-            <div className="leading-tight hidden sm:block">
-              <div className="font-bold">نظام إدارة المهام</div>
-              <div className="text-xs text-muted-foreground">C-SmarX — Classera</div>
+            <div className="bg-white rounded-lg px-2 py-1 ring-1 ring-border shrink-0 md:hidden">
+              <img src={brandLogo} alt="Classera | C-SmarX" className="h-6 w-auto max-w-28 object-contain object-left" />
             </div>
           </div>
 
