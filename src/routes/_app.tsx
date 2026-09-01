@@ -13,6 +13,9 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AiAssistant } from "@/components/AiAssistant";
+import brandEmblemAsset from "@/assets/classera-smarx-emblem.png.asset.json";
+
+const brandEmblem = brandEmblemAsset.url;
 
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
@@ -111,16 +114,12 @@ function AppLayout() {
               </SheetContent>
             </Sheet>
 
-            <div className="h-9 w-9 rounded-lg bg-[image:var(--gradient-primary)] flex items-center justify-center shrink-0">
-              <Briefcase className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div className="leading-tight hidden sm:block">
-              <div className="font-bold">نظام إدارة المهام</div>
-              <div className="text-xs text-muted-foreground">CRM</div>
+            <div className="shrink-0" title="C-SmarX — من Classera">
+              <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto" />
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1">{navLinks}</nav>
+          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-x-auto">{navLinks}</nav>
 
           <div className="flex items-center gap-1">
             <Button
@@ -176,7 +175,7 @@ function NavLink({
     <Link
       to={to}
       onClick={onClick}
-      className="nav-link px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/40 transition-colors flex items-center gap-2"
+      className="nav-link px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/40 transition-colors flex items-center gap-2 whitespace-nowrap shrink-0"
       activeProps={{ "data-active": "true" } as any}
     >
       <Icon className="h-4 w-4" />
