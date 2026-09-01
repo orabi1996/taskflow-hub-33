@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_app")({
 
 
 function AppLayout() {
-  const { profile, roles, signOut } = useAuth();
+  const { profile, roles, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
@@ -80,6 +80,15 @@ function AppLayout() {
     const event = new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true });
     window.dispatchEvent(event);
   };
+
+  // Avoid flashing the employee-shaped UI before roles are known.
+  if (authLoading) {
+    return (
+      <div className="min-h-screen app-ambient flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen app-ambient relative">

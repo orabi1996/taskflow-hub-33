@@ -18,12 +18,12 @@ import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
-import { Route as AppMyProjectsRouteImport } from './routes/_app.my-projects'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
-import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
 import { Route as AppProjectsIndexRouteImport } from './routes/_app.projects.index'
+import { Route as AppMyProjectsIndexRouteImport } from './routes/_app.my-projects.index'
+import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
 import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
 import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
 import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
@@ -32,7 +32,6 @@ import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings
 import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
 import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
 import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
-import { Route as AppProjectsProjectIdRouteImport } from './routes/_app.projects.$projectId'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
 import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
@@ -40,6 +39,7 @@ import { Route as AppAdminPermissionsRouteImport } from './routes/_app.admin.per
 import { Route as AppAdminHierarchyRouteImport } from './routes/_app.admin.hierarchy'
 import { Route as AppAdminEmailProviderRouteImport } from './routes/_app.admin.email-provider'
 import { Route as AppAdminAuditRouteImport } from './routes/_app.admin.audit'
+import { Route as AppProjectsProjectIdIndexRouteImport } from './routes/_app.projects.$projectId.index'
 import { Route as ApiPublicHooksSmtpTestRouteImport } from './routes/api/public/hooks/smtp-test'
 import { Route as ApiPublicHooksContractAlertsRouteImport } from './routes/api/public/hooks/contract-alerts'
 import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
@@ -90,11 +90,6 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMyProjectsRoute = AppMyProjectsRouteImport.update({
-  id: '/my-projects',
-  path: '/my-projects',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -105,11 +100,6 @@ const AppAlertsRoute = AppAlertsRouteImport.update({
   path: '/alerts',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminRoute = AppAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -118,6 +108,16 @@ const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
 const AppProjectsIndexRoute = AppProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyProjectsIndexRoute = AppMyProjectsIndexRouteImport.update({
+  id: '/my-projects/',
+  path: '/my-projects/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiPublicSeedAdminRoute = ApiPublicSeedAdminRouteImport.update({
@@ -160,48 +160,49 @@ const AppProjectsDashboardRoute = AppProjectsDashboardRouteImport.update({
   path: '/projects/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
-const AppProjectsProjectIdRoute = AppProjectsProjectIdRouteImport.update({
-  id: '/projects/$projectId',
-  path: '/projects/$projectId',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
-  id: '/roles',
-  path: '/roles',
-  getParentRoute: () => AppAdminRoute,
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAdminPermissionsDiagnoseRoute =
   AppAdminPermissionsDiagnoseRouteImport.update({
-    id: '/permissions-diagnose',
-    path: '/permissions-diagnose',
-    getParentRoute: () => AppAdminRoute,
+    id: '/admin/permissions-diagnose',
+    path: '/admin/permissions-diagnose',
+    getParentRoute: () => AppRoute,
   } as any)
 const AppAdminPermissionsCheckRoute =
   AppAdminPermissionsCheckRouteImport.update({
-    id: '/permissions-check',
-    path: '/permissions-check',
-    getParentRoute: () => AppAdminRoute,
+    id: '/admin/permissions-check',
+    path: '/admin/permissions-check',
+    getParentRoute: () => AppRoute,
   } as any)
 const AppAdminPermissionsRoute = AppAdminPermissionsRouteImport.update({
-  id: '/permissions',
-  path: '/permissions',
-  getParentRoute: () => AppAdminRoute,
+  id: '/admin/permissions',
+  path: '/admin/permissions',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAdminHierarchyRoute = AppAdminHierarchyRouteImport.update({
-  id: '/hierarchy',
-  path: '/hierarchy',
-  getParentRoute: () => AppAdminRoute,
+  id: '/admin/hierarchy',
+  path: '/admin/hierarchy',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAdminEmailProviderRoute = AppAdminEmailProviderRouteImport.update({
-  id: '/email-provider',
-  path: '/email-provider',
-  getParentRoute: () => AppAdminRoute,
+  id: '/admin/email-provider',
+  path: '/admin/email-provider',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAdminAuditRoute = AppAdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AppAdminRoute,
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => AppRoute,
 } as any)
+const AppProjectsProjectIdIndexRoute =
+  AppProjectsProjectIdIndexRouteImport.update({
+    id: '/projects/$projectId/',
+    path: '/projects/$projectId/',
+    getParentRoute: () => AppRoute,
+  } as any)
 const ApiPublicHooksSmtpTestRoute = ApiPublicHooksSmtpTestRouteImport.update({
   id: '/api/public/hooks/smtp-test',
   path: '/api/public/hooks/smtp-test',
@@ -221,25 +222,23 @@ const ApiPublicHooksAutomationTickRoute =
   } as any)
 const AppProjectsProjectIdDashboardRoute =
   AppProjectsProjectIdDashboardRouteImport.update({
-    id: '/dashboard',
-    path: '/dashboard',
-    getParentRoute: () => AppProjectsProjectIdRoute,
+    id: '/projects/$projectId/dashboard',
+    path: '/projects/$projectId/dashboard',
+    getParentRoute: () => AppRoute,
   } as any)
 const AppMyProjectsProjectIdClientsRoute =
   AppMyProjectsProjectIdClientsRouteImport.update({
-    id: '/$projectId/clients',
-    path: '/$projectId/clients',
-    getParentRoute: () => AppMyProjectsRoute,
+    id: '/my-projects/$projectId/clients',
+    path: '/my-projects/$projectId/clients',
+    getParentRoute: () => AppRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/admin': typeof AppAdminRouteWithChildren
   '/alerts': typeof AppAlertsRoute
   '/dashboard': typeof AppDashboardRoute
-  '/my-projects': typeof AppMyProjectsRouteWithChildren
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRouteWithChildren
@@ -252,7 +251,6 @@ export interface FileRoutesByFullPath {
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
-  '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
@@ -261,6 +259,8 @@ export interface FileRoutesByFullPath {
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
+  '/admin/': typeof AppAdminIndexRoute
+  '/my-projects/': typeof AppMyProjectsIndexRoute
   '/projects/': typeof AppProjectsIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
   '/my-projects/$projectId/clients': typeof AppMyProjectsProjectIdClientsRoute
@@ -268,15 +268,14 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/contract-alerts': typeof ApiPublicHooksContractAlertsRoute
   '/api/public/hooks/smtp-test': typeof ApiPublicHooksSmtpTestRoute
+  '/projects/$projectId/': typeof AppProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/admin': typeof AppAdminRouteWithChildren
   '/alerts': typeof AppAlertsRoute
   '/dashboard': typeof AppDashboardRoute
-  '/my-projects': typeof AppMyProjectsRouteWithChildren
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/team': typeof AppTeamRoute
@@ -288,7 +287,6 @@ export interface FileRoutesByTo {
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
-  '/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
@@ -297,6 +295,8 @@ export interface FileRoutesByTo {
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
+  '/admin': typeof AppAdminIndexRoute
+  '/my-projects': typeof AppMyProjectsIndexRoute
   '/projects': typeof AppProjectsIndexRoute
   '/settings': typeof AppSettingsIndexRoute
   '/my-projects/$projectId/clients': typeof AppMyProjectsProjectIdClientsRoute
@@ -304,6 +304,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/contract-alerts': typeof ApiPublicHooksContractAlertsRoute
   '/api/public/hooks/smtp-test': typeof ApiPublicHooksSmtpTestRoute
+  '/projects/$projectId': typeof AppProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -311,10 +312,8 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_app/admin': typeof AppAdminRouteWithChildren
   '/_app/alerts': typeof AppAlertsRoute
   '/_app/dashboard': typeof AppDashboardRoute
-  '/_app/my-projects': typeof AppMyProjectsRouteWithChildren
   '/_app/profile': typeof AppProfileRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
@@ -327,7 +326,6 @@ export interface FileRoutesById {
   '/_app/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/_app/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
-  '/_app/projects/$projectId': typeof AppProjectsProjectIdRouteWithChildren
   '/_app/projects/dashboard': typeof AppProjectsDashboardRoute
   '/_app/settings/audit': typeof AppSettingsAuditRoute
   '/_app/settings/automation': typeof AppSettingsAutomationRoute
@@ -336,6 +334,8 @@ export interface FileRoutesById {
   '/_app/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
+  '/_app/admin/': typeof AppAdminIndexRoute
+  '/_app/my-projects/': typeof AppMyProjectsIndexRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/_app/my-projects/$projectId/clients': typeof AppMyProjectsProjectIdClientsRoute
@@ -343,6 +343,7 @@ export interface FileRoutesById {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/contract-alerts': typeof ApiPublicHooksContractAlertsRoute
   '/api/public/hooks/smtp-test': typeof ApiPublicHooksSmtpTestRoute
+  '/_app/projects/$projectId/': typeof AppProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -350,10 +351,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/admin'
     | '/alerts'
     | '/dashboard'
-    | '/my-projects'
     | '/profile'
     | '/reports'
     | '/settings'
@@ -366,7 +365,6 @@ export interface FileRouteTypes {
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
     | '/admin/roles'
-    | '/projects/$projectId'
     | '/projects/dashboard'
     | '/settings/audit'
     | '/settings/automation'
@@ -375,6 +373,8 @@ export interface FileRouteTypes {
     | '/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
+    | '/admin/'
+    | '/my-projects/'
     | '/projects/'
     | '/settings/'
     | '/my-projects/$projectId/clients'
@@ -382,15 +382,14 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/contract-alerts'
     | '/api/public/hooks/smtp-test'
+    | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/admin'
     | '/alerts'
     | '/dashboard'
-    | '/my-projects'
     | '/profile'
     | '/reports'
     | '/team'
@@ -402,7 +401,6 @@ export interface FileRouteTypes {
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
     | '/admin/roles'
-    | '/projects/$projectId'
     | '/projects/dashboard'
     | '/settings/audit'
     | '/settings/automation'
@@ -411,6 +409,8 @@ export interface FileRouteTypes {
     | '/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
+    | '/admin'
+    | '/my-projects'
     | '/projects'
     | '/settings'
     | '/my-projects/$projectId/clients'
@@ -418,16 +418,15 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/contract-alerts'
     | '/api/public/hooks/smtp-test'
+    | '/projects/$projectId'
   id:
     | '__root__'
     | '/'
     | '/_app'
     | '/auth'
     | '/reset-password'
-    | '/_app/admin'
     | '/_app/alerts'
     | '/_app/dashboard'
-    | '/_app/my-projects'
     | '/_app/profile'
     | '/_app/reports'
     | '/_app/settings'
@@ -440,7 +439,6 @@ export interface FileRouteTypes {
     | '/_app/admin/permissions-check'
     | '/_app/admin/permissions-diagnose'
     | '/_app/admin/roles'
-    | '/_app/projects/$projectId'
     | '/_app/projects/dashboard'
     | '/_app/settings/audit'
     | '/_app/settings/automation'
@@ -449,6 +447,8 @@ export interface FileRouteTypes {
     | '/_app/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
+    | '/_app/admin/'
+    | '/_app/my-projects/'
     | '/_app/projects/'
     | '/_app/settings/'
     | '/_app/my-projects/$projectId/clients'
@@ -456,6 +456,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/contract-alerts'
     | '/api/public/hooks/smtp-test'
+    | '/_app/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -535,13 +536,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/my-projects': {
-      id: '/_app/my-projects'
-      path: '/my-projects'
-      fullPath: '/my-projects'
-      preLoaderRoute: typeof AppMyProjectsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -556,13 +550,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAlertsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin': {
-      id: '/_app/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AppAdminRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/settings/': {
       id: '/_app/settings/'
       path: '/'
@@ -575,6 +562,20 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects/'
       preLoaderRoute: typeof AppProjectsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/my-projects/': {
+      id: '/_app/my-projects/'
+      path: '/my-projects'
+      fullPath: '/my-projects/'
+      preLoaderRoute: typeof AppMyProjectsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/': {
+      id: '/_app/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/public/seed-admin': {
@@ -633,61 +634,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsDashboardRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/projects/$projectId': {
-      id: '/_app/projects/$projectId'
-      path: '/projects/$projectId'
-      fullPath: '/projects/$projectId'
-      preLoaderRoute: typeof AppProjectsProjectIdRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/admin/roles': {
       id: '/_app/admin/roles'
-      path: '/roles'
+      path: '/admin/roles'
       fullPath: '/admin/roles'
       preLoaderRoute: typeof AppAdminRolesRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/permissions-diagnose': {
       id: '/_app/admin/permissions-diagnose'
-      path: '/permissions-diagnose'
+      path: '/admin/permissions-diagnose'
       fullPath: '/admin/permissions-diagnose'
       preLoaderRoute: typeof AppAdminPermissionsDiagnoseRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/permissions-check': {
       id: '/_app/admin/permissions-check'
-      path: '/permissions-check'
+      path: '/admin/permissions-check'
       fullPath: '/admin/permissions-check'
       preLoaderRoute: typeof AppAdminPermissionsCheckRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/permissions': {
       id: '/_app/admin/permissions'
-      path: '/permissions'
+      path: '/admin/permissions'
       fullPath: '/admin/permissions'
       preLoaderRoute: typeof AppAdminPermissionsRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/hierarchy': {
       id: '/_app/admin/hierarchy'
-      path: '/hierarchy'
+      path: '/admin/hierarchy'
       fullPath: '/admin/hierarchy'
       preLoaderRoute: typeof AppAdminHierarchyRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/email-provider': {
       id: '/_app/admin/email-provider'
-      path: '/email-provider'
+      path: '/admin/email-provider'
       fullPath: '/admin/email-provider'
       preLoaderRoute: typeof AppAdminEmailProviderRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/audit': {
       id: '/_app/admin/audit'
-      path: '/audit'
+      path: '/admin/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AppAdminAuditRouteImport
-      parentRoute: typeof AppAdminRoute
+      parentRoute: typeof AppRoute
+    }
+    '/_app/projects/$projectId/': {
+      id: '/_app/projects/$projectId/'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId/'
+      preLoaderRoute: typeof AppProjectsProjectIdIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     '/api/public/hooks/smtp-test': {
       id: '/api/public/hooks/smtp-test'
@@ -712,56 +713,20 @@ declare module '@tanstack/react-router' {
     }
     '/_app/projects/$projectId/dashboard': {
       id: '/_app/projects/$projectId/dashboard'
-      path: '/dashboard'
+      path: '/projects/$projectId/dashboard'
       fullPath: '/projects/$projectId/dashboard'
       preLoaderRoute: typeof AppProjectsProjectIdDashboardRouteImport
-      parentRoute: typeof AppProjectsProjectIdRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/my-projects/$projectId/clients': {
       id: '/_app/my-projects/$projectId/clients'
-      path: '/$projectId/clients'
+      path: '/my-projects/$projectId/clients'
       fullPath: '/my-projects/$projectId/clients'
       preLoaderRoute: typeof AppMyProjectsProjectIdClientsRouteImport
-      parentRoute: typeof AppMyProjectsRoute
+      parentRoute: typeof AppRoute
     }
   }
 }
-
-interface AppAdminRouteChildren {
-  AppAdminAuditRoute: typeof AppAdminAuditRoute
-  AppAdminEmailProviderRoute: typeof AppAdminEmailProviderRoute
-  AppAdminHierarchyRoute: typeof AppAdminHierarchyRoute
-  AppAdminPermissionsRoute: typeof AppAdminPermissionsRoute
-  AppAdminPermissionsCheckRoute: typeof AppAdminPermissionsCheckRoute
-  AppAdminPermissionsDiagnoseRoute: typeof AppAdminPermissionsDiagnoseRoute
-  AppAdminRolesRoute: typeof AppAdminRolesRoute
-}
-
-const AppAdminRouteChildren: AppAdminRouteChildren = {
-  AppAdminAuditRoute: AppAdminAuditRoute,
-  AppAdminEmailProviderRoute: AppAdminEmailProviderRoute,
-  AppAdminHierarchyRoute: AppAdminHierarchyRoute,
-  AppAdminPermissionsRoute: AppAdminPermissionsRoute,
-  AppAdminPermissionsCheckRoute: AppAdminPermissionsCheckRoute,
-  AppAdminPermissionsDiagnoseRoute: AppAdminPermissionsDiagnoseRoute,
-  AppAdminRolesRoute: AppAdminRolesRoute,
-}
-
-const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
-  AppAdminRouteChildren,
-)
-
-interface AppMyProjectsRouteChildren {
-  AppMyProjectsProjectIdClientsRoute: typeof AppMyProjectsProjectIdClientsRoute
-}
-
-const AppMyProjectsRouteChildren: AppMyProjectsRouteChildren = {
-  AppMyProjectsProjectIdClientsRoute: AppMyProjectsProjectIdClientsRoute,
-}
-
-const AppMyProjectsRouteWithChildren = AppMyProjectsRoute._addFileChildren(
-  AppMyProjectsRouteChildren,
-)
 
 interface AppSettingsRouteChildren {
   AppSettingsAuditRoute: typeof AppSettingsAuditRoute
@@ -785,45 +750,52 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
   AppSettingsRouteChildren,
 )
 
-interface AppProjectsProjectIdRouteChildren {
-  AppProjectsProjectIdDashboardRoute: typeof AppProjectsProjectIdDashboardRoute
-}
-
-const AppProjectsProjectIdRouteChildren: AppProjectsProjectIdRouteChildren = {
-  AppProjectsProjectIdDashboardRoute: AppProjectsProjectIdDashboardRoute,
-}
-
-const AppProjectsProjectIdRouteWithChildren =
-  AppProjectsProjectIdRoute._addFileChildren(AppProjectsProjectIdRouteChildren)
-
 interface AppRouteChildren {
-  AppAdminRoute: typeof AppAdminRouteWithChildren
   AppAlertsRoute: typeof AppAlertsRoute
   AppDashboardRoute: typeof AppDashboardRoute
-  AppMyProjectsRoute: typeof AppMyProjectsRouteWithChildren
   AppProfileRoute: typeof AppProfileRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppTeamRoute: typeof AppTeamRoute
   AppTimeRoute: typeof AppTimeRoute
-  AppProjectsProjectIdRoute: typeof AppProjectsProjectIdRouteWithChildren
+  AppAdminAuditRoute: typeof AppAdminAuditRoute
+  AppAdminEmailProviderRoute: typeof AppAdminEmailProviderRoute
+  AppAdminHierarchyRoute: typeof AppAdminHierarchyRoute
+  AppAdminPermissionsRoute: typeof AppAdminPermissionsRoute
+  AppAdminPermissionsCheckRoute: typeof AppAdminPermissionsCheckRoute
+  AppAdminPermissionsDiagnoseRoute: typeof AppAdminPermissionsDiagnoseRoute
+  AppAdminRolesRoute: typeof AppAdminRolesRoute
   AppProjectsDashboardRoute: typeof AppProjectsDashboardRoute
+  AppAdminIndexRoute: typeof AppAdminIndexRoute
+  AppMyProjectsIndexRoute: typeof AppMyProjectsIndexRoute
   AppProjectsIndexRoute: typeof AppProjectsIndexRoute
+  AppMyProjectsProjectIdClientsRoute: typeof AppMyProjectsProjectIdClientsRoute
+  AppProjectsProjectIdDashboardRoute: typeof AppProjectsProjectIdDashboardRoute
+  AppProjectsProjectIdIndexRoute: typeof AppProjectsProjectIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAdminRoute: AppAdminRouteWithChildren,
   AppAlertsRoute: AppAlertsRoute,
   AppDashboardRoute: AppDashboardRoute,
-  AppMyProjectsRoute: AppMyProjectsRouteWithChildren,
   AppProfileRoute: AppProfileRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppTeamRoute: AppTeamRoute,
   AppTimeRoute: AppTimeRoute,
-  AppProjectsProjectIdRoute: AppProjectsProjectIdRouteWithChildren,
+  AppAdminAuditRoute: AppAdminAuditRoute,
+  AppAdminEmailProviderRoute: AppAdminEmailProviderRoute,
+  AppAdminHierarchyRoute: AppAdminHierarchyRoute,
+  AppAdminPermissionsRoute: AppAdminPermissionsRoute,
+  AppAdminPermissionsCheckRoute: AppAdminPermissionsCheckRoute,
+  AppAdminPermissionsDiagnoseRoute: AppAdminPermissionsDiagnoseRoute,
+  AppAdminRolesRoute: AppAdminRolesRoute,
   AppProjectsDashboardRoute: AppProjectsDashboardRoute,
+  AppAdminIndexRoute: AppAdminIndexRoute,
+  AppMyProjectsIndexRoute: AppMyProjectsIndexRoute,
   AppProjectsIndexRoute: AppProjectsIndexRoute,
+  AppMyProjectsProjectIdClientsRoute: AppMyProjectsProjectIdClientsRoute,
+  AppProjectsProjectIdDashboardRoute: AppProjectsProjectIdDashboardRoute,
+  AppProjectsProjectIdIndexRoute: AppProjectsProjectIdIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

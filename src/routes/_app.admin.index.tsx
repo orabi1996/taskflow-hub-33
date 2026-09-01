@@ -83,7 +83,7 @@ const EMPLOYEE_IMPORT_COLUMNS: BulkImportColumn[] = [
   { key: "manager_email", header: "بريد المدير المباشر", example: "manager@example.com", note: "يتم الربط بعد إنشاء كل الحسابات" },
 ];
 
-export const Route = createFileRoute("/_app/admin")({
+export const Route = createFileRoute("/_app/admin/")({
   component: AdminPage,
 });
 

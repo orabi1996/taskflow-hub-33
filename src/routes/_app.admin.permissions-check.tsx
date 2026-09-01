@@ -255,7 +255,7 @@ function PermissionsCheckPage() {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {navExpectations.map((n) => (
             <div
-              key={n.path}
+              key={n.path + n.label}
               className="flex items-center justify-between border rounded px-3 py-2 text-sm"
             >
               <div>
