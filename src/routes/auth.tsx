@@ -332,12 +332,8 @@ function AuthPage() {
           <div className="auth-hero-photo p-10 lg:p-12 flex flex-col justify-between text-foreground order-1 min-h-[280px] lg:min-h-0">
             <div className="hero-content flex flex-col h-full justify-between gap-8">
               <div className="flex items-center gap-3">
-                <div className="bg-white rounded-2xl px-4 py-2.5 md-elev-1 ring-1 ring-border">
-                  <img src={brandLogo} alt="Classera | C-SmarX" className="h-10 w-auto" />
-                </div>
-                <div>
-                  <div className="font-bold text-base leading-tight tracking-wide text-foreground">C-SmarX</div>
-                  <div className="text-[11px] text-muted-foreground leading-tight">من Classera</div>
+                <div className="bg-white rounded-2xl px-5 py-3 md-elev-1 ring-1 ring-border">
+                  <img src={brandLogo} alt="C-SmarX by Classera" className="h-12 w-auto" />
                 </div>
               </div>
 
