@@ -328,14 +328,17 @@ function MyProjectsPage() {
 
       {loading ? (
         <div className="text-center text-muted-foreground py-12">جارٍ التحميل...</div>
-      ) : projects.length === 0 ? (
+      ) : visibleProjects.length === 0 ? (
         <Card className="p-12 text-center">
           <FolderKanban className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground">لا يوجد مشاريع مسندة إليك بعد.</p>
+          <p className="text-muted-foreground">
+            {projects.length === 0 ? "لا يوجد مشاريع مسندة إليك بعد." : "لا توجد نتائج مطابقة للبحث."}
+          </p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((p) => {
+          {visibleProjects.map((p) => {
+
             const a = getAlert(p);
             return (
               <Card key={p.id} className="p-5 hover:shadow-[var(--shadow-elegant)] transition-[var(--transition-smooth)]">
