@@ -1,5 +1,6 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -19,9 +20,20 @@ export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
     const session = await ensureAuthSessionFromCookies();
     if (!session) throw redirect({ to: "/auth" });
+    // Admins can revoke a user's system access from Settings → Employees.
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("is_active")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    if (prof && prof.is_active === false) {
+      await supabase.auth.signOut();
+      throw redirect({ to: "/auth" });
+    }
   },
   component: AppLayout,
 });
+
 
 function AppLayout() {
   const { profile, roles, signOut } = useAuth();

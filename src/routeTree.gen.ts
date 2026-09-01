@@ -28,6 +28,7 @@ import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed
 import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
 import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
 import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.modules'
+import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
 import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
 import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
 import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
@@ -137,6 +138,11 @@ const AppSettingsSmtpRoute = AppSettingsSmtpRouteImport.update({
 const AppSettingsModulesRoute = AppSettingsModulesRouteImport.update({
   id: '/modules',
   path: '/modules',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsEmployeesRoute = AppSettingsEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppSettingsAutomationRoute = AppSettingsAutomationRouteImport.update({
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
+  '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
@@ -285,6 +292,7 @@ export interface FileRoutesByTo {
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
+  '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/_app/projects/dashboard': typeof AppProjectsDashboardRoute
   '/_app/settings/audit': typeof AppSettingsAuditRoute
   '/_app/settings/automation': typeof AppSettingsAutomationRoute
+  '/_app/settings/employees': typeof AppSettingsEmployeesRoute
   '/_app/settings/modules': typeof AppSettingsModulesRoute
   '/_app/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/projects/dashboard'
     | '/settings/audit'
     | '/settings/automation'
+    | '/settings/employees'
     | '/settings/modules'
     | '/settings/smtp'
     | '/api/ai/assistant'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/projects/dashboard'
     | '/settings/audit'
     | '/settings/automation'
+    | '/settings/employees'
     | '/settings/modules'
     | '/settings/smtp'
     | '/api/ai/assistant'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/_app/projects/dashboard'
     | '/_app/settings/audit'
     | '/_app/settings/automation'
+    | '/_app/settings/employees'
     | '/_app/settings/modules'
     | '/_app/settings/smtp'
     | '/api/ai/assistant'
@@ -593,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsModulesRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/employees': {
+      id: '/_app/settings/employees'
+      path: '/employees'
+      fullPath: '/settings/employees'
+      preLoaderRoute: typeof AppSettingsEmployeesRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/settings/automation': {
       id: '/_app/settings/automation'
       path: '/automation'
@@ -747,6 +766,7 @@ const AppMyProjectsRouteWithChildren = AppMyProjectsRoute._addFileChildren(
 interface AppSettingsRouteChildren {
   AppSettingsAuditRoute: typeof AppSettingsAuditRoute
   AppSettingsAutomationRoute: typeof AppSettingsAutomationRoute
+  AppSettingsEmployeesRoute: typeof AppSettingsEmployeesRoute
   AppSettingsModulesRoute: typeof AppSettingsModulesRoute
   AppSettingsSmtpRoute: typeof AppSettingsSmtpRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
@@ -755,6 +775,7 @@ interface AppSettingsRouteChildren {
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsAuditRoute: AppSettingsAuditRoute,
   AppSettingsAutomationRoute: AppSettingsAutomationRoute,
+  AppSettingsEmployeesRoute: AppSettingsEmployeesRoute,
   AppSettingsModulesRoute: AppSettingsModulesRoute,
   AppSettingsSmtpRoute: AppSettingsSmtpRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,

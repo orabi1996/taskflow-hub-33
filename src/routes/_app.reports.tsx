@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
 import {
   BarChart3, Clock, CheckCircle2, PauseCircle, XCircle, Activity,
   Download, FileSpreadsheet, Printer, TrendingUp, TrendingDown,
-  Users, Briefcase, Target, Zap, Radio,
+  Users, Briefcase, Target, Zap, Radio, Network,
 } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area,
@@ -111,6 +111,9 @@ function ReportsPage() {
   const [empModules, setEmpModules] = useState<Array<{ user_id: string; module_id: string; is_primary: boolean }>>([]);
   const [moduleNames, setModuleNames] = useState<Map<string, string>>(new Map());
   const [profileNames, setProfileNames] = useState<Map<string, string>>(new Map());
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
+  const [userDept, setUserDept] = useState<Map<string, string | null>>(new Map());
+  const [deptFilter, setDeptFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!canSee) return;
@@ -118,13 +121,14 @@ function ReportsPage() {
     const start = new Date(y, m - 1, 1).toISOString();
     const end = new Date(y, m, 1).toISOString();
     (async () => {
-      const [s, em, mods, profs] = await Promise.all([
+      const [s, em, mods, profs, deps] = await Promise.all([
         supabase.from("time_entries")
           .select("id, user_id, session_type, duration_minutes, started_at, ended_at")
           .gte("started_at", start).lt("started_at", end).limit(2000),
         supabase.from("employee_modules").select("user_id, module_id, is_primary"),
         supabase.from("company_modules").select("id, name"),
-        supabase.from("profiles").select("id, full_name"),
+        supabase.from("profiles").select("id, full_name, department_id"),
+        supabase.from("departments").select("id, name, parent_id").order("sort_order"),
       ]);
       setSessions(((s.data ?? []) as unknown) as typeof sessions);
       setEmpModules(((em.data ?? []) as unknown) as typeof empModules);
@@ -132,8 +136,14 @@ function ReportsPage() {
       ((mods.data ?? []) as Array<{ id: string; name: string }>).forEach((x) => map.set(x.id, x.name));
       setModuleNames(map);
       const pmap = new Map<string, string>();
-      ((profs.data ?? []) as Array<{ id: string; full_name: string }>).forEach((x) => pmap.set(x.id, x.full_name));
+      const dmap = new Map<string, string | null>();
+      ((profs.data ?? []) as Array<{ id: string; full_name: string; department_id: string | null }>).forEach((x) => {
+        pmap.set(x.id, x.full_name);
+        dmap.set(x.id, x.department_id ?? null);
+      });
       setProfileNames(pmap);
+      setUserDept(dmap);
+      setDepartments(((deps.data ?? []) as Array<{ id: string; name: string; parent_id: string | null }>));
     })();
   }, [month, canSee]);
 
@@ -168,17 +178,52 @@ function ReportsPage() {
     return () => { supabase.removeChannel(ch); };
   }, [month, canSee, live]);
 
+  const deptName = useMemo(() => {
+    const m = new Map<string, string>();
+    departments.forEach((d) => m.set(d.id, d.name));
+    return m;
+  }, [departments]);
+
+  // a department "scope" includes the department itself plus all of its sub-departments
+  const deptScope = useMemo(() => {
+    const children = new Map<string, string[]>();
+    departments.forEach((d) => {
+      if (!d.parent_id) return;
+      children.set(d.parent_id, [...(children.get(d.parent_id) ?? []), d.id]);
+    });
+    const scope = new Map<string, Set<string>>();
+    const walk = (id: string): Set<string> => {
+      if (scope.has(id)) return scope.get(id)!;
+      const set = new Set<string>([id]);
+      scope.set(id, set);
+      (children.get(id) ?? []).forEach((c) => walk(c).forEach((x) => set.add(x)));
+      return set;
+    };
+    departments.forEach((d) => walk(d.id));
+    return scope;
+  }, [departments]);
+
+  const inDeptFilter = (userId: string) => {
+    if (deptFilter === "all") return true;
+    const d = userDept.get(userId) ?? null;
+    if (deptFilter === "none") return !d;
+    if (!d) return false;
+    return (deptScope.get(deptFilter) ?? new Set([deptFilter])).has(d);
+  };
+
   const filtered = useMemo(() => rows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
+    if (!inDeptFilter(r.user_id)) return false;
     return true;
-  }), [rows, projectFilter, employeeFilter]);
+  }), [rows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
 
   const filteredPrev = useMemo(() => prevRows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
+    if (!inDeptFilter(r.user_id)) return false;
     return true;
-  }), [prevRows, projectFilter, employeeFilter]);
+  }), [prevRows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
 
   const projectOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -214,16 +259,69 @@ function ReportsPage() {
   const delta = (a: number, b: number) => b === 0 ? (a > 0 ? 100 : 0) : ((a - b) / b) * 100;
 
   const perEmployee = useMemo(() => {
-    const map = new Map<string, { name: string; counts: Record<TaskStatus, number>; minutes: number }>();
+    const map = new Map<string, { id: string; name: string; deptId: string | null; dept: string; counts: Record<TaskStatus, number>; minutes: number }>();
     filtered.forEach((r) => {
       const name = r.owner?.full_name ?? "غير معروف";
-      const cur = map.get(r.user_id) ?? { name, counts: { completed: 0, pending: 0, postponed: 0, cancelled: 0 }, minutes: 0 };
+      const dId = userDept.get(r.user_id) ?? null;
+      const cur = map.get(r.user_id) ?? { id: r.user_id, name, deptId: dId, dept: dId ? (deptName.get(dId) ?? "—") : "بدون قسم", counts: { completed: 0, pending: 0, postponed: 0, cancelled: 0 }, minutes: 0 };
       cur.counts[r.status]++;
       if (r.end_at) cur.minutes += Math.max(0, (new Date(r.end_at).getTime() - new Date(r.start_at).getTime()) / 60000);
       map.set(r.user_id, cur);
     });
     return Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
-  }, [filtered]);
+  }, [filtered, userDept, deptName]);
+
+  type DeptAgg = {
+    id: string; name: string; parentName: string | null; level: number;
+    employees: number; total: number; completed: number; pending: number;
+    postponed: number; cancelled: number; overdue: number; minutes: number;
+  };
+
+  const perDepartment = useMemo<DeptAgg[]>(() => {
+    const now = new Date();
+    const base = new Map<string, DeptAgg>();
+    const mk = (id: string, name: string, parentName: string | null, level: number): DeptAgg => ({
+      id, name, parentName, level, employees: 0, total: 0, completed: 0, pending: 0,
+      postponed: 0, cancelled: 0, overdue: 0, minutes: 0,
+    });
+    departments.forEach((d) => base.set(d.id, mk(d.id, d.name, d.parent_id ? (deptName.get(d.parent_id) ?? null) : null, d.parent_id ? 1 : 0)));
+    base.set("none", mk("none", "بدون قسم", null, 0));
+
+    const seen = new Map<string, Set<string>>();
+    filtered.forEach((r) => {
+      const key = userDept.get(r.user_id) ?? "none";
+      const agg = base.get(key) ?? base.get("none")!;
+      agg.total++;
+      if (r.status === "completed") agg.completed++;
+      if (r.status === "pending") agg.pending++;
+      if (r.status === "postponed") agg.postponed++;
+      if (r.status === "cancelled") agg.cancelled++;
+      if (r.status === "pending" && r.end_at && new Date(r.end_at) < now) agg.overdue++;
+      if (r.end_at) agg.minutes += Math.max(0, (new Date(r.end_at).getTime() - new Date(r.start_at).getTime()) / 60000);
+      const set = seen.get(agg.id) ?? new Set<string>();
+      set.add(r.user_id);
+      seen.set(agg.id, set);
+    });
+    base.forEach((a) => { a.employees = seen.get(a.id)?.size ?? 0; });
+    return Array.from(base.values())
+      .filter((a) => a.total > 0 || a.id !== "none")
+      .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "ar"));
+  }, [filtered, departments, userDept, deptName]);
+
+  // department totals including sub-departments
+  const perDepartmentRolled = useMemo(() => {
+    const byId = new Map(perDepartment.map((d) => [d.id, d]));
+    return perDepartment.map((d) => {
+      const scope = deptScope.get(d.id) ?? new Set([d.id]);
+      let total = 0, completed = 0, minutes = 0, employees = 0;
+      scope.forEach((id) => {
+        const x = byId.get(id);
+        if (!x) return;
+        total += x.total; completed += x.completed; minutes += x.minutes; employees += x.employees;
+      });
+      return { ...d, rolledTotal: total, rolledCompleted: completed, rolledMinutes: minutes, rolledEmployees: employees };
+    });
+  }, [perDepartment, deptScope]);
 
   const perProject = useMemo(() => {
     const map = new Map<string, { name: string; total: number; completed: number; pending: number; minutes: number }>();
@@ -485,6 +583,18 @@ function ReportsPage() {
             </Select>
           </div>
           <div className="w-44">
+            <Select value={deptFilter} onValueChange={setDeptFilter}>
+              <SelectTrigger><SelectValue placeholder="كل الأقسام" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأقسام</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.parent_id ? `— ${d.name}` : d.name}</SelectItem>
+                ))}
+                <SelectItem value="none">بدون قسم</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-44">
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
               <SelectTrigger><SelectValue placeholder="كل الموظفين" /></SelectTrigger>
               <SelectContent>
@@ -534,6 +644,7 @@ function ReportsPage() {
             <TabsTrigger value="radar">رادار الفريق</TabsTrigger>
             <TabsTrigger value="heatmap">الخريطة الحرارية</TabsTrigger>
             <TabsTrigger value="compare">مقارنة الفترات</TabsTrigger>
+            <TabsTrigger value="departments">الأقسام</TabsTrigger>
             <TabsTrigger value="employees">جدول الموظفين</TabsTrigger>
             <TabsTrigger value="sessions">الجلسات حسب الموظف والنظام</TabsTrigger>
           </TabsList>
@@ -740,6 +851,134 @@ function ReportsPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="departments" className="space-y-4">
+            <Card className="p-5">
+              <div className="font-semibold mb-3 flex items-center gap-2">
+                <Network className="h-4 w-4 text-primary" /> أداء الأقسام (شامل الأقسام الفرعية)
+              </div>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={perDepartmentRolled.filter((d) => d.rolledTotal > 0).slice(0, 12).map((d) => ({
+                    name: d.name, "منتهية": d.rolledCompleted, "غير منتهية": d.rolledTotal - d.rolledCompleted,
+                  }))}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="منتهية" stackId="a" fill={COLORS.completed} radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="غير منتهية" stackId="a" fill={COLORS.pending} radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <div className="px-6 py-4 border-b flex flex-wrap items-center justify-between gap-2">
+                <div className="font-semibold">تقرير تفصيلي لكل قسم</div>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportToExcel(
+                  perDepartmentRolled.map((d) => ({
+                    "القسم": d.name,
+                    "القسم الأعلى": d.parentName ?? "—",
+                    "الموظفون": d.employees,
+                    "المهام": d.total,
+                    "منتهية": d.completed,
+                    "قيد التنفيذ": d.pending,
+                    "مؤجلة": d.postponed,
+                    "ملغاة": d.cancelled,
+                    "متأخرة": d.overdue,
+                    "الساعات": fmtHrs(d.minutes),
+                    "المهام شاملة الفرعية": d.rolledTotal,
+                    "منتهية شاملة الفرعية": d.rolledCompleted,
+                  })), `تقرير-الأقسام-${month}`, "الأقسام")}>
+                  <FileSpreadsheet className="h-4 w-4" /> تصدير
+                </Button>
+              </div>
+              {perDepartmentRolled.length === 0 ? (
+                <div className="p-12 text-center text-muted-foreground">لا توجد أقسام معرّفة.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40">
+                      <tr>
+                        <th className="text-start px-4 py-3 font-semibold">القسم</th>
+                        <th className="text-start px-4 py-3 font-semibold">الموظفون</th>
+                        <th className="text-start px-4 py-3 font-semibold">المهام</th>
+                        <th className="text-start px-4 py-3 font-semibold">منتهية</th>
+                        <th className="text-start px-4 py-3 font-semibold">قيد التنفيذ</th>
+                        <th className="text-start px-4 py-3 font-semibold">مؤجلة/ملغاة</th>
+                        <th className="text-start px-4 py-3 font-semibold">متأخرة</th>
+                        <th className="text-start px-4 py-3 font-semibold">معدل الإنجاز</th>
+                        <th className="text-start px-4 py-3 font-semibold">الساعات</th>
+                        <th className="text-start px-4 py-3 font-semibold">شامل الفرعية</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {perDepartmentRolled.map((d) => {
+                        const rate = d.total ? (d.completed / d.total) * 100 : 0;
+                        const members = perEmployee.filter((e) => (e.deptId ?? "none") === d.id);
+                        const open = deptFilter === d.id;
+                        return (
+                          <Fragment key={d.id}>
+                            <tr className="border-t hover:bg-muted/30 transition-colors cursor-pointer"
+                                onClick={() => setDeptFilter(open ? "all" : d.id)}>
+                              <td className="px-4 py-3 font-medium">
+                                <span style={{ paddingInlineStart: d.level * 14 }}>
+                                  {d.level > 0 && <span className="text-muted-foreground">↳ </span>}{d.name}
+                                </span>
+                                {d.parentName && <div className="text-xs text-muted-foreground">ضمن: {d.parentName}</div>}
+                              </td>
+                              <td className="px-4 py-3">{d.employees}</td>
+                              <td className="px-4 py-3"><Badge variant="secondary">{d.total}</Badge></td>
+                              <td className="px-4 py-3">{d.completed}</td>
+                              <td className="px-4 py-3">{d.pending}</td>
+                              <td className="px-4 py-3">{d.postponed + d.cancelled}</td>
+                              <td className="px-4 py-3">
+                                {d.overdue > 0 ? <Badge variant="destructive">{d.overdue}</Badge> : "0"}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-20 rounded-full bg-muted overflow-hidden">
+                                    <div className="h-full transition-all duration-500" style={{ width: `${rate}%`, background: COLORS.completed }} />
+                                  </div>
+                                  <span className="text-xs font-medium">{rate.toFixed(0)}%</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 font-medium">{fmtHrs(d.minutes)}</td>
+                              <td className="px-4 py-3 text-xs text-muted-foreground">
+                                {d.rolledTotal} مهمة · {d.rolledCompleted} منتهية · {fmtHrs(d.rolledMinutes)}
+                              </td>
+                            </tr>
+                            {open && members.length > 0 && (
+                              <tr className="bg-muted/20 border-t">
+                                <td colSpan={10} className="px-6 py-3">
+                                  <div className="text-xs font-semibold mb-2">موظفو القسم</div>
+                                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                                    {members.map((e) => {
+                                      const t = e.counts.completed + e.counts.pending + e.counts.postponed + e.counts.cancelled;
+                                      return (
+                                        <div key={e.id} className="rounded-md border bg-background px-3 py-2 text-xs flex items-center justify-between gap-2">
+                                          <span className="font-medium">{e.name}</span>
+                                          <span className="text-muted-foreground">
+                                            {t} مهمة · {e.counts.completed} منتهية · {fmtHrs(e.minutes)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
           <TabsContent value="employees">
             <Card className="overflow-hidden">
               <div className="px-6 py-4 border-b font-semibold">تفاصيل الموظفين</div>
@@ -753,6 +992,7 @@ function ReportsPage() {
                     <thead className="bg-muted/40">
                       <tr>
                         <th className="text-start px-4 py-3 font-semibold">الموظف</th>
+                        <th className="text-start px-4 py-3 font-semibold">القسم</th>
                         <th className="text-start px-4 py-3 font-semibold">المجموع</th>
                         {(["completed", "pending", "postponed", "cancelled"] as TaskStatus[]).map((s) => (
                           <th key={s} className="text-start px-4 py-3 font-semibold">{STATUS_LABEL[s]}</th>
@@ -766,8 +1006,13 @@ function ReportsPage() {
                         const total = e.counts.completed + e.counts.pending + e.counts.postponed + e.counts.cancelled;
                         const rate = total ? (e.counts.completed / total) * 100 : 0;
                         return (
-                          <tr key={e.name} className="border-t hover:bg-muted/30 transition-colors">
+                          <tr key={e.id} className="border-t hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-3 font-medium">{e.name}</td>
+                            <td className="px-4 py-3">
+                              <button className="text-xs underline-offset-2 hover:underline text-muted-foreground" onClick={() => setDeptFilter(e.deptId ?? "none")}>
+                                {e.dept}
+                              </button>
+                            </td>
                             <td className="px-4 py-3"><Badge variant="secondary">{total}</Badge></td>
                             <td className="px-4 py-3">{e.counts.completed}</td>
                             <td className="px-4 py-3">{e.counts.pending}</td>
