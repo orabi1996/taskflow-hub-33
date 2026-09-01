@@ -784,3 +784,145 @@
   }
   .app-ambient::before, .app-ambient::after { display: none; }
 }
+
+/* ============================================================
+   Google Material 3 layer — surfaces, elevation, state layers
+   ============================================================ */
+@layer components {
+  .md-surface {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--md-elev-1);
+    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  }
+  .md-elev-1 { box-shadow: var(--md-elev-1); }
+  .md-elev-2 { box-shadow: var(--md-elev-2); }
+  .md-elev-3 { box-shadow: var(--md-elev-3); }
+}
+
+/* Material state layer on interactive elements */
+.md-state {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.md-state::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.15s cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+.md-state:hover::before { opacity: 0.08; }
+.md-state:focus-visible::before { opacity: 0.10; }
+.md-state:active::before { opacity: 0.12; }
+
+/* Material shape + elevation for shared app chrome */
+.hover-lift { transition: box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.2s cubic-bezier(0.2, 0, 0, 1); }
+.hover-lift:hover { transform: none; box-shadow: var(--md-elev-2); }
+
+.nav-link[data-active="true"] {
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+  color: var(--primary);
+  border-radius: 9999px;
+}
+.nav-link { border-radius: 9999px; }
+.nav-link::after { display: none; }
+
+/* ============================================================
+   Material 3 auth screen (overrides the previous glass theme)
+   ============================================================ */
+.auth-bg {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(1100px 620px at 12% -10%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 62%),
+    radial-gradient(900px 520px at 105% 8%, color-mix(in oklab, var(--primary-glow) 14%, transparent), transparent 60%),
+    radial-gradient(760px 520px at 50% 115%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 62%);
+}
+.auth-bg::before { display: none; }
+.auth-bg > .auth-bg-image { display: none; }
+.auth-bg > .auth-bg-veil { display: none; }
+.auth-bg-mesh { display: none; }
+.auth-particles { display: none; }
+
+.auth-card {
+  background: var(--card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 28px; /* M3 extra-large */
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  box-shadow: var(--md-elev-3);
+}
+.auth-card::before { display: none; }
+
+.auth-hero-photo {
+  background: linear-gradient(160deg,
+    color-mix(in oklab, var(--primary) 16%, var(--card)) 0%,
+    color-mix(in oklab, var(--primary) 9%, var(--card)) 55%,
+    color-mix(in oklab, var(--accent) 8%, var(--card)) 100%);
+  color: var(--foreground);
+}
+.auth-hero-photo::after { display: none; }
+.auth-hero-photo :is(.text-stone-900, .text-stone-800, .text-stone-700) { color: var(--foreground); }
+.auth-hero-photo .text-stone-700 { color: var(--muted-foreground); }
+
+.auth-form-side {
+  background: var(--card);
+  border-inline-start: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+}
+
+.gold-divider {
+  background: var(--gradient-primary);
+  box-shadow: none;
+}
+
+.feature-card-light {
+  background: color-mix(in oklab, var(--primary) 6%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 16px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+.feature-card-light .fc-icon {
+  background: color-mix(in oklab, var(--primary) 14%, var(--card));
+  color: var(--primary);
+  border-radius: 12px;
+}
+
+/* Material filled text field (soft container + focus underline ring) */
+.auth-input-soft {
+  background: color-mix(in oklab, var(--muted) 92%, transparent);
+  border: 1px solid color-mix(in oklab, var(--input) 55%, transparent);
+  border-radius: 12px;
+  box-shadow: none;
+  transition: background 0.15s cubic-bezier(0.2, 0, 0, 1), border-color 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+.auth-input-soft:hover {
+  background: color-mix(in oklab, var(--muted) 100%, transparent);
+  border-color: color-mix(in oklab, var(--input) 80%, transparent);
+}
+.auth-input-soft:focus-within {
+  background: var(--card);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.auth-input-soft[data-invalid="true"] { border-color: var(--destructive); background: color-mix(in oklab, var(--destructive) 6%, var(--card)); }
+.auth-input-soft[data-invalid="true"]:focus-within { box-shadow: 0 0 0 1px var(--destructive); }
+
+/* Material filled button */
+.auth-cta {
+  border-radius: 9999px;
+  box-shadow: var(--md-elev-1);
+  transition: box-shadow 0.15s cubic-bezier(0.2, 0, 0, 1), filter 0.15s cubic-bezier(0.2, 0, 0, 1);
+}
+.auth-cta:hover:not(:disabled) { transform: none; box-shadow: var(--md-elev-2); }
+.auth-cta:active:not(:disabled) { box-shadow: var(--md-elev-1); }
+.auth-cta::after { display: none; }
+
+.auth-alert { border-radius: 12px; }
+.auth-alert-error { background: color-mix(in oklab, var(--destructive) 10%, var(--card)); }
+.auth-alert-success { background: color-mix(in oklab, var(--success) 12%, var(--card)); }
+.auth-alert-info { background: color-mix(in oklab, var(--primary) 10%, var(--card)); }
