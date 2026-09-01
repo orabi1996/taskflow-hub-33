@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
@@ -919,8 +919,8 @@ function ReportsPage() {
                         const members = perEmployee.filter((e) => (e.deptId ?? "none") === d.id);
                         const open = deptFilter === d.id;
                         return (
-                          <>
-                            <tr key={d.id} className="border-t hover:bg-muted/30 transition-colors cursor-pointer"
+                          <Fragment key={d.id}>
+                            <tr className="border-t hover:bg-muted/30 transition-colors cursor-pointer"
                                 onClick={() => setDeptFilter(open ? "all" : d.id)}>
                               <td className="px-4 py-3 font-medium">
                                 <span style={{ paddingInlineStart: d.level * 14 }}>
@@ -950,7 +950,7 @@ function ReportsPage() {
                               </td>
                             </tr>
                             {open && members.length > 0 && (
-                              <tr key={`${d.id}-members`} className="bg-muted/20 border-t">
+                              <tr className="bg-muted/20 border-t">
                                 <td colSpan={10} className="px-6 py-3">
                                   <div className="text-xs font-semibold mb-2">موظفو القسم</div>
                                   <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
@@ -969,7 +969,7 @@ function ReportsPage() {
                                 </td>
                               </tr>
                             )}
-                          </>
+                          </Fragment>
                         );
                       })}
                     </tbody>

@@ -97,7 +97,6 @@ function EmployeesSettings() {
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
-  const deptName = (id: string | null) => depts.find((d) => d.id === id)?.name ?? "—";
   const rolesOf = (uid: string) => roleRows.filter((r) => r.user_id === uid);
 
   const filtered = useMemo(() => {
