@@ -111,6 +111,9 @@ function ReportsPage() {
   const [empModules, setEmpModules] = useState<Array<{ user_id: string; module_id: string; is_primary: boolean }>>([]);
   const [moduleNames, setModuleNames] = useState<Map<string, string>>(new Map());
   const [profileNames, setProfileNames] = useState<Map<string, string>>(new Map());
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
+  const [userDept, setUserDept] = useState<Map<string, string | null>>(new Map());
+  const [deptFilter, setDeptFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!canSee) return;
@@ -118,13 +121,14 @@ function ReportsPage() {
     const start = new Date(y, m - 1, 1).toISOString();
     const end = new Date(y, m, 1).toISOString();
     (async () => {
-      const [s, em, mods, profs] = await Promise.all([
+      const [s, em, mods, profs, deps] = await Promise.all([
         supabase.from("time_entries")
           .select("id, user_id, session_type, duration_minutes, started_at, ended_at")
           .gte("started_at", start).lt("started_at", end).limit(2000),
         supabase.from("employee_modules").select("user_id, module_id, is_primary"),
         supabase.from("company_modules").select("id, name"),
-        supabase.from("profiles").select("id, full_name"),
+        supabase.from("profiles").select("id, full_name, department_id"),
+        supabase.from("departments").select("id, name, parent_id").order("sort_order"),
       ]);
       setSessions(((s.data ?? []) as unknown) as typeof sessions);
       setEmpModules(((em.data ?? []) as unknown) as typeof empModules);
@@ -132,8 +136,14 @@ function ReportsPage() {
       ((mods.data ?? []) as Array<{ id: string; name: string }>).forEach((x) => map.set(x.id, x.name));
       setModuleNames(map);
       const pmap = new Map<string, string>();
-      ((profs.data ?? []) as Array<{ id: string; full_name: string }>).forEach((x) => pmap.set(x.id, x.full_name));
+      const dmap = new Map<string, string | null>();
+      ((profs.data ?? []) as Array<{ id: string; full_name: string; department_id: string | null }>).forEach((x) => {
+        pmap.set(x.id, x.full_name);
+        dmap.set(x.id, x.department_id ?? null);
+      });
       setProfileNames(pmap);
+      setUserDept(dmap);
+      setDepartments(((deps.data ?? []) as Array<{ id: string; name: string; parent_id: string | null }>));
     })();
   }, [month, canSee]);
 
@@ -168,17 +178,52 @@ function ReportsPage() {
     return () => { supabase.removeChannel(ch); };
   }, [month, canSee, live]);
 
+  const deptName = useMemo(() => {
+    const m = new Map<string, string>();
+    departments.forEach((d) => m.set(d.id, d.name));
+    return m;
+  }, [departments]);
+
+  // a department "scope" includes the department itself plus all of its sub-departments
+  const deptScope = useMemo(() => {
+    const children = new Map<string, string[]>();
+    departments.forEach((d) => {
+      if (!d.parent_id) return;
+      children.set(d.parent_id, [...(children.get(d.parent_id) ?? []), d.id]);
+    });
+    const scope = new Map<string, Set<string>>();
+    const walk = (id: string): Set<string> => {
+      if (scope.has(id)) return scope.get(id)!;
+      const set = new Set<string>([id]);
+      scope.set(id, set);
+      (children.get(id) ?? []).forEach((c) => walk(c).forEach((x) => set.add(x)));
+      return set;
+    };
+    departments.forEach((d) => walk(d.id));
+    return scope;
+  }, [departments]);
+
+  const inDeptFilter = (userId: string) => {
+    if (deptFilter === "all") return true;
+    const d = userDept.get(userId) ?? null;
+    if (deptFilter === "none") return !d;
+    if (!d) return false;
+    return (deptScope.get(deptFilter) ?? new Set([deptFilter])).has(d);
+  };
+
   const filtered = useMemo(() => rows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
+    if (!inDeptFilter(r.user_id)) return false;
     return true;
-  }), [rows, projectFilter, employeeFilter]);
+  }), [rows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
 
   const filteredPrev = useMemo(() => prevRows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
+    if (!inDeptFilter(r.user_id)) return false;
     return true;
-  }), [prevRows, projectFilter, employeeFilter]);
+  }), [prevRows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
 
   const projectOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -214,16 +259,17 @@ function ReportsPage() {
   const delta = (a: number, b: number) => b === 0 ? (a > 0 ? 100 : 0) : ((a - b) / b) * 100;
 
   const perEmployee = useMemo(() => {
-    const map = new Map<string, { name: string; counts: Record<TaskStatus, number>; minutes: number }>();
+    const map = new Map<string, { id: string; name: string; deptId: string | null; dept: string; counts: Record<TaskStatus, number>; minutes: number }>();
     filtered.forEach((r) => {
       const name = r.owner?.full_name ?? "غير معروف";
-      const cur = map.get(r.user_id) ?? { name, counts: { completed: 0, pending: 0, postponed: 0, cancelled: 0 }, minutes: 0 };
+      const dId = userDept.get(r.user_id) ?? null;
+      const cur = map.get(r.user_id) ?? { id: r.user_id, name, deptId: dId, dept: dId ? (deptName.get(dId) ?? "—") : "بدون قسم", counts: { completed: 0, pending: 0, postponed: 0, cancelled: 0 }, minutes: 0 };
       cur.counts[r.status]++;
       if (r.end_at) cur.minutes += Math.max(0, (new Date(r.end_at).getTime() - new Date(r.start_at).getTime()) / 60000);
       map.set(r.user_id, cur);
     });
     return Array.from(map.values()).sort((a, b) => b.minutes - a.minutes);
-  }, [filtered]);
+  }, [filtered, userDept, deptName]);
 
   const perProject = useMemo(() => {
     const map = new Map<string, { name: string; total: number; completed: number; pending: number; minutes: number }>();
