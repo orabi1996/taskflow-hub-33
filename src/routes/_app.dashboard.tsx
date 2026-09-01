@@ -14,6 +14,7 @@ import {
 import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
+  LayoutDashboard, Users2, UserCircle,
 } from "lucide-react";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
@@ -41,6 +42,7 @@ interface TaskRow {
   end_at: string | null;
   project_id: string | null;
   project: { name: string } | null;
+  owner: { full_name: string | null; job_title: string | null } | null;
   attachments: { count: number }[];
 }
 
@@ -80,6 +82,7 @@ function Dashboard() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [employeeFilter, setEmployeeFilter] = useState<string>("all");
 
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
 
@@ -88,7 +91,7 @@ function Dashboard() {
     setLoading(true);
     const tasksQuery = supabase
       .from("tasks")
-      .select("id, user_id, title, details, status, start_at, end_at, project_id, project:projects(name), attachments:task_attachments(count)")
+      .select("id, user_id, title, details, status, start_at, end_at, project_id, project:projects(name), owner:profiles!tasks_user_id_fkey(full_name, job_title), attachments:task_attachments(count)")
       .order("start_at", { ascending: false })
       .limit(500);
     // Admins/GM see all tasks (RLS allows it). Others see only their own.
@@ -131,8 +134,36 @@ function Dashboard() {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [tasks]);
 
+  const employeesList = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const t of tasks) if (t.user_id) map.set(t.user_id, t.owner?.full_name || "غير معروف");
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [tasks]);
+
+  const employeeStats = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number }>();
+    const now = new Date();
+    for (const t of tasks) {
+      const key = t.user_id;
+      if (!map.has(key)) {
+        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0 });
+      }
+      const row = map.get(key)!;
+      row.total++;
+      if (t.status === "pending") row.pending++;
+      if (t.status === "completed") row.completed++;
+      if (t.status === "pending" && t.end_at && new Date(t.end_at) < now) row.overdue++;
+      if (t.end_at) {
+        const ms = new Date(t.end_at).getTime() - new Date(t.start_at).getTime();
+        if (ms > 0) row.minutes += Math.round(ms / 60000);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [tasks]);
+
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
+      if (employeeFilter !== "all" && t.user_id !== employeeFilter) return false;
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
       if (projectFilter !== "all" && t.project_id !== projectFilter) return false;
       if (search) {
@@ -141,7 +172,7 @@ function Dashboard() {
       }
       return true;
     });
-  }, [tasks, statusFilter, projectFilter, search]);
+  }, [tasks, statusFilter, projectFilter, search, employeeFilter]);
 
   const counts = {
     total: tasks.length,
@@ -214,17 +245,26 @@ function Dashboard() {
     project: t.project,
   }));
 
-  const clearFilters = () => { setSearch(""); setStatusFilter("all"); setProjectFilter("all"); };
-  const filtersActive = search || statusFilter !== "all" || projectFilter !== "all";
+  const clearFilters = () => { setSearch(""); setStatusFilter("all"); setProjectFilter("all"); setEmployeeFilter("all"); };
+  const filtersActive = search || statusFilter !== "all" || projectFilter !== "all" || employeeFilter !== "all";
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">مرحبًا، {profile?.full_name?.split(" ")[0] || "بك"} 👋</h1>
-          <p className="text-muted-foreground mt-1">إليك نظرة شاملة على نشاطك ومهامك</p>
+          <h1 className="text-2xl font-bold">
+            {isAdminOrGM
+              ? "لوحة التحكم العامة"
+              : `مرحبًا، ${profile?.full_name?.split(" ")[0] || "بك"} 👋`}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {isAdminOrGM
+              ? "نظرة شاملة على كل ما يسجّله الموظفون ومدراء الأقسام في النظام"
+              : "إليك نظرة شاملة على نشاطك ومهامك"}
+          </p>
         </div>
+        {!isAdminOrGM && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="lg" className="shadow-[var(--shadow-elegant)]">
@@ -247,6 +287,7 @@ function Dashboard() {
             </div>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* KPIs */}
@@ -255,6 +296,9 @@ function Dashboard() {
         <KpiCard label="قيد التنفيذ" value={counts.pending} icon={Clock} accent="info" />
         <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" />
         <KpiCard label="متأخرة" value={overdueCount} icon={AlertTriangle} accent="destructive" hint="تجاوزت موعد الإنهاء" />
+        {isAdminOrGM && (
+          <KpiCard label="موظفون نشطون" value={employeeStats.length} icon={Users2} accent="info" hint="لديهم مهام مسجّلة" />
+        )}
         {isManager ? (
           <>
             <KpiCard label="مشاريع نشطة" value={projectsCount} icon={FolderKanban} accent="primary" />
@@ -305,6 +349,59 @@ function Dashboard() {
         </Card>
       </div>
 
+      {/* Per-employee overview (admin / GM) */}
+      {isAdminOrGM && (
+        <Card className="overflow-hidden">
+          <div className="px-6 py-4 border-b flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4 text-primary" />
+            <h2 className="font-semibold">أداء الموظفين</h2>
+            <Badge variant="secondary" className="ms-auto">{employeeStats.length}</Badge>
+          </div>
+          {employeeStats.length === 0 ? (
+            <div className="p-10 text-center text-muted-foreground text-sm">لا توجد مهام مسجّلة بعد</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-muted-foreground">
+                  <tr className="text-end">
+                    <th className="px-4 py-2 font-medium text-start">الموظف</th>
+                    <th className="px-4 py-2 font-medium">الإجمالي</th>
+                    <th className="px-4 py-2 font-medium">قيد التنفيذ</th>
+                    <th className="px-4 py-2 font-medium">منتهية</th>
+                    <th className="px-4 py-2 font-medium">متأخرة</th>
+                    <th className="px-4 py-2 font-medium">ساعات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {employeeStats.map((e) => (
+                    <tr
+                      key={e.id}
+                      className="hover:bg-muted/30 cursor-pointer"
+                      onClick={() => setEmployeeFilter(e.id === employeeFilter ? "all" : e.id)}
+                    >
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <UserCircle className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">{e.name}</div>
+                            {e.job && <div className="text-xs text-muted-foreground">{e.job}</div>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 text-center">{e.total}</td>
+                      <td className="px-4 py-2 text-center text-info">{e.pending}</td>
+                      <td className="px-4 py-2 text-center text-success">{e.completed}</td>
+                      <td className="px-4 py-2 text-center text-destructive">{e.overdue}</td>
+                      <td className="px-4 py-2 text-center">{Math.floor(e.minutes / 60)} س</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* Filters */}
       <Card className="p-4">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
@@ -322,6 +419,17 @@ function Dashboard() {
               <SelectItem value="cancelled">ملغاة</SelectItem>
             </SelectContent>
           </Select>
+          {isAdminOrGM && (
+            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+              <SelectTrigger className="md:w-[200px]"><SelectValue placeholder="الموظف" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الموظفين</SelectItem>
+                {employeesList.map((e) => (
+                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="md:w-[200px]"><SelectValue placeholder="المشروع" /></SelectTrigger>
             <SelectContent>
@@ -376,6 +484,11 @@ function Dashboard() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold">{t.title}</h3>
+                            {isAdminOrGM && (
+                              <Badge variant="secondary" className="font-normal gap-1">
+                                <UserCircle className="h-3 w-3" />{t.owner?.full_name || "غير معروف"}
+                              </Badge>
+                            )}
                             {t.project && <Badge variant="outline" className="font-normal">{t.project.name}</Badge>}
                             {attCount > 0 && (
                               <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
