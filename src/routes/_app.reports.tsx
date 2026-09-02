@@ -23,6 +23,7 @@ import {
 import { exportToExcel, exportToCSV, printSection } from "@/lib/export-utils";
 import { exportTableToPDF } from "@/lib/pdf-utils";
 import { FileText, Boxes } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
@@ -575,23 +576,12 @@ function ReportsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 no-print">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            التقارير والتحليلات
-            {live && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-normal text-success">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-                </span>
-                مباشر
-              </span>
-            )}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            رؤية شاملة للأداء والإنتاجية {pulse > 0 && <span className="text-xs">· تحديث #{pulse}</span>}
-          </p>
-        </div>
+        <PageHeader
+          icon={BarChart3}
+          title="التقارير والتحليلات"
+          description={`رؤية شاملة للأداء والإنتاجية${pulse > 0 ? ` · تحديث #${pulse}` : ""}${live ? " · مباشر" : ""}`}
+        />
+
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant={live ? "default" : "outline"}

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/common/PageHeader";
 import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -401,15 +402,12 @@ function ModulesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Boxes className="h-5 w-5 text-primary" /> أنظمة الشركة (Modules)
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            أدر الأنظمة الفرعية للشركة (ERP, المنصة التعليمية, Edumall, Cpay…) وأسند الموظفين إلى كل نظام.
-            {canEdit ? " اسحب وأفلت لإعادة الترتيب أو تغيير الأب." : ""}
-          </p>
-        </div>
+        <PageHeader
+          icon={Boxes}
+          title="أنظمة الشركة (Modules)"
+          description={`أدر الأنظمة الفرعية للشركة (ERP, المنصة التعليمية, Edumall, Cpay…) وأسند الموظفين إلى كل نظام.${canEdit ? " اسحب وأفلت لإعادة الترتيب أو تغيير الأب." : ""}`}
+        />
+
         <div className="flex items-center gap-2">
           {!canEdit && (
             <Badge variant="outline" className="gap-1.5"><Lock className="h-3 w-3" /> قراءة فقط</Badge>

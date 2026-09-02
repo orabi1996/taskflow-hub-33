@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/common/PageHeader";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -171,12 +172,12 @@ function AuditPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold">سجل التدقيق الأمني</h2>
-          <p className="text-muted-foreground mt-1 text-sm">
-            جميع الأحداث الحساسة في النظام: تسجيل الدخول، تغيير الصلاحيات، التعديلات الإدارية.
-          </p>
-        </div>
+        <PageHeader
+          icon={ShieldAlert}
+          title="سجل التدقيق الأمني"
+          description="جميع الأحداث الحساسة في النظام: تسجيل الدخول، تغيير الصلاحيات، التعديلات الإدارية."
+        />
+
         <div className="flex flex-wrap items-center gap-2">
           {canExport && (
             <>

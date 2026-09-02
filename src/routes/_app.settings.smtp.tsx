@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageHeader } from "@/components/common/PageHeader";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -146,15 +147,12 @@ function SmtpPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ServerCog className="h-6 w-6 text-primary" />
-            إعدادات SMTP المخصص
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            تكوين خادم SMTP خاص بك (Gmail / Office365 / خادم خاص) لإرسال جميع إيميلات النظام.
-          </p>
-        </div>
+        <PageHeader
+          icon={ServerCog}
+          title="إعدادات SMTP المخصص"
+          description="تكوين خادم SMTP خاص بك (Gmail / Office365 / خادم خاص) لإرسال جميع إيميلات النظام."
+        />
+
         <div className="flex items-center gap-2">
           <Link to="/admin"><Button variant="outline">قائمة الموظفين</Button></Link>
           <Link to="/admin/email-provider"><Button variant="outline">مزود البريد</Button></Link>

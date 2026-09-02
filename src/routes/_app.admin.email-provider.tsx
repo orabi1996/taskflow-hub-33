@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageHeader } from "@/components/common/PageHeader";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -262,13 +263,12 @@ function EmailProviderPage() {
             <ArrowLeft className="h-4 w-4" />
             عودة للوحة التحكم
           </Link>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Mail className="h-6 w-6" />
-            إعداد مزود البريد الإلكتروني
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            إدارة دومين الإرسال والتحقق من DNS ومراقبة سجل الإيميلات.
-          </p>
+          <PageHeader
+            icon={Mail}
+            title="إعداد مزود البريد الإلكتروني"
+            description="إدارة دومين الإرسال والتحقق من DNS ومراقبة سجل الإيميلات."
+          />
+
         </div>
         <Button variant="outline" onClick={loadLogs} disabled={loading}>
           <RefreshCw className={`h-4 w-4 me-2 ${loading ? "animate-spin" : ""}`} />
