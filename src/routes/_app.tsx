@@ -56,6 +56,20 @@ function AppLayout() {
     navigate({ to: "/auth" });
   };
 
+  // خروج تلقائي عند الخمول (قابل للتخصيص من الإعدادات)
+  const idleMinutes = (() => {
+    if (typeof window === "undefined") return 30;
+    const v = Number(window.localStorage.getItem("security.idleMinutes"));
+    return Number.isFinite(v) && v > 0 ? v : 30;
+  })();
+
+  useIdleLogout(async () => {
+    toast.info("تم تسجيل الخروج تلقائيًا بسبب عدم النشاط");
+    await signOut();
+    navigate({ to: "/auth" });
+  }, idleMinutes);
+
+
   const mainItems: NavItem[] = [
     {
       to: "/dashboard",
