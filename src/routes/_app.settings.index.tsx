@@ -6,6 +6,7 @@ import {
   ServerCog,
   ArrowLeft,
   Bot,
+  Bell,
   Boxes,
   ShieldCheck,
   Network,
