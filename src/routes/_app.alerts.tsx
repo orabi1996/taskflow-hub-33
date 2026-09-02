@@ -101,29 +101,32 @@ function AlertsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <AlertTriangle className="h-6 w-6 text-amber-500" /> تنبيهات العقود
-          </h1>
-          <p className="text-muted-foreground mt-1">جميع المشاريع التي اقترب أو انتهى عقدها</p>
-        </div>
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">الكل ({counts.all})</TabsTrigger>
-            <TabsTrigger value="expired">منتهي ({counts.expired})</TabsTrigger>
-            <TabsTrigger value="soon">قريب ({counts.soon})</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      <PageHeader
+        title="تنبيهات العقود"
+        description="جميع المشاريع التي اقترب أو انتهى عقدها"
+        icon={AlertTriangle}
+        actions={
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <TabsList>
+              <TabsTrigger value="all">الكل ({counts.all})</TabsTrigger>
+              <TabsTrigger value="expired">منتهي ({counts.expired})</TabsTrigger>
+              <TabsTrigger value="soon">قريب ({counts.soon})</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        }
+      />
 
       {loading ? (
-        <div className="text-center text-muted-foreground py-12">جارٍ التحميل...</div>
+        <Card className="overflow-hidden"><ListSkeleton rows={4} /></Card>
       ) : filtered.length === 0 ? (
-        <Card className="p-12 text-center">
-          <BellOff className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground">لا توجد تنبيهات في هذه الفئة</p>
+        <Card>
+          <EmptyState
+            icon={BellOff}
+            title="لا توجد تنبيهات في هذه الفئة"
+            description="ستظهر هنا المشاريع التي يقترب موعد انتهاء عقدها."
+          />
         </Card>
+
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filtered.map(({ p, level, days, dismissed }) => (
