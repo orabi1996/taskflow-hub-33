@@ -162,12 +162,12 @@ function Dashboard() {
   }, [tasks]);
 
   const employeeStats = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number }>();
+    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number; rate: number }>();
     const now = new Date();
     for (const t of tasks) {
       const key = t.user_id;
       if (!map.has(key)) {
-        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0 });
+        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0, rate: 0 });
       }
       const row = map.get(key)!;
       row.total++;
@@ -179,8 +179,20 @@ function Dashboard() {
         if (ms > 0) row.minutes += Math.round(ms / 60000);
       }
     }
-    return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [tasks]);
+    const rows = Array.from(map.values()).map((r) => ({
+      ...r,
+      rate: r.total ? Math.round((r.completed / r.total) * 100) : 0,
+    }));
+    const cmp: Record<string, (a: typeof rows[number], b: typeof rows[number]) => number> = {
+      total: (a, b) => b.total - a.total,
+      completed: (a, b) => b.completed - a.completed,
+      overdue: (a, b) => b.overdue - a.overdue,
+      rate: (a, b) => b.rate - a.rate,
+      hours: (a, b) => b.minutes - a.minutes,
+    };
+    return rows.sort(cmp[empSort] ?? cmp.total);
+  }, [tasks, empSort]);
+
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
