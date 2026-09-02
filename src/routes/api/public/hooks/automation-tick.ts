@@ -1,6 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
+type Rule = {
+  id: string;
+  trigger_type: string;
+  trigger_config: unknown;
+  action_type: string;
+  action_config: unknown;
+};
+
+type Notif = {
+  user_id: string;
+  type: string;
+  title: string;
+  body: string;
+  link: string;
+  project_id: string | null;
+  metadata: Record<string, unknown>;
+};
+
 // Cron-triggered endpoint that scans active automation rules and applies actions.
 // Called by pg_cron via /api/public/* (auth bypassed; we still gate via service role usage).
 export const Route = createFileRoute("/api/public/hooks/automation-tick")({
@@ -25,10 +43,23 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
 
         const results: Array<Record<string, unknown>> = [];
 
-        for (const rule of rules ?? []) {
+        for (const rule of (rules ?? []) as Rule[]) {
           try {
-            let affected = 0;
             const now = new Date();
+            const cfg = (rule.trigger_config ?? {}) as Record<string, unknown>;
+            const cooldownHours = Number(cfg["cooldown_hours"] ?? 24);
+            const sent = await recentlyNotified(sb, rule.id, cooldownHours);
+            const queue: Notif[] = [];
+
+            const push = async (entityId: string, ownerId: string | null, n: Omit<Notif, "user_id" | "metadata">) => {
+              const targets = await resolveTargets(sb, rule, ownerId);
+              for (const uid of targets) {
+                const key = `${uid}|${entityId}`;
+                if (sent.has(key)) continue;
+                sent.add(key);
+                queue.push({ ...n, user_id: uid, metadata: { rule_id: rule.id, entity_id: entityId } });
+              }
+            };
 
             if (rule.trigger_type === "task_overdue") {
               const { data: tasks } = await sb
@@ -38,22 +69,16 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
                 .in("status", ["pending", "postponed"])
                 .limit(500);
               for (const t of tasks ?? []) {
-                const targets = await resolveTargets(sb, rule, t.user_id);
-                for (const uid of targets) {
-                  await sb.from("notifications").insert({
-                    user_id: uid,
-                    type: "automation",
-                    title: "مهمة متأخرة",
-                    body: `المهمة "${t.title}" تجاوزت موعد الانتهاء`,
-                    link: "/dashboard",
-                    project_id: t.project_id,
-                    metadata: { rule_id: rule.id, task_id: t.id },
-                  });
-                  affected++;
-                }
+                await push(t.id, t.user_id, {
+                  type: "automation",
+                  title: "مهمة متأخرة",
+                  body: `المهمة "${t.title}" تجاوزت موعد الانتهاء`,
+                  link: "/dashboard",
+                  project_id: t.project_id,
+                });
               }
             } else if (rule.trigger_type === "task_due_soon") {
-              const hours = Number((rule.trigger_config as { hours?: number })?.hours ?? 24);
+              const hours = Number(cfg["hours"] ?? 24);
               const horizon = new Date(now.getTime() + hours * 3600_000).toISOString();
               const { data: tasks } = await sb
                 .from("tasks")
@@ -63,22 +88,16 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
                 .eq("status", "pending")
                 .limit(500);
               for (const t of tasks ?? []) {
-                const targets = await resolveTargets(sb, rule, t.user_id);
-                for (const uid of targets) {
-                  await sb.from("notifications").insert({
-                    user_id: uid,
-                    type: "automation",
-                    title: "تذكير: موعد قريب",
-                    body: `المهمة "${t.title}" تنتهي خلال ${hours} ساعة`,
-                    link: "/dashboard",
-                    project_id: t.project_id,
-                    metadata: { rule_id: rule.id, task_id: t.id },
-                  });
-                  affected++;
-                }
+                await push(t.id, t.user_id, {
+                  type: "automation",
+                  title: "تذكير: موعد قريب",
+                  body: `المهمة "${t.title}" تنتهي خلال ${hours} ساعة`,
+                  link: "/dashboard",
+                  project_id: t.project_id,
+                });
               }
             } else if (rule.trigger_type === "contract_expiring") {
-              const days = Number((rule.trigger_config as { days?: number })?.days ?? 30);
+              const days = Number(cfg["days"] ?? 30);
               const horizon = new Date(now.getTime() + days * 86400_000).toISOString().slice(0, 10);
               const today = now.toISOString().slice(0, 10);
               const { data: projects } = await sb
@@ -87,30 +106,53 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
                 .gte("contract_end_date", today)
                 .lte("contract_end_date", horizon);
               for (const p of projects ?? []) {
-                const targets = await resolveTargets(sb, rule, p.owner_id);
-                for (const uid of targets) {
-                  await sb.from("notifications").insert({
-                    user_id: uid,
-                    type: "contract_alert",
-                    title: "عقد سينتهي قريباً",
-                    body: `عقد المشروع "${p.name}" ينتهي في ${p.contract_end_date}`,
-                    link: "/projects",
-                    project_id: p.id,
-                    metadata: { rule_id: rule.id },
-                  });
-                  affected++;
-                }
+                await push(p.id, p.owner_id, {
+                  type: "contract_alert",
+                  title: "عقد سينتهي قريباً",
+                  body: `عقد المشروع "${p.name}" ينتهي في ${p.contract_end_date}`,
+                  link: "/projects",
+                  project_id: p.id,
+                });
               }
+            } else if (rule.trigger_type === "project_inactive") {
+              const days = Number(cfg["days"] ?? 14);
+              const cutoff = new Date(now.getTime() - days * 86400_000).toISOString();
+              const { data: projects } = await sb
+                .from("projects")
+                .select("id, name, owner_id")
+                .eq("is_active", true)
+                .limit(300);
+              for (const p of projects ?? []) {
+                const { data: recent } = await sb
+                  .from("tasks")
+                  .select("id")
+                  .eq("project_id", p.id)
+                  .gte("updated_at", cutoff)
+                  .limit(1);
+                if ((recent ?? []).length > 0) continue;
+                await push(p.id, p.owner_id, {
+                  type: "automation",
+                  title: "مشروع بلا نشاط",
+                  body: `لا يوجد أي تحديث على مشروع "${p.name}" منذ ${days} يومًا`,
+                  link: `/projects/${p.id}`,
+                  project_id: p.id,
+                });
+              }
+            }
+
+            if (queue.length > 0) {
+              const { error: insErr } = await sb.from("notifications").insert(queue);
+              if (insErr) throw new Error(insErr.message);
             }
 
             await sb.from("automation_logs").insert({
               rule_id: rule.id,
               status: "success",
-              affected_count: affected,
-              message: `Processed ${affected} notifications`,
+              affected_count: queue.length,
+              message: `تم إرسال ${queue.length} إشعارًا`,
             });
             await sb.from("automation_rules").update({ last_run_at: now.toISOString() }).eq("id", rule.id);
-            results.push({ rule_id: rule.id, affected });
+            results.push({ rule_id: rule.id, affected: queue.length });
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             await sb.from("automation_logs").insert({
@@ -128,6 +170,29 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
     },
   },
 });
+
+/** Build a set of "userId|entityId" already notified by this rule inside the cooldown window. */
+async function recentlyNotified(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sb: any,
+  ruleId: string,
+  cooldownHours: number,
+): Promise<Set<string>> {
+  const since = new Date(Date.now() - Math.max(1, cooldownHours) * 3600_000).toISOString();
+  const { data } = await sb
+    .from("notifications")
+    .select("user_id, metadata")
+    .gte("created_at", since)
+    .contains("metadata", { rule_id: ruleId })
+    .limit(2000);
+  const set = new Set<string>();
+  for (const row of (data ?? []) as { user_id: string; metadata: Record<string, unknown> | null }[]) {
+    const meta = row.metadata ?? {};
+    const entity = (meta["entity_id"] ?? meta["task_id"] ?? meta["project_id"]) as string | undefined;
+    if (entity) set.add(`${row.user_id}|${entity}`);
+  }
+  return set;
+}
 
 async function resolveTargets(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

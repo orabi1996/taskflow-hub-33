@@ -43,6 +43,8 @@ const TRIGGER_LABELS: Record<string, string> = {
   task_overdue: "مهمة متأخرة",
   task_due_soon: "موعد مهمة قريب",
   contract_expiring: "عقد سينتهي قريباً",
+  project_inactive: "مشروع بلا نشاط",
+
   task_assigned: "تم إسناد مهمة",
   task_completed: "تم إنجاز مهمة",
   daily_summary: "ملخص يومي",
