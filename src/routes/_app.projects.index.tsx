@@ -38,6 +38,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Plus, FolderKanban, Loader2, User, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/common/PageHeader";
 import { BulkImportDialog, type BulkImportColumn } from "@/components/BulkImportDialog";
 import { bulkImportProjects } from "@/lib/bulk-import.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -256,11 +257,13 @@ function ProjectsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">المشاريع</h1>
-          <p className="text-muted-foreground mt-1">إدارة قائمة المشاريع المتاحة للموظفين</p>
-        </div>
+      <PageHeader
+        title="المشاريع"
+        description="إدارة قائمة المشاريع المتاحة للموظفين"
+        icon={FolderKanban}
+      />
+      <div className="flex flex-col sm:flex-row sm:items-end justify-end gap-4">
+
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" asChild>
             <Link to="/projects/dashboard">
