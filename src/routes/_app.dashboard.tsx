@@ -61,6 +61,14 @@ const STATUS_META: Record<TaskStatus, { label: string; icon: typeof CheckCircle2
   cancelled: { label: "ملغاة", icon: ListChecks, cls: "bg-destructive/10 text-destructive border-destructive/30", color: "oklch(0.6 0.22 27)" },
 };
 
+const RANGES = [
+  { days: 7, label: "7 أيام" },
+  { days: 30, label: "30 يومًا" },
+  { days: 90, label: "90 يومًا" },
+  { days: 0, label: "الكل" },
+];
+
+
 function formatDuration(startISO: string, endISO: string | null): string | null {
   if (!endISO) return null;
   const ms = new Date(endISO).getTime() - new Date(startISO).getTime();
