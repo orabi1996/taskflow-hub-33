@@ -135,9 +135,12 @@ function ReportsPage() {
       ]);
       setSessions(((s.data ?? []) as unknown) as typeof sessions);
       setEmpModules(((em.data ?? []) as unknown) as typeof empModules);
+      const modRows = (mods.data ?? []) as Array<{ id: string; name: string; parent_id: string | null }>;
+      setModules(modRows);
       const map = new Map<string, string>();
-      ((mods.data ?? []) as Array<{ id: string; name: string }>).forEach((x) => map.set(x.id, x.name));
+      modRows.forEach((x) => map.set(x.id, x.name));
       setModuleNames(map);
+
       const pmap = new Map<string, string>();
       const dmap = new Map<string, string | null>();
       ((profs.data ?? []) as Array<{ id: string; full_name: string; department_id: string | null }>).forEach((x) => {
