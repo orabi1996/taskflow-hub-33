@@ -619,6 +619,19 @@ function ReportsPage() {
             </Select>
           </div>
           <div className="w-44">
+            <Select value={moduleFilter} onValueChange={setModuleFilter}>
+              <SelectTrigger><SelectValue placeholder="كل الأنظمة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأنظمة</SelectItem>
+                {modules.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>
+                ))}
+                <SelectItem value="none">بدون نظام</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-44">
+
             <Select value={deptFilter} onValueChange={setDeptFilter}>
               <SelectTrigger><SelectValue placeholder="كل الأقسام" /></SelectTrigger>
               <SelectContent>
