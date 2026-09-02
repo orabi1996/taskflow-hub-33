@@ -100,9 +100,9 @@ function AppLayout() {
 
       <Sidebar side="right" collapsible="icon" variant="inset">
         <SidebarHeader className="p-3">
-          <Link to="/dashboard" className="flex items-center gap-2 min-w-0" title="C-SmarX — من Classera">
-            <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto shrink-0" />
-          </Link>
+          <div className="text-xs font-medium text-muted-foreground group-data-[collapsible=icon]:hidden">
+            التنقّل
+          </div>
         </SidebarHeader>
 
         <SidebarContent>
@@ -160,6 +160,13 @@ function AppLayout() {
       <SidebarInset className="app-ambient min-h-screen">
         <header className="sticky top-0 z-30 h-14 flex items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5">
           <SidebarTrigger className="shrink-0" />
+          <Link
+            to="/dashboard"
+            className="flex items-center shrink-0 ms-1 me-2"
+            title="C-SmarX — من Classera"
+          >
+            <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto" />
+          </Link>
           <div className="flex-1 min-w-0">
             <Button
               variant="outline"
