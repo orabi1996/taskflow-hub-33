@@ -71,8 +71,8 @@ function AccessReviewPage() {
     setLoading(true);
     try {
       const [list, last] = await Promise.all([
-        listPrivilegedAccess({ data: {} }),
-        getLastAccessReview({ data: {} }),
+        listPrivilegedAccess(),
+        getLastAccessReview(),
       ]);
       setRows(list);
       setLastReview(last as { created_at: string } | null);

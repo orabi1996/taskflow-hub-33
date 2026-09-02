@@ -39,7 +39,7 @@ export const listPrivilegedAccess = createServerFn({ method: "POST" })
     const { data: roleRows, error } = await supabaseAdmin
       .from("user_roles")
       .select("user_id, role, created_at")
-      .in("role", PRIVILEGED as unknown as string[])
+      .in("role", [...PRIVILEGED])
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
 
