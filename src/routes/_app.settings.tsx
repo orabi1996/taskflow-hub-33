@@ -33,6 +33,11 @@ function SettingsLayout() {
     { to: "/settings/automation", label: "الأتمتة", icon: Bot, exact: false },
     { to: "/settings/notifications", label: "الإشعارات", icon: Bell, exact: false },
     { to: "/settings/audit", label: "سجل التدقيق", icon: ShieldCheck, exact: false },
+    { to: "/settings/security", label: "أمان الجلسة", icon: ShieldAlert, exact: false },
+    { to: "/settings/devices", label: "الأجهزة الموثوقة", icon: Laptop, exact: false },
+    ...(isAdmin
+      ? [{ to: "/settings/access-review", label: "مراجعة الصلاحيات", icon: ShieldCheck, exact: false }]
+      : []),
     ...(isAdmin
       ? [
           { to: "/admin/hierarchy", label: "الهيكل التنظيمي", icon: Network, exact: false },
