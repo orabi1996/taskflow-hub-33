@@ -403,34 +403,75 @@ function Dashboard() {
         </Card>
       </div>
 
+      {/* Overdue spotlight */}
+      {overdueTasks.length > 0 && (
+        <Card className="p-4 border-destructive/30 bg-destructive/5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <h2 className="font-semibold text-destructive">مهام تجاوزت موعدها ({overdueTasks.length})</h2>
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {overdueTasks.slice(0, 6).map((t) => (
+              <li
+                key={t.id}
+                onClick={() => openTask(t)}
+                className="cursor-pointer rounded-lg border bg-card px-3 py-2 text-sm hover:bg-muted/40"
+              >
+                <div className="font-medium truncate">{t.title}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {isAdminOrGM ? `${t.owner?.full_name || "غير معروف"} · ` : ""}
+                  {t.end_at ? format(new Date(t.end_at), "d MMM yyyy", { locale: ar }) : ""}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {/* Per-employee overview (admin / GM) */}
       {isAdminOrGM && (
         <Card className="overflow-hidden">
-          <div className="px-6 py-4 border-b flex items-center gap-2">
+          <div className="px-6 py-4 border-b flex flex-wrap items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-primary" />
             <h2 className="font-semibold">أداء الموظفين</h2>
-            <Badge variant="secondary" className="ms-auto">{employeeStats.length}</Badge>
+            <Badge variant="secondary">{employeeStats.length}</Badge>
+            <div className="ms-auto flex items-center gap-2">
+              <Select value={empSort} onValueChange={setEmpSort}>
+                <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="total">الأكثر مهامًا</SelectItem>
+                  <SelectItem value="completed">الأكثر إنجازًا</SelectItem>
+                  <SelectItem value="overdue">الأكثر تأخيرًا</SelectItem>
+                  <SelectItem value="rate">نسبة الإنجاز</SelectItem>
+                  <SelectItem value="hours">ساعات العمل</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button size="sm" variant="outline" onClick={exportEmployees} disabled={employeeStats.length === 0}>
+                <Download className="h-4 w-4 ms-1" /> تصدير
+              </Button>
+            </div>
           </div>
           {employeeStats.length === 0 ? (
-            <div className="p-10 text-center text-muted-foreground text-sm">لا توجد مهام مسجّلة بعد</div>
+            <EmptyState icon={Users2} title="لا توجد مهام مسجّلة بعد" description="ستظهر هنا مؤشرات كل موظف فور تسجيل أول مهمة." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
-                  <tr className="text-end">
+                  <tr>
                     <th className="px-4 py-2 font-medium text-start">الموظف</th>
                     <th className="px-4 py-2 font-medium">الإجمالي</th>
                     <th className="px-4 py-2 font-medium">قيد التنفيذ</th>
                     <th className="px-4 py-2 font-medium">منتهية</th>
                     <th className="px-4 py-2 font-medium">متأخرة</th>
                     <th className="px-4 py-2 font-medium">ساعات</th>
+                    <th className="px-4 py-2 font-medium w-40">نسبة الإنجاز</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {employeeStats.map((e) => (
                     <tr
                       key={e.id}
-                      className="hover:bg-muted/30 cursor-pointer"
+                      className={`hover:bg-muted/30 cursor-pointer ${employeeFilter === e.id ? "bg-primary/5" : ""}`}
                       onClick={() => setEmployeeFilter(e.id === employeeFilter ? "all" : e.id)}
                     >
                       <td className="px-4 py-2">
@@ -447,6 +488,12 @@ function Dashboard() {
                       <td className="px-4 py-2 text-center text-success">{e.completed}</td>
                       <td className="px-4 py-2 text-center text-destructive">{e.overdue}</td>
                       <td className="px-4 py-2 text-center">{Math.floor(e.minutes / 60)} س</td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <Progress value={e.rate} className="h-2" />
+                          <span className="text-xs text-muted-foreground w-9">{e.rate}%</span>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -455,6 +502,7 @@ function Dashboard() {
           )}
         </Card>
       )}
+
 
       {/* Filters */}
       <Card className="p-4">
