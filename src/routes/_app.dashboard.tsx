@@ -202,12 +202,20 @@ function Dashboard() {
     postponed: tasks.filter((t) => t.status === "postponed").length,
   };
 
+  const completionRate = counts.total ? Math.round((counts.completed / counts.total) * 100) : 0;
+
   const today = new Date();
   const todayStr = today.toDateString();
-  const overdueCount = tasks.filter(
-    (t) => t.status === "pending" && t.end_at && new Date(t.end_at) < today,
-  ).length;
+  const overdueTasks = useMemo(
+    () =>
+      tasks
+        .filter((t) => (t.status === "pending" || t.status === "postponed") && t.end_at && new Date(t.end_at) < new Date())
+        .sort((a, b) => new Date(a.end_at!).getTime() - new Date(b.end_at!).getTime()),
+    [tasks],
+  );
+  const overdueCount = overdueTasks.length;
   const todayCount = tasks.filter((t) => new Date(t.start_at).toDateString() === todayStr).length;
+
 
   const totalMinutes = tasks.reduce((acc, t) => {
     if (!t.end_at) return acc;
