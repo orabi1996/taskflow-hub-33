@@ -143,6 +143,29 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
             if (queue.length > 0) {
               const { error: insErr } = await sb.from("notifications").insert(queue);
               if (insErr) throw new Error(insErr.message);
+
+              // Fan out to push + email channels, grouped by identical message.
+              const { sendPushToUsers, sendEmailToUsers } = await import("@/lib/notify.server");
+              const groups = new Map<string, { payload: Notif; users: string[] }>();
+              for (const n of queue) {
+                const key = `${n.type}|${n.title}|${n.body}|${n.link}`;
+                const g = groups.get(key);
+                if (g) g.users.push(n.user_id);
+                else groups.set(key, { payload: n, users: [n.user_id] });
+              }
+              for (const { payload, users } of groups.values()) {
+                const msg = {
+                  title: payload.title,
+                  body: payload.body,
+                  link: payload.link,
+                  type: payload.type,
+                  tag: `${rule.id}`,
+                };
+                await sendPushToUsers(sb, users, msg);
+                if (rule.action_type === "send_email" || (rule.action_config as Record<string, unknown> | null)?.["email"] === true) {
+                  await sendEmailToUsers(sb, users, msg);
+                }
+              }
             }
 
             await sb.from("automation_logs").insert({
