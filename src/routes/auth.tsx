@@ -12,7 +12,7 @@ import {
 } from "@/lib/auth-session";
 import { suggestEmail } from "@/lib/email-suggest";
 import { computeDeviceHash } from "@/lib/device-fingerprint";
-import { checkLoginRate, recordLoginAttempt, getAuthHeroStats } from "@/lib/auth-security.functions";
+import { recordLoginAttempt, getAuthHeroStats, signInWithLock } from "@/lib/auth-security.functions";
 import { recordAuditEvent } from "@/lib/audit.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,31 +201,48 @@ function AuthPage() {
     }
     setLoading(true);
 
-    // Pre-check rate limit
+    // Server-enforced lockout + sign-in (limit can't be bypassed client-side)
+    let guard: Awaited<ReturnType<typeof signInWithLock>> | null = null;
     try {
-      const rate = await checkLoginRate({ data: { email: parsed.data.email } });
-      if (rate.locked) {
+      guard = await signInWithLock({ data: parsed.data });
+    } catch {
+      guard = null; // fall back to direct sign-in if the server fn is unreachable
+    }
+
+    type SessionLike = NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]>;
+    let data: { user: { id: string } | null; session: SessionLike | null } = { user: null, session: null };
+    let error: { message: string } | null = null;
+
+
+    if (guard) {
+      if (!guard.ok) {
         setLoading(false);
         setAlert({
           kind: "error",
-          title: "تم قفل المحاولات مؤقتًا",
-          description: `تم تجاوز عدد المحاولات المسموح بها. يُرجى الانتظار حتى ${rate.windowMinutes} دقيقة قبل المحاولة مجددًا.`,
+          title: guard.locked ? "تم قفل المحاولات مؤقتًا" : "تعذّر تسجيل الدخول",
+          description: guard.locked
+            ? `تم تجاوز عدد المحاولات المسموح بها. حاول مجددًا بعد ${guard.windowMinutes} دقيقة.`
+            : guard.message === "Invalid login credentials"
+              ? `البريد الإلكتروني أو كلمة المرور غير صحيحة. المحاولات المتبقية: ${guard.remaining}.`
+              : guard.message,
         });
         return;
       }
-    } catch { /* fail-open: don't block legitimate users on rate-check error */ }
-
-    const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+      const res = await supabase.auth.setSession({
+        access_token: guard.session!.access_token,
+        refresh_token: guard.session!.refresh_token,
+      });
+      data = res.data;
+      error = res.error;
+    } else {
+      const res = await supabase.auth.signInWithPassword(parsed.data);
+      data = res.data;
+      error = res.error;
+      void recordLoginAttempt({
+        data: { email: parsed.data.email, success: !res.error, reason: res.error?.message },
+      }).catch(() => {});
+    }
     setLoading(false);
-
-    // Log attempt (fire & forget)
-    void recordLoginAttempt({
-      data: {
-        email: parsed.data.email,
-        success: !error,
-        reason: error?.message,
-      },
-    }).catch(() => {});
 
     // Centralized audit log entry
     void recordAuditEvent({
@@ -241,6 +258,7 @@ function AuthPage() {
     }).catch(() => {});
 
     if (error) {
+
       setAlert({
         kind: "error",
         title: "تعذّر تسجيل الدخول",
