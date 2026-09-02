@@ -135,10 +135,10 @@ function PermissionsMatrixPage() {
       </Card>
 
       <Card className="p-4 bg-muted/30 text-xs text-muted-foreground space-y-1">
-        <p>
+        <div>
           <Badge variant="outline" className="me-2">ملاحظة</Badge>
           الصلاحيات الفعلية مفروضة على مستوى قاعدة البيانات عبر سياسات RLS وليس فقط من الواجهة.
-        </p>
+        </div>
         <p>"مدير" يرى مهام فريقه المباشر فقط. "أدمن" و"مدير عام" يرون كل البيانات.</p>
       </Card>
     </div>
