@@ -27,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   FolderKanban, Pencil, Loader2, Users, AlertTriangle, Paperclip, Upload, X,
   Globe, FileSignature, Lock, History,
+  FolderHeart,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
