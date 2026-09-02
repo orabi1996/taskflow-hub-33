@@ -23,6 +23,7 @@ import {
 import { exportToExcel, exportToCSV, printSection } from "@/lib/export-utils";
 import { exportTableToPDF } from "@/lib/pdf-utils";
 import { FileText, Boxes } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/reports")({
   component: ReportsPage,
