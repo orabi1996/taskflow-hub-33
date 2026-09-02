@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import {
   ListChecks, Users2, FolderKanban, UserCircle, BarChart3, ShieldCheck,
-  Settings as SettingsIcon, FolderHeart, Bell,
+  Settings as SettingsIcon, FolderHeart, Bell, Target, Activity,
 } from "lucide-react";
 
 interface SearchResults {
@@ -21,9 +21,10 @@ interface SearchResults {
   projects: { id: string; name: string }[];
   clients: { id: string; name: string; project_id: string }[];
   employees: { id: string; full_name: string }[];
+  objectives: { id: string; title: string }[];
 }
 
-const empty: SearchResults = { tasks: [], projects: [], clients: [], employees: [] };
+const empty: SearchResults = { tasks: [], projects: [], clients: [], employees: [], objectives: [] };
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -61,13 +62,14 @@ export function CommandPalette() {
     let cancelled = false;
     const t = setTimeout(async () => {
       const term = `%${q}%`;
-      const [tasksRes, projectsRes, clientsRes, employeesRes] = await Promise.all([
+      const [tasksRes, projectsRes, clientsRes, employeesRes, objectivesRes] = await Promise.all([
         supabase.from("tasks").select("id, title").ilike("title", term).limit(5),
         supabase.from("projects").select("id, name").ilike("name", term).limit(5),
         supabase.from("clients").select("id, name, project_id").ilike("name", term).limit(5),
         isManager
           ? supabase.from("profiles").select("id, full_name").ilike("full_name", term).limit(5)
           : Promise.resolve({ data: [] as any[] }),
+        supabase.from("objectives").select("id, title").ilike("title", term).limit(5),
       ]);
       if (cancelled) return;
       setResults({
@@ -75,6 +77,7 @@ export function CommandPalette() {
         projects: (projectsRes.data as any[]) ?? [],
         clients: (clientsRes.data as any[]) ?? [],
         employees: (employeesRes.data as any[]) ?? [],
+        objectives: (objectivesRes.data as any[]) ?? [],
       });
     }, 200);
     return () => { cancelled = true; clearTimeout(t); };
@@ -86,7 +89,8 @@ export function CommandPalette() {
   };
 
   const hasResults =
-    results.tasks.length + results.projects.length + results.clients.length + results.employees.length > 0;
+    results.tasks.length + results.projects.length + results.clients.length +
+      results.employees.length + results.objectives.length > 0;
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
@@ -124,8 +128,14 @@ export function CommandPalette() {
                   </CommandItem>
                 </>
               )}
+              <CommandItem onSelect={() => go("/performance")}>
+                <Target className="h-4 w-4 ms-2" /> الأداء والأهداف
+              </CommandItem>
               {isAdmin && (
                 <>
+                  <CommandItem onSelect={() => go("/admin/overview")}>
+                    <Activity className="h-4 w-4 ms-2" /> مركز القيادة
+                  </CommandItem>
                   <CommandItem onSelect={() => go("/admin")}>
                     <ShieldCheck className="h-4 w-4 ms-2" /> الموظفون
                   </CommandItem>
@@ -172,6 +182,19 @@ export function CommandPalette() {
               {results.clients.map((c) => (
                 <CommandItem key={c.id} onSelect={() => go(`/my-projects/${c.project_id}/clients`)}>
                   <Users2 className="h-4 w-4 ms-2" /> {c.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {results.objectives.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="الأهداف">
+              {results.objectives.map((o) => (
+                <CommandItem key={o.id} onSelect={() => go("/performance")}>
+                  <Target className="h-4 w-4 ms-2" /> {o.title}
                 </CommandItem>
               ))}
             </CommandGroup>

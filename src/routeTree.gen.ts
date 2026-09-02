@@ -41,6 +41,7 @@ import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
 import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
 import { Route as AppAdminPermissionsRouteImport } from './routes/_app.admin.permissions'
+import { Route as AppAdminOverviewRouteImport } from './routes/_app.admin.overview'
 import { Route as AppAdminHierarchyRouteImport } from './routes/_app.admin.hierarchy'
 import { Route as AppAdminEmailProviderRouteImport } from './routes/_app.admin.email-provider'
 import { Route as AppAdminAuditRouteImport } from './routes/_app.admin.audit'
@@ -213,6 +214,11 @@ const AppAdminPermissionsRoute = AppAdminPermissionsRouteImport.update({
   path: '/admin/permissions',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminOverviewRoute = AppAdminOverviewRouteImport.update({
+  id: '/admin/overview',
+  path: '/admin/overview',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminHierarchyRoute = AppAdminHierarchyRouteImport.update({
   id: '/admin/hierarchy',
   path: '/admin/hierarchy',
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AppAdminAuditRoute
   '/admin/email-provider': typeof AppAdminEmailProviderRoute
   '/admin/hierarchy': typeof AppAdminHierarchyRoute
+  '/admin/overview': typeof AppAdminOverviewRoute
   '/admin/permissions': typeof AppAdminPermissionsRoute
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
@@ -319,6 +326,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AppAdminAuditRoute
   '/admin/email-provider': typeof AppAdminEmailProviderRoute
   '/admin/hierarchy': typeof AppAdminHierarchyRoute
+  '/admin/overview': typeof AppAdminOverviewRoute
   '/admin/permissions': typeof AppAdminPermissionsRoute
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/_app/admin/audit': typeof AppAdminAuditRoute
   '/_app/admin/email-provider': typeof AppAdminEmailProviderRoute
   '/_app/admin/hierarchy': typeof AppAdminHierarchyRoute
+  '/_app/admin/overview': typeof AppAdminOverviewRoute
   '/_app/admin/permissions': typeof AppAdminPermissionsRoute
   '/_app/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/_app/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
@@ -407,6 +416,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/email-provider'
     | '/admin/hierarchy'
+    | '/admin/overview'
     | '/admin/permissions'
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/email-provider'
     | '/admin/hierarchy'
+    | '/admin/overview'
     | '/admin/permissions'
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
     | '/_app/admin/audit'
     | '/_app/admin/email-provider'
     | '/_app/admin/hierarchy'
+    | '/_app/admin/overview'
     | '/_app/admin/permissions'
     | '/_app/admin/permissions-check'
     | '/_app/admin/permissions-diagnose'
@@ -756,6 +768,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminPermissionsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/overview': {
+      id: '/_app/admin/overview'
+      path: '/admin/overview'
+      fullPath: '/admin/overview'
+      preLoaderRoute: typeof AppAdminOverviewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/hierarchy': {
       id: '/_app/admin/hierarchy'
       path: '/admin/hierarchy'
@@ -874,6 +893,7 @@ interface AppRouteChildren {
   AppAdminAuditRoute: typeof AppAdminAuditRoute
   AppAdminEmailProviderRoute: typeof AppAdminEmailProviderRoute
   AppAdminHierarchyRoute: typeof AppAdminHierarchyRoute
+  AppAdminOverviewRoute: typeof AppAdminOverviewRoute
   AppAdminPermissionsRoute: typeof AppAdminPermissionsRoute
   AppAdminPermissionsCheckRoute: typeof AppAdminPermissionsCheckRoute
   AppAdminPermissionsDiagnoseRoute: typeof AppAdminPermissionsDiagnoseRoute
@@ -899,6 +919,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminAuditRoute: AppAdminAuditRoute,
   AppAdminEmailProviderRoute: AppAdminEmailProviderRoute,
   AppAdminHierarchyRoute: AppAdminHierarchyRoute,
+  AppAdminOverviewRoute: AppAdminOverviewRoute,
   AppAdminPermissionsRoute: AppAdminPermissionsRoute,
   AppAdminPermissionsCheckRoute: AppAdminPermissionsCheckRoute,
   AppAdminPermissionsDiagnoseRoute: AppAdminPermissionsDiagnoseRoute,
