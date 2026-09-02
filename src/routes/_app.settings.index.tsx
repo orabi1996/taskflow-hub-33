@@ -16,7 +16,9 @@ import {
   Mail,
   Stethoscope,
   Lock,
+  ShieldAlert,
   Users,
+
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/")({
