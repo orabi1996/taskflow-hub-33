@@ -63,6 +63,8 @@ function AppLayout() {
       />
       <NavLink to="/time" icon={Clock} label="الوقت" onClick={() => setMobileOpen(false)} />
       <NavLink to="/my-projects" icon={FolderHeart} label="مشاريعي" onClick={() => setMobileOpen(false)} />
+      <NavLink to="/performance" icon={TrendingUp} label="الأداء" onClick={() => setMobileOpen(false)} />
+
       {isManager && (
         <>
           <NavLink to="/team" icon={Users2} label="الفريق" onClick={() => setMobileOpen(false)} />

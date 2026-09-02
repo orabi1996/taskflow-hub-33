@@ -36,6 +36,7 @@ import { Route as AppSettingsAutomationRouteImport } from './routes/_app.setting
 import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
 import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
 import { Route as AppPerformanceReviewsRouteImport } from './routes/_app.performance.reviews'
+import { Route as AppPerformanceKudosRouteImport } from './routes/_app.performance.kudos'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
 import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
@@ -185,6 +186,11 @@ const AppPerformanceReviewsRoute = AppPerformanceReviewsRouteImport.update({
   path: '/reviews',
   getParentRoute: () => AppPerformanceRoute,
 } as any)
+const AppPerformanceKudosRoute = AppPerformanceKudosRouteImport.update({
+  id: '/kudos',
+  path: '/kudos',
+  getParentRoute: () => AppPerformanceRoute,
+} as any)
 const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
   id: '/admin/roles',
   path: '/admin/roles',
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
+  '/performance/kudos': typeof AppPerformanceKudosRoute
   '/performance/reviews': typeof AppPerformanceReviewsRoute
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
@@ -316,6 +323,7 @@ export interface FileRoutesByTo {
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
+  '/performance/kudos': typeof AppPerformanceKudosRoute
   '/performance/reviews': typeof AppPerformanceReviewsRoute
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/_app/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/_app/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
+  '/_app/performance/kudos': typeof AppPerformanceKudosRoute
   '/_app/performance/reviews': typeof AppPerformanceReviewsRoute
   '/_app/projects/dashboard': typeof AppProjectsDashboardRoute
   '/_app/settings/audit': typeof AppSettingsAuditRoute
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
     | '/admin/roles'
+    | '/performance/kudos'
     | '/performance/reviews'
     | '/projects/dashboard'
     | '/settings/audit'
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
     | '/admin/roles'
+    | '/performance/kudos'
     | '/performance/reviews'
     | '/projects/dashboard'
     | '/settings/audit'
@@ -483,6 +494,7 @@ export interface FileRouteTypes {
     | '/_app/admin/permissions-check'
     | '/_app/admin/permissions-diagnose'
     | '/_app/admin/roles'
+    | '/_app/performance/kudos'
     | '/_app/performance/reviews'
     | '/_app/projects/dashboard'
     | '/_app/settings/audit'
@@ -709,6 +721,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPerformanceReviewsRouteImport
       parentRoute: typeof AppPerformanceRoute
     }
+    '/_app/performance/kudos': {
+      id: '/_app/performance/kudos'
+      path: '/kudos'
+      fullPath: '/performance/kudos'
+      preLoaderRoute: typeof AppPerformanceKudosRouteImport
+      parentRoute: typeof AppPerformanceRoute
+    }
     '/_app/admin/roles': {
       id: '/_app/admin/roles'
       path: '/admin/roles'
@@ -804,11 +823,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppPerformanceRouteChildren {
+  AppPerformanceKudosRoute: typeof AppPerformanceKudosRoute
   AppPerformanceReviewsRoute: typeof AppPerformanceReviewsRoute
   AppPerformanceIndexRoute: typeof AppPerformanceIndexRoute
 }
 
 const AppPerformanceRouteChildren: AppPerformanceRouteChildren = {
+  AppPerformanceKudosRoute: AppPerformanceKudosRoute,
   AppPerformanceReviewsRoute: AppPerformanceReviewsRoute,
   AppPerformanceIndexRoute: AppPerformanceIndexRoute,
 }
