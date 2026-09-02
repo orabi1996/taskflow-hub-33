@@ -16,7 +16,9 @@ import {
   Mail,
   Stethoscope,
   Lock,
+  ShieldAlert,
   Users,
+
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/")({
@@ -112,7 +114,15 @@ function SettingsIndex() {
       desc: "إعداد مزوّد إرسال رسائل النظام (الدعوات، إعادة تعيين كلمة المرور، التنبيهات).",
       adminOnly: true,
     },
+    {
+      to: "/settings/security",
+      icon: ShieldAlert,
+      title: "أمان الجلسة",
+      desc: "مدة الخمول قبل تسجيل الخروج التلقائي وحماية الحساب عند ترك الجهاز.",
+      adminOnly: false,
+    },
   ].map((it) => ({ ...it, locked: it.adminOnly && !isAdmin }));
+
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
