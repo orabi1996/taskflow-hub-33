@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/common/PageHeader";
 import {
   Clock, Play, Square, Plus, Trash2, FileSpreadsheet, Users, Briefcase, GraduationCap,
-  LifeBuoy, MoreHorizontal, Pause, PlayCircle, Pencil, BarChart3, UsersRound, Keyboard,
+  LifeBuoy, MoreHorizontal, Pause, PlayCircle, Pencil, BarChart3, UsersRound,
 } from "lucide-react";
 import { exportToExcel, exportToCSV } from "@/lib/export-utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid, LineChart, Line } from "recharts";
