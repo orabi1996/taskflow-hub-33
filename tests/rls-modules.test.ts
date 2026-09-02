@@ -132,13 +132,22 @@ d("RLS: تسلسل الأنظمة وعزل البيانات", () => {
     ).toBe(true);
   });
 
-  test("التوريث للأسفل: موظف Classera يرى مشاريع C-SMARX", async () => {
+  test("التوريث للأسفل: نطاق موظف Classera يشمل مشاريع C-SMARX", async () => {
+    // بوابة النظام (module gate) تسمح للأب برؤية نطاق الابن،
+    // مع بقاء شرط الارتباط بالمشروع (مالك/عضو/مدير/له مهمة) قائمًا.
     const classeraProject = projects.get("بوابة Classera التعليمية")!;
     const csmarxProject = projects.get("منصة C-SmarX لإدارة الأداء")!;
     const classeraEmp = users.get("ريم الدوسري")!;
-    expect(await rpc("can_view_project_v3", { _user_id: classeraEmp, _project_id: classeraProject })).toBe(true);
-    expect(await rpc("can_view_project_v3", { _user_id: classeraEmp, _project_id: csmarxProject })).toBe(true);
+    expect(await rpc("can_access_project_module", { _user_id: classeraEmp, _project_id: classeraProject })).toBe(true);
+    expect(await rpc("can_access_project_module", { _user_id: classeraEmp, _project_id: csmarxProject })).toBe(true);
   });
+
+  test("لا توريث للأعلى: نطاق موظف C-SMARX لا يشمل مشاريع Classera", async () => {
+    const classeraProject = projects.get("بوابة Classera التعليمية")!;
+    const csmarxEmp = users.get("نورة القحطاني")!;
+    expect(await rpc("can_access_project_module", { _user_id: csmarxEmp, _project_id: classeraProject })).toBe(false);
+  });
+
 
   test("مدير C-SMARX لا يتجاوز حدود نظامه", async () => {
     const classeraProject = projects.get("بوابة Classera التعليمية")!;
