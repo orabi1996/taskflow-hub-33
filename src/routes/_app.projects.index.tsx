@@ -39,6 +39,8 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, FolderKanban, Loader2, User, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/common/PageHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { CardSkeleton } from "@/components/common/ListSkeleton";
 import { BulkImportDialog, type BulkImportColumn } from "@/components/BulkImportDialog";
 import { bulkImportProjects } from "@/lib/bulk-import.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -413,16 +415,14 @@ function ProjectsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center text-muted-foreground py-12">جارٍ التحميل...</div>
+        <CardSkeleton count={6} />
       ) : projects.length === 0 ? (
-        <Card className="p-12 text-center">
-          <FolderKanban className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground">لا توجد مشاريع بعد.</p>
+        <Card>
+          <EmptyState icon={FolderKanban} title="لا توجد مشاريع بعد" description="ابدأ بإضافة أول مشروع لفريقك." />
         </Card>
       ) : filteredProjects.length === 0 ? (
-        <Card className="p-12 text-center">
-          <FolderKanban className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-muted-foreground">لا توجد نتائج تطابق البحث.</p>
+        <Card>
+          <EmptyState icon={FolderKanban} title="لا توجد نتائج تطابق البحث" description="جرّب تعديل كلمات البحث أو الفلاتر." />
         </Card>
       ) : view === "kanban" ? (
         <Suspense fallback={<Card className="p-12 text-center text-muted-foreground">جارٍ التحميل…</Card>}>
@@ -440,7 +440,10 @@ function ProjectsPage() {
                 <Link to="/projects/$projectId" params={{ projectId: p.id }} className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                   <FolderKanban className="h-5 w-5" />
                 </Link>
-                {p.is_active ? <Badge variant="secondary">نشط</Badge> : <Badge variant="outline">معطّل</Badge>}
+                <div className="flex items-center gap-1.5">
+                  <HealthDot health={p.health_status} />
+                  {p.is_active ? <Badge variant="secondary">نشط</Badge> : <Badge variant="outline">معطّل</Badge>}
+                </div>
               </div>
               <Link to="/projects/$projectId" params={{ projectId: p.id }} className="block">
                 <h3 className="font-semibold mt-3 hover:text-primary transition-colors">{p.name}</h3>
@@ -450,6 +453,7 @@ function ProjectsPage() {
                 <User className="h-3.5 w-3.5" />
                 <span>{p.owner_id ? employeeMap.get(p.owner_id) ?? "موظف غير معروف" : "بدون مسؤول"}</span>
               </div>
+              <ContractCountdown endDate={p.contract_end_date} />
               <div className="mt-4 flex items-center gap-2 pt-3 border-t flex-wrap">
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/projects/$projectId" params={{ projectId: p.id }}>
