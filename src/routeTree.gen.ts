@@ -18,10 +18,12 @@ import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppPerformanceRouteImport } from './routes/_app.performance'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
 import { Route as AppProjectsIndexRouteImport } from './routes/_app.projects.index'
+import { Route as AppPerformanceIndexRouteImport } from './routes/_app.performance.index'
 import { Route as AppMyProjectsIndexRouteImport } from './routes/_app.my-projects.index'
 import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
 import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
@@ -33,6 +35,8 @@ import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings
 import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
 import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
 import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
+import { Route as AppPerformanceReviewsRouteImport } from './routes/_app.performance.reviews'
+import { Route as AppPerformanceKudosRouteImport } from './routes/_app.performance.kudos'
 import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
 import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
 import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
@@ -91,6 +95,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPerformanceRoute = AppPerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -110,6 +119,11 @@ const AppProjectsIndexRoute = AppProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
   getParentRoute: () => AppRoute,
+} as any)
+const AppPerformanceIndexRoute = AppPerformanceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPerformanceRoute,
 } as any)
 const AppMyProjectsIndexRoute = AppMyProjectsIndexRouteImport.update({
   id: '/my-projects/',
@@ -166,6 +180,16 @@ const AppProjectsDashboardRoute = AppProjectsDashboardRouteImport.update({
   id: '/projects/dashboard',
   path: '/projects/dashboard',
   getParentRoute: () => AppRoute,
+} as any)
+const AppPerformanceReviewsRoute = AppPerformanceReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AppPerformanceRoute,
+} as any)
+const AppPerformanceKudosRoute = AppPerformanceKudosRouteImport.update({
+  id: '/kudos',
+  path: '/kudos',
+  getParentRoute: () => AppPerformanceRoute,
 } as any)
 const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
   id: '/admin/roles',
@@ -246,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/alerts': typeof AppAlertsRoute
   '/dashboard': typeof AppDashboardRoute
+  '/performance': typeof AppPerformanceRouteWithChildren
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRouteWithChildren
@@ -258,6 +283,8 @@ export interface FileRoutesByFullPath {
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
+  '/performance/kudos': typeof AppPerformanceKudosRoute
+  '/performance/reviews': typeof AppPerformanceReviewsRoute
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
@@ -269,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
   '/admin/': typeof AppAdminIndexRoute
   '/my-projects/': typeof AppMyProjectsIndexRoute
+  '/performance/': typeof AppPerformanceIndexRoute
   '/projects/': typeof AppProjectsIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
   '/my-projects/$projectId/clients': typeof AppMyProjectsProjectIdClientsRoute
@@ -295,6 +323,8 @@ export interface FileRoutesByTo {
   '/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/admin/roles': typeof AppAdminRolesRoute
+  '/performance/kudos': typeof AppPerformanceKudosRoute
+  '/performance/reviews': typeof AppPerformanceReviewsRoute
   '/projects/dashboard': typeof AppProjectsDashboardRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
@@ -306,6 +336,7 @@ export interface FileRoutesByTo {
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
   '/admin': typeof AppAdminIndexRoute
   '/my-projects': typeof AppMyProjectsIndexRoute
+  '/performance': typeof AppPerformanceIndexRoute
   '/projects': typeof AppProjectsIndexRoute
   '/settings': typeof AppSettingsIndexRoute
   '/my-projects/$projectId/clients': typeof AppMyProjectsProjectIdClientsRoute
@@ -323,6 +354,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_app/alerts': typeof AppAlertsRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/performance': typeof AppPerformanceRouteWithChildren
   '/_app/profile': typeof AppProfileRoute
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
@@ -335,6 +367,8 @@ export interface FileRoutesById {
   '/_app/admin/permissions-check': typeof AppAdminPermissionsCheckRoute
   '/_app/admin/permissions-diagnose': typeof AppAdminPermissionsDiagnoseRoute
   '/_app/admin/roles': typeof AppAdminRolesRoute
+  '/_app/performance/kudos': typeof AppPerformanceKudosRoute
+  '/_app/performance/reviews': typeof AppPerformanceReviewsRoute
   '/_app/projects/dashboard': typeof AppProjectsDashboardRoute
   '/_app/settings/audit': typeof AppSettingsAuditRoute
   '/_app/settings/automation': typeof AppSettingsAutomationRoute
@@ -346,6 +380,7 @@ export interface FileRoutesById {
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
   '/_app/admin/': typeof AppAdminIndexRoute
   '/_app/my-projects/': typeof AppMyProjectsIndexRoute
+  '/_app/performance/': typeof AppPerformanceIndexRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/_app/my-projects/$projectId/clients': typeof AppMyProjectsProjectIdClientsRoute
@@ -363,6 +398,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/alerts'
     | '/dashboard'
+    | '/performance'
     | '/profile'
     | '/reports'
     | '/settings'
@@ -375,6 +411,8 @@ export interface FileRouteTypes {
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
     | '/admin/roles'
+    | '/performance/kudos'
+    | '/performance/reviews'
     | '/projects/dashboard'
     | '/settings/audit'
     | '/settings/automation'
@@ -386,6 +424,7 @@ export interface FileRouteTypes {
     | '/api/public/seed-admin'
     | '/admin/'
     | '/my-projects/'
+    | '/performance/'
     | '/projects/'
     | '/settings/'
     | '/my-projects/$projectId/clients'
@@ -412,6 +451,8 @@ export interface FileRouteTypes {
     | '/admin/permissions-check'
     | '/admin/permissions-diagnose'
     | '/admin/roles'
+    | '/performance/kudos'
+    | '/performance/reviews'
     | '/projects/dashboard'
     | '/settings/audit'
     | '/settings/automation'
@@ -423,6 +464,7 @@ export interface FileRouteTypes {
     | '/api/public/seed-admin'
     | '/admin'
     | '/my-projects'
+    | '/performance'
     | '/projects'
     | '/settings'
     | '/my-projects/$projectId/clients'
@@ -439,6 +481,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_app/alerts'
     | '/_app/dashboard'
+    | '/_app/performance'
     | '/_app/profile'
     | '/_app/reports'
     | '/_app/settings'
@@ -451,6 +494,8 @@ export interface FileRouteTypes {
     | '/_app/admin/permissions-check'
     | '/_app/admin/permissions-diagnose'
     | '/_app/admin/roles'
+    | '/_app/performance/kudos'
+    | '/_app/performance/reviews'
     | '/_app/projects/dashboard'
     | '/_app/settings/audit'
     | '/_app/settings/automation'
@@ -462,6 +507,7 @@ export interface FileRouteTypes {
     | '/api/public/seed-admin'
     | '/_app/admin/'
     | '/_app/my-projects/'
+    | '/_app/performance/'
     | '/_app/projects/'
     | '/_app/settings/'
     | '/_app/my-projects/$projectId/clients'
@@ -549,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/performance': {
+      id: '/_app/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof AppPerformanceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -576,6 +629,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/'
       preLoaderRoute: typeof AppProjectsIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/performance/': {
+      id: '/_app/performance/'
+      path: '/'
+      fullPath: '/performance/'
+      preLoaderRoute: typeof AppPerformanceIndexRouteImport
+      parentRoute: typeof AppPerformanceRoute
     }
     '/_app/my-projects/': {
       id: '/_app/my-projects/'
@@ -653,6 +713,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/dashboard'
       preLoaderRoute: typeof AppProjectsDashboardRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/performance/reviews': {
+      id: '/_app/performance/reviews'
+      path: '/reviews'
+      fullPath: '/performance/reviews'
+      preLoaderRoute: typeof AppPerformanceReviewsRouteImport
+      parentRoute: typeof AppPerformanceRoute
+    }
+    '/_app/performance/kudos': {
+      id: '/_app/performance/kudos'
+      path: '/kudos'
+      fullPath: '/performance/kudos'
+      preLoaderRoute: typeof AppPerformanceKudosRouteImport
+      parentRoute: typeof AppPerformanceRoute
     }
     '/_app/admin/roles': {
       id: '/_app/admin/roles'
@@ -748,6 +822,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppPerformanceRouteChildren {
+  AppPerformanceKudosRoute: typeof AppPerformanceKudosRoute
+  AppPerformanceReviewsRoute: typeof AppPerformanceReviewsRoute
+  AppPerformanceIndexRoute: typeof AppPerformanceIndexRoute
+}
+
+const AppPerformanceRouteChildren: AppPerformanceRouteChildren = {
+  AppPerformanceKudosRoute: AppPerformanceKudosRoute,
+  AppPerformanceReviewsRoute: AppPerformanceReviewsRoute,
+  AppPerformanceIndexRoute: AppPerformanceIndexRoute,
+}
+
+const AppPerformanceRouteWithChildren = AppPerformanceRoute._addFileChildren(
+  AppPerformanceRouteChildren,
+)
+
 interface AppSettingsRouteChildren {
   AppSettingsAuditRoute: typeof AppSettingsAuditRoute
   AppSettingsAutomationRoute: typeof AppSettingsAutomationRoute
@@ -775,6 +865,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAlertsRoute: typeof AppAlertsRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppPerformanceRoute: typeof AppPerformanceRouteWithChildren
   AppProfileRoute: typeof AppProfileRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
@@ -799,6 +890,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAlertsRoute: AppAlertsRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppPerformanceRoute: AppPerformanceRouteWithChildren,
   AppProfileRoute: AppProfileRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,

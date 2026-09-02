@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   Briefcase, LogOut, ListChecks, FolderKanban, Users2, BarChart3, ShieldCheck,
-  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Menu, Clock, LayoutDashboard,
+  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Menu, Clock, LayoutDashboard, TrendingUp,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -63,6 +63,8 @@ function AppLayout() {
       />
       <NavLink to="/time" icon={Clock} label="الوقت" onClick={() => setMobileOpen(false)} />
       <NavLink to="/my-projects" icon={FolderHeart} label="مشاريعي" onClick={() => setMobileOpen(false)} />
+      <NavLink to="/performance" icon={TrendingUp} label="الأداء" onClick={() => setMobileOpen(false)} />
+
       {isManager && (
         <>
           <NavLink to="/team" icon={Users2} label="الفريق" onClick={() => setMobileOpen(false)} />

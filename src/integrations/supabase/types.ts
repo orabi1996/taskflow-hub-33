@@ -514,6 +514,104 @@ export type Database = {
           },
         ]
       }
+      key_results: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          current_value: number
+          id: string
+          objective_id: string
+          sort_order: number
+          start_value: number
+          status: string
+          target_value: number
+          title: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          current_value?: number
+          id?: string
+          objective_id: string
+          sort_order?: number
+          start_value?: number
+          status?: string
+          target_value?: number
+          title: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          current_value?: number
+          id?: string
+          objective_id?: string
+          sort_order?: number
+          start_value?: number
+          status?: string
+          target_value?: number
+          title?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_results_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kudos: {
+        Row: {
+          category: string
+          created_at: string
+          from_user_id: string
+          id: string
+          is_public: boolean
+          message: string
+          to_user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          from_user_id: string
+          id?: string
+          is_public?: boolean
+          message: string
+          to_user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          is_public?: boolean
+          message?: string
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kudos_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kudos_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_attempts: {
         Row: {
           created_at: string
@@ -651,6 +749,155 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      objectives: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          description: string | null
+          id: string
+          module_id: string | null
+          owner_id: string
+          progress: number
+          project_id: string | null
+          quarter: number
+          status: string
+          title: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          module_id?: string | null
+          owner_id: string
+          progress?: number
+          project_id?: string | null
+          quarter?: number
+          status?: string
+          title: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          module_id?: string | null
+          owner_id?: string
+          progress?: number
+          project_id?: string | null
+          quarter?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objectives_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objectives_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "company_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objectives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objectives_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_reviews: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          improvements: string | null
+          notes: string | null
+          period_end: string
+          period_start: string
+          reviewer_id: string
+          score_collaboration: number | null
+          score_delivery: number | null
+          score_quality: number | null
+          score_timeliness: number | null
+          status: string
+          strengths: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          improvements?: string | null
+          notes?: string | null
+          period_end: string
+          period_start: string
+          reviewer_id: string
+          score_collaboration?: number | null
+          score_delivery?: number | null
+          score_quality?: number | null
+          score_timeliness?: number | null
+          status?: string
+          strengths?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          improvements?: string | null
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          reviewer_id?: string
+          score_collaboration?: number | null
+          score_delivery?: number | null
+          score_quality?: number | null
+          score_timeliness?: number | null
+          status?: string
+          strengths?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1717,12 +1964,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1746,11 +1993,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1771,11 +2018,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1796,11 +2043,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1813,11 +2060,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
