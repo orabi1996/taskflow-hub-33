@@ -16,7 +16,10 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AiAssistant } from "@/components/AiAssistant";
+import { useIdleLogout } from "@/hooks/use-idle-logout";
+import { toast } from "sonner";
 import brandEmblemAsset from "@/assets/classera-smarx-emblem.png.asset.json";
+
 
 const brandEmblem = brandEmblemAsset.url;
 
@@ -55,6 +58,20 @@ function AppLayout() {
     await signOut();
     navigate({ to: "/auth" });
   };
+
+  // خروج تلقائي عند الخمول (قابل للتخصيص من الإعدادات)
+  const idleMinutes = (() => {
+    if (typeof window === "undefined") return 30;
+    const v = Number(window.localStorage.getItem("security.idleMinutes"));
+    return Number.isFinite(v) && v > 0 ? v : 30;
+  })();
+
+  useIdleLogout(async () => {
+    toast.info("تم تسجيل الخروج تلقائيًا بسبب عدم النشاط");
+    await signOut();
+    navigate({ to: "/auth" });
+  }, idleMinutes);
+
 
   const mainItems: NavItem[] = [
     {
