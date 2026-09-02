@@ -255,6 +255,30 @@ function TimeTrackingPage() {
     return { minutes, meetingMinutes, supportMinutes, count: completed.length };
   }, [visibleEntries]);
 
+  // كشف التعارضات: جلستان متداخلتان في نفس الوقت
+  const conflicts = useMemo(() => {
+    const done = entries
+      .filter((e) => e.ended_at)
+      .map((e) => ({ ...e, s: new Date(e.started_at).getTime(), t: new Date(e.ended_at!).getTime() }))
+      .sort((a, b) => a.s - b.s);
+    const pairs: { a: Entry; b: Entry }[] = [];
+    for (let i = 1; i < done.length; i++) {
+      const prev = done[i - 1];
+      const cur = done[i];
+      if (cur.s < prev.t) pairs.push({ a: prev, b: cur });
+    }
+    return pairs;
+  }, [entries]);
+
+  const toggleBillable = async (e: Entry) => {
+    const next = !e.is_billable;
+    setEntries((list) => list.map((x) => (x.id === e.id ? { ...x, is_billable: next } : x)));
+    const { error } = await supabase.from("time_entries").update({ is_billable: next }).eq("id", e.id);
+    if (error) { toast.error(error.message); load(); }
+  };
+
+
+
   const fmtHrs = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = Math.round(mins % 60);
