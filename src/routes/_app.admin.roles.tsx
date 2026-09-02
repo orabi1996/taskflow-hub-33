@@ -211,13 +211,12 @@ function RolesPage() {
           <ArrowLeft className="h-4 w-4" />
           عودة للوحة التحكم
         </Link>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <KeyRound className="h-6 w-6" />
-          إدارة أدوار المستخدمين
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          ابحث عن مستخدم بالبريد أو الاسم، ثم عيّن أو ألغِ دوره.
-        </p>
+        <PageHeader
+          icon={KeyRound}
+          title="إدارة أدوار المستخدمين"
+          description="ابحث عن مستخدم بالبريد أو الاسم، ثم عيّن أو ألغِ دوره."
+        />
+
       </div>
 
       <Card className="p-4 md:p-6">
