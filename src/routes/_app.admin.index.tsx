@@ -145,7 +145,7 @@ function AdminPage() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: profs }, { data: rolesData }, { data: depts }, { data: poss }] = await Promise.all([
+    const [{ data: profs }, { data: rolesData }, { data: depts }, { data: poss }, { data: mods }, { data: emods }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, full_name, email, job_title, manager_id, phone, department, department_id, job_position_id, hire_date, is_active")
@@ -153,7 +153,12 @@ function AdminPage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("departments").select("id, name, parent_id").eq("is_active", true).order("name"),
       supabase.from("job_positions").select("id, title, department_id, level").eq("is_active", true).order("level"),
+      supabase.from("company_modules").select("id, name, parent_id").eq("is_active", true).order("sort_order"),
+      supabase.from("employee_modules").select("user_id, module_id"),
     ]);
+    setModules((mods ?? []) as Array<{ id: string; name: string; parent_id: string | null }>);
+    setEmpModules((emods ?? []) as Array<{ user_id: string; module_id: string }>);
+
     const rolesMap = new Map<string, AppRole[]>();
     (rolesData ?? []).forEach((r) => {
       const arr = rolesMap.get(r.user_id) ?? [];
