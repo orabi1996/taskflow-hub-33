@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -284,10 +285,7 @@ function MyProjectsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">مشاريعي</h1>
-          <p className="text-muted-foreground mt-1">المشاريع التي تم تعيينك مسؤولاً عنها</p>
-        </div>
+        <PageHeader title="مشاريعي" description="المشاريع التي تم تعيينك مسؤولاً عنها" icon={FolderHeart} />
         <div className="relative w-full sm:w-80">
           <Input
             value={query}

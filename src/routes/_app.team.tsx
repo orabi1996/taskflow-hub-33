@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -188,10 +189,7 @@ function TeamPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">مهام الفريق</h1>
-        <p className="text-muted-foreground mt-1">عرض ومتابعة مهام أعضاء فريقك</p>
-      </div>
+      <PageHeader title="مهام الفريق" description="عرض ومتابعة مهام أعضاء فريقك" icon={Users2} />
 
       <Card className="p-4">
         <div className="flex items-center gap-3 flex-wrap">

@@ -38,6 +38,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Plus, FolderKanban, Loader2, User, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/common/PageHeader";
 import { BulkImportDialog, type BulkImportColumn } from "@/components/BulkImportDialog";
 import { bulkImportProjects } from "@/lib/bulk-import.functions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -260,7 +261,6 @@ function ProjectsPage() {
         title="المشاريع"
         description="إدارة قائمة المشاريع المتاحة للموظفين"
         icon={FolderKanban}
-        actions={<></>}
       />
       <div className="flex flex-col sm:flex-row sm:items-end justify-end gap-4">
 
