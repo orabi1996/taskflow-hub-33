@@ -128,6 +128,13 @@ function SettingsIndex() {
       desc: "من يملك admin أو مدير عام أو مدير ومنذ متى، مع كشف الحسابات الخاملة أو الموقوفة وسحب الأدوار غير المبرّرة.",
       adminOnly: true,
     },
+    {
+      to: "/settings/devices",
+      icon: ShieldCheck,
+      title: "الأجهزة الموثوقة",
+      desc: "الأجهزة التي سجّلت الدخول منها مع آخر ظهور، وإزالة أي جهاز غير معروف (وللأدمن: كل أجهزة المستخدمين).",
+      adminOnly: false,
+    },
 
   ].map((it) => ({ ...it, locked: it.adminOnly && !isAdmin }));
 

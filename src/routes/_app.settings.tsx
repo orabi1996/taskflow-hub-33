@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
-import { ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users, Bell } from "lucide-react";
+import { Laptop, ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users, Bell } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/settings")({
@@ -33,6 +33,11 @@ function SettingsLayout() {
     { to: "/settings/automation", label: "الأتمتة", icon: Bot, exact: false },
     { to: "/settings/notifications", label: "الإشعارات", icon: Bell, exact: false },
     { to: "/settings/audit", label: "سجل التدقيق", icon: ShieldCheck, exact: false },
+    { to: "/settings/security", label: "أمان الجلسة", icon: ShieldAlert, exact: false },
+    { to: "/settings/devices", label: "الأجهزة الموثوقة", icon: Laptop, exact: false },
+    ...(isAdmin
+      ? [{ to: "/settings/access-review", label: "مراجعة الصلاحيات", icon: ShieldCheck, exact: false }]
+      : []),
     ...(isAdmin
       ? [
           { to: "/admin/hierarchy", label: "الهيكل التنظيمي", icon: Network, exact: false },

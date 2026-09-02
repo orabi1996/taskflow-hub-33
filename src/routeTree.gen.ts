@@ -33,6 +33,7 @@ import { Route as AppSettingsSecurityRouteImport } from './routes/_app.settings.
 import { Route as AppSettingsNotificationsRouteImport } from './routes/_app.settings.notifications'
 import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.modules'
 import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
+import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
 import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
 import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
 import { Route as AppSettingsAccessReviewRouteImport } from './routes/_app.settings.access-review'
@@ -174,6 +175,11 @@ const AppSettingsEmployeesRoute = AppSettingsEmployeesRouteImport.update({
   path: '/employees',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppSettingsAutomationRoute = AppSettingsAutomationRouteImport.update({
   id: '/automation',
   path: '/automation',
@@ -308,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/settings/access-review': typeof AppSettingsAccessReviewRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
+  '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/notifications': typeof AppSettingsNotificationsRoute
@@ -351,6 +358,7 @@ export interface FileRoutesByTo {
   '/settings/access-review': typeof AppSettingsAccessReviewRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
+  '/settings/devices': typeof AppSettingsDevicesRoute
   '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/notifications': typeof AppSettingsNotificationsRoute
@@ -398,6 +406,7 @@ export interface FileRoutesById {
   '/_app/settings/access-review': typeof AppSettingsAccessReviewRoute
   '/_app/settings/audit': typeof AppSettingsAuditRoute
   '/_app/settings/automation': typeof AppSettingsAutomationRoute
+  '/_app/settings/devices': typeof AppSettingsDevicesRoute
   '/_app/settings/employees': typeof AppSettingsEmployeesRoute
   '/_app/settings/modules': typeof AppSettingsModulesRoute
   '/_app/settings/notifications': typeof AppSettingsNotificationsRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/settings/access-review'
     | '/settings/audit'
     | '/settings/automation'
+    | '/settings/devices'
     | '/settings/employees'
     | '/settings/modules'
     | '/settings/notifications'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/settings/access-review'
     | '/settings/audit'
     | '/settings/automation'
+    | '/settings/devices'
     | '/settings/employees'
     | '/settings/modules'
     | '/settings/notifications'
@@ -534,6 +545,7 @@ export interface FileRouteTypes {
     | '/_app/settings/access-review'
     | '/_app/settings/audit'
     | '/_app/settings/automation'
+    | '/_app/settings/devices'
     | '/_app/settings/employees'
     | '/_app/settings/modules'
     | '/_app/settings/notifications'
@@ -736,6 +748,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsEmployeesRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/devices': {
+      id: '/_app/settings/devices'
+      path: '/devices'
+      fullPath: '/settings/devices'
+      preLoaderRoute: typeof AppSettingsDevicesRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/settings/automation': {
       id: '/_app/settings/automation'
       path: '/automation'
@@ -899,6 +918,7 @@ interface AppSettingsRouteChildren {
   AppSettingsAccessReviewRoute: typeof AppSettingsAccessReviewRoute
   AppSettingsAuditRoute: typeof AppSettingsAuditRoute
   AppSettingsAutomationRoute: typeof AppSettingsAutomationRoute
+  AppSettingsDevicesRoute: typeof AppSettingsDevicesRoute
   AppSettingsEmployeesRoute: typeof AppSettingsEmployeesRoute
   AppSettingsModulesRoute: typeof AppSettingsModulesRoute
   AppSettingsNotificationsRoute: typeof AppSettingsNotificationsRoute
@@ -911,6 +931,7 @@ const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsAccessReviewRoute: AppSettingsAccessReviewRoute,
   AppSettingsAuditRoute: AppSettingsAuditRoute,
   AppSettingsAutomationRoute: AppSettingsAutomationRoute,
+  AppSettingsDevicesRoute: AppSettingsDevicesRoute,
   AppSettingsEmployeesRoute: AppSettingsEmployeesRoute,
   AppSettingsModulesRoute: AppSettingsModulesRoute,
   AppSettingsNotificationsRoute: AppSettingsNotificationsRoute,
