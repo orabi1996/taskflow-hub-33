@@ -218,15 +218,12 @@ function HierarchyPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Network className="h-6 w-6 text-primary" />
-            السلم الوظيفي والتسلسل الإداري
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            إدارة شجرة المدراء — كل مدير أعلى يرث صلاحية رؤية بيانات مرؤوسي مرؤوسيه (مهام، عملاء، مشاريع).
-          </p>
-        </div>
+        <PageHeader
+          icon={Network}
+          title="السلم الوظيفي والتسلسل الإداري"
+          description="إدارة شجرة المدراء — كل مدير أعلى يرث صلاحية رؤية بيانات مرؤوسي مرؤوسيه (مهام، عملاء، مشاريع)."
+        />
+
         <div className="flex items-center gap-2">
           <Link to="/admin"><Button variant="outline">قائمة الموظفين</Button></Link>
           <Link to="/settings/smtp"><Button variant="outline">إعدادات SMTP</Button></Link>
