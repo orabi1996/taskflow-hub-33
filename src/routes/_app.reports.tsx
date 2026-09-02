@@ -217,19 +217,49 @@ function ReportsPage() {
     return (deptScope.get(deptFilter) ?? new Set([deptFilter])).has(d);
   };
 
+  // module (Classera / C-SMARX) hierarchy: selecting a parent includes its children
+  const moduleScope = useMemo(() => {
+    const children = new Map<string, string[]>();
+    modules.forEach((m) => {
+      if (!m.parent_id) return;
+      children.set(m.parent_id, [...(children.get(m.parent_id) ?? []), m.id]);
+    });
+    const scope = new Map<string, Set<string>>();
+    const walk = (id: string): Set<string> => {
+      if (scope.has(id)) return scope.get(id)!;
+      const set = new Set<string>([id]);
+      scope.set(id, set);
+      (children.get(id) ?? []).forEach((c) => walk(c).forEach((x) => set.add(x)));
+      return set;
+    };
+    modules.forEach((m) => walk(m.id));
+    return scope;
+  }, [modules]);
+
+  const inModuleFilter = (userId: string) => {
+    if (moduleFilter === "all") return true;
+    const mine = empModules.filter((e) => e.user_id === userId).map((e) => e.module_id);
+    if (moduleFilter === "none") return mine.length === 0;
+    const scope = moduleScope.get(moduleFilter) ?? new Set([moduleFilter]);
+    return mine.some((m) => scope.has(m));
+  };
+
   const filtered = useMemo(() => rows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
     if (!inDeptFilter(r.user_id)) return false;
+    if (!inModuleFilter(r.user_id)) return false;
     return true;
-  }), [rows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
+  }), [rows, projectFilter, employeeFilter, deptFilter, userDept, deptScope, moduleFilter, moduleScope, empModules]);
 
   const filteredPrev = useMemo(() => prevRows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
     if (!inDeptFilter(r.user_id)) return false;
+    if (!inModuleFilter(r.user_id)) return false;
     return true;
-  }), [prevRows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
+  }), [prevRows, projectFilter, employeeFilter, deptFilter, userDept, deptScope, moduleFilter, moduleScope, empModules]);
+
 
   const projectOptions = useMemo(() => {
     const map = new Map<string, string>();
