@@ -1525,6 +1525,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_project_module: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_project: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
@@ -1534,6 +1538,10 @@ export type Database = {
         Returns: boolean
       }
       can_view_project: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_project_v3: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
@@ -1562,6 +1570,10 @@ export type Database = {
         Returns: boolean
       }
       is_manager_or_above: { Args: { _user_id: string }; Returns: boolean }
+      is_module_descendant_of: {
+        Args: { _ancestor_id: string; _module_id: string }
+        Returns: boolean
+      }
       is_module_linked_to_project: {
         Args: { _module_id: string; _project_id: string }
         Returns: boolean
@@ -1569,6 +1581,18 @@ export type Database = {
       is_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
+      }
+      module_with_descendants: {
+        Args: { _module_id: string }
+        Returns: {
+          module_id: string
+        }[]
+      }
+      user_accessible_modules: {
+        Args: { _user_id: string }
+        Returns: {
+          module_id: string
+        }[]
       }
     }
     Enums: {

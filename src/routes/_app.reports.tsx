@@ -114,6 +114,9 @@ function ReportsPage() {
   const [departments, setDepartments] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
   const [userDept, setUserDept] = useState<Map<string, string | null>>(new Map());
   const [deptFilter, setDeptFilter] = useState<string>("all");
+  const [modules, setModules] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
+  const [moduleFilter, setModuleFilter] = useState<string>("all");
+
 
   useEffect(() => {
     if (!canSee) return;
@@ -126,15 +129,18 @@ function ReportsPage() {
           .select("id, user_id, session_type, duration_minutes, started_at, ended_at")
           .gte("started_at", start).lt("started_at", end).limit(2000),
         supabase.from("employee_modules").select("user_id, module_id, is_primary"),
-        supabase.from("company_modules").select("id, name"),
+        supabase.from("company_modules").select("id, name, parent_id").order("sort_order"),
         supabase.from("profiles").select("id, full_name, department_id"),
         supabase.from("departments").select("id, name, parent_id").order("sort_order"),
       ]);
       setSessions(((s.data ?? []) as unknown) as typeof sessions);
       setEmpModules(((em.data ?? []) as unknown) as typeof empModules);
+      const modRows = (mods.data ?? []) as Array<{ id: string; name: string; parent_id: string | null }>;
+      setModules(modRows);
       const map = new Map<string, string>();
-      ((mods.data ?? []) as Array<{ id: string; name: string }>).forEach((x) => map.set(x.id, x.name));
+      modRows.forEach((x) => map.set(x.id, x.name));
       setModuleNames(map);
+
       const pmap = new Map<string, string>();
       const dmap = new Map<string, string | null>();
       ((profs.data ?? []) as Array<{ id: string; full_name: string; department_id: string | null }>).forEach((x) => {
@@ -211,19 +217,49 @@ function ReportsPage() {
     return (deptScope.get(deptFilter) ?? new Set([deptFilter])).has(d);
   };
 
+  // module (Classera / C-SMARX) hierarchy: selecting a parent includes its children
+  const moduleScope = useMemo(() => {
+    const children = new Map<string, string[]>();
+    modules.forEach((m) => {
+      if (!m.parent_id) return;
+      children.set(m.parent_id, [...(children.get(m.parent_id) ?? []), m.id]);
+    });
+    const scope = new Map<string, Set<string>>();
+    const walk = (id: string): Set<string> => {
+      if (scope.has(id)) return scope.get(id)!;
+      const set = new Set<string>([id]);
+      scope.set(id, set);
+      (children.get(id) ?? []).forEach((c) => walk(c).forEach((x) => set.add(x)));
+      return set;
+    };
+    modules.forEach((m) => walk(m.id));
+    return scope;
+  }, [modules]);
+
+  const inModuleFilter = (userId: string) => {
+    if (moduleFilter === "all") return true;
+    const mine = empModules.filter((e) => e.user_id === userId).map((e) => e.module_id);
+    if (moduleFilter === "none") return mine.length === 0;
+    const scope = moduleScope.get(moduleFilter) ?? new Set([moduleFilter]);
+    return mine.some((m) => scope.has(m));
+  };
+
   const filtered = useMemo(() => rows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
     if (!inDeptFilter(r.user_id)) return false;
+    if (!inModuleFilter(r.user_id)) return false;
     return true;
-  }), [rows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
+  }), [rows, projectFilter, employeeFilter, deptFilter, userDept, deptScope, moduleFilter, moduleScope, empModules]);
 
   const filteredPrev = useMemo(() => prevRows.filter((r) => {
     if (projectFilter !== "all" && r.project_id !== projectFilter) return false;
     if (employeeFilter !== "all" && r.user_id !== employeeFilter) return false;
     if (!inDeptFilter(r.user_id)) return false;
+    if (!inModuleFilter(r.user_id)) return false;
     return true;
-  }), [prevRows, projectFilter, employeeFilter, deptFilter, userDept, deptScope]);
+  }), [prevRows, projectFilter, employeeFilter, deptFilter, userDept, deptScope, moduleFilter, moduleScope, empModules]);
+
 
   const projectOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -583,6 +619,19 @@ function ReportsPage() {
             </Select>
           </div>
           <div className="w-44">
+            <Select value={moduleFilter} onValueChange={setModuleFilter}>
+              <SelectTrigger><SelectValue placeholder="كل الأنظمة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأنظمة</SelectItem>
+                {modules.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>
+                ))}
+                <SelectItem value="none">بدون نظام</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-44">
+
             <Select value={deptFilter} onValueChange={setDeptFilter}>
               <SelectTrigger><SelectValue placeholder="كل الأقسام" /></SelectTrigger>
               <SelectContent>

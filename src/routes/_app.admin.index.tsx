@@ -136,12 +136,16 @@ function AdminPage() {
   const [positions, setPositions] = useState<JobPositionLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [modules, setModules] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
+  const [empModules, setEmpModules] = useState<Array<{ user_id: string; module_id: string }>>([]);
+  const [moduleFilter, setModuleFilter] = useState<string>("all");
+
   const [savingId, setSavingId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: profs }, { data: rolesData }, { data: depts }, { data: poss }] = await Promise.all([
+    const [{ data: profs }, { data: rolesData }, { data: depts }, { data: poss }, { data: mods }, { data: emods }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, full_name, email, job_title, manager_id, phone, department, department_id, job_position_id, hire_date, is_active")
@@ -149,7 +153,12 @@ function AdminPage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("departments").select("id, name, parent_id").eq("is_active", true).order("name"),
       supabase.from("job_positions").select("id, title, department_id, level").eq("is_active", true).order("level"),
+      supabase.from("company_modules").select("id, name, parent_id").eq("is_active", true).order("sort_order"),
+      supabase.from("employee_modules").select("user_id, module_id"),
     ]);
+    setModules((mods ?? []) as Array<{ id: string; name: string; parent_id: string | null }>);
+    setEmpModules((emods ?? []) as Array<{ user_id: string; module_id: string }>);
+
     const rolesMap = new Map<string, AppRole[]>();
     (rolesData ?? []).forEach((r) => {
       const arr = rolesMap.get(r.user_id) ?? [];
@@ -225,7 +234,32 @@ function AdminPage() {
     load();
   };
 
+  // module scope: selecting a parent system includes its sub-systems
+  const moduleScope = (id: string): Set<string> => {
+    const set = new Set<string>([id]);
+    let added = true;
+    while (added) {
+      added = false;
+      modules.forEach((m) => {
+        if (m.parent_id && set.has(m.parent_id) && !set.has(m.id)) {
+          set.add(m.id);
+          added = true;
+        }
+      });
+    }
+    return set;
+  };
+
   const filtered = rows.filter((r) => {
+    if (moduleFilter !== "all") {
+      const mine = empModules.filter((e) => e.user_id === r.id).map((e) => e.module_id);
+      if (moduleFilter === "none") {
+        if (mine.length > 0) return false;
+      } else {
+        const scope = moduleScope(moduleFilter);
+        if (!mine.some((m) => scope.has(m))) return false;
+      }
+    }
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -235,6 +269,7 @@ function AdminPage() {
       (r.department ?? "").toLowerCase().includes(q)
     );
   });
+
 
   const exportCsv = () => {
     const header = ["الاسم", "البريد", "الهاتف", "المسمى", "القسم", "تاريخ التعيين", "الدور", "المدير", "الحالة"];
@@ -280,6 +315,17 @@ function AdminPage() {
               className="ps-9 max-w-xs"
             />
           </div>
+          <Select value={moduleFilter} onValueChange={setModuleFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="كل الأنظمة" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الأنظمة</SelectItem>
+              {modules.map((m) => (
+                <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>
+              ))}
+              <SelectItem value="none">بدون نظام</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" onClick={exportCsv}>
             <Download className="h-4 w-4 ms-1.5" />
             تصدير CSV
