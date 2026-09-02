@@ -14,8 +14,12 @@ import {
 import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
-  LayoutDashboard, Users2, UserCircle,
+  LayoutDashboard, Users2, UserCircle, Trash2,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PageHeader } from "@/components/common/PageHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ListSkeleton } from "@/components/common/ListSkeleton";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
 import { KpiCard } from "@/components/dashboard/KpiCards";
@@ -27,6 +31,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
@@ -78,6 +83,21 @@ function Dashboard() {
   const [editing, setEditing] = useState<EditableTask | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
+  // View preference (list / kanban / calendar) persisted per user.
+  const [view, setView] = useState<string>("list");
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("dashboard-view") : null;
+    if (saved) setView(saved);
+  }, []);
+  const changeView = (v: string) => {
+    setView(v);
+    if (typeof window !== "undefined") window.localStorage.setItem("dashboard-view", v);
+  };
+
+  // Bulk selection
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
   // Filters
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
@@ -85,6 +105,7 @@ function Dashboard() {
   const [employeeFilter, setEmployeeFilter] = useState<string>("all");
 
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
+
 
   const load = async () => {
     if (!user) return;
@@ -248,47 +269,80 @@ function Dashboard() {
   const clearFilters = () => { setSearch(""); setStatusFilter("all"); setProjectFilter("all"); setEmployeeFilter("all"); };
   const filtersActive = search || statusFilter !== "all" || projectFilter !== "all" || employeeFilter !== "all";
 
+  // ---- Bulk actions ----
+  const toggleSelected = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const allVisibleSelected = filteredTasks.length > 0 && filteredTasks.every((t) => selected.includes(t.id));
+  const toggleSelectAll = () =>
+    setSelected(allVisibleSelected ? [] : filteredTasks.map((t) => t.id));
+
+  const bulkStatus = async (status: TaskStatus) => {
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("tasks").update({ status }).in("id", selected);
+    setBulkBusy(false);
+    if (error) toast.error("تعذر تحديث المهام المحددة");
+    else {
+      toast.success(`تم تحديث ${selected.length} مهمة`);
+      setSelected([]);
+      load();
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selected.length === 0) return;
+    if (!window.confirm(`سيتم حذف ${selected.length} مهمة نهائيًا. متابعة؟`)) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("tasks").delete().in("id", selected);
+    setBulkBusy(false);
+    if (error) toast.error("تعذر حذف المهام المحددة");
+    else {
+      toast.success(`تم حذف ${selected.length} مهمة`);
+      setSelected([]);
+      load();
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {isAdminOrGM
-              ? "لوحة التحكم العامة"
-              : `مرحبًا، ${profile?.full_name?.split(" ")[0] || "بك"} 👋`}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isAdminOrGM
-              ? "نظرة شاملة على كل ما يسجّله الموظفون ومدراء الأقسام في النظام"
-              : "إليك نظرة شاملة على نشاطك ومهامك"}
-          </p>
-        </div>
-        {!isAdminOrGM && (
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg" className="shadow-[var(--shadow-elegant)]">
-              <Plus className="h-4 w-4 ms-1.5" />
-              إضافة مهمة
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl p-0 gap-0 max-h-[92vh] overflow-hidden flex flex-col">
-            <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
-              <DialogTitle className="flex items-center gap-2 text-lg">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Plus className="h-4 w-4" />
-                </span>
-                إضافة مهمة جديدة
-              </DialogTitle>
-              <DialogDescription>سجّل ما عملت عليه مع كافة التفاصيل المرتبطة.</DialogDescription>
-            </DialogHeader>
-            <div className="overflow-y-auto px-6 pb-0">
-              <TaskForm onSuccess={() => { setOpen(false); load(); router.invalidate(); }} />
-            </div>
-          </DialogContent>
-        </Dialog>
-        )}
-      </div>
+      <PageHeader
+        icon={isAdminOrGM ? LayoutDashboard : ListChecks}
+        title={isAdminOrGM ? "لوحة التحكم العامة" : `مرحبًا، ${profile?.full_name?.split(" ")[0] || "بك"} 👋`}
+        description={
+          isAdminOrGM
+            ? "نظرة شاملة على كل ما يسجّله الموظفون ومدراء الأقسام في النظام"
+            : "إليك نظرة شاملة على نشاطك ومهامك"
+        }
+        actions={
+          !isAdminOrGM ? (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="shadow-[var(--shadow-elegant)]">
+                  <Plus className="h-4 w-4 ms-1.5" />
+                  إضافة مهمة
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl p-0 gap-0 max-h-[92vh] overflow-hidden flex flex-col">
+                <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
+                  <DialogTitle className="flex items-center gap-2 text-lg">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Plus className="h-4 w-4" />
+                    </span>
+                    إضافة مهمة جديدة
+                  </DialogTitle>
+                  <DialogDescription>سجّل ما عملت عليه مع كافة التفاصيل المرتبطة.</DialogDescription>
+                </DialogHeader>
+                <div className="overflow-y-auto px-6 pb-0">
+                  <TaskForm onSuccess={() => { setOpen(false); load(); router.invalidate(); }} />
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : undefined
+        }
+      />
+
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -448,7 +502,7 @@ function Dashboard() {
       </Card>
 
       {/* Tabs: List / Kanban / Calendar */}
-      <Tabs defaultValue="list">
+      <Tabs value={view} onValueChange={changeView}>
         <TabsList>
           <TabsTrigger value="list"><List className="h-4 w-4 ms-1.5" />قائمة</TabsTrigger>
           <TabsTrigger value="kanban"><KanbanSquare className="h-4 w-4 ms-1.5" />Kanban</TabsTrigger>
@@ -457,17 +511,48 @@ function Dashboard() {
 
         <TabsContent value="list" className="mt-4">
           <Card className="overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="px-6 py-4 border-b flex items-center gap-3">
+              <Checkbox
+                checked={allVisibleSelected}
+                onCheckedChange={toggleSelectAll}
+                aria-label="تحديد الكل"
+                disabled={filteredTasks.length === 0}
+              />
               <h2 className="font-semibold">المهام</h2>
-              <Badge variant="secondary">{filteredTasks.length}</Badge>
+              <Badge variant="secondary" className="ms-auto">{filteredTasks.length}</Badge>
             </div>
-            {loading ? (
-              <div className="p-12 text-center text-muted-foreground">جارٍ التحميل...</div>
-            ) : filteredTasks.length === 0 ? (
-              <div className="p-12 text-center">
-                <ListChecks className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-muted-foreground">{filtersActive ? "لا توجد نتائج للفلاتر الحالية" : "لا توجد مهام بعد"}</p>
+
+            {selected.length > 0 && (
+              <div className="px-6 py-3 border-b bg-primary/5 flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium">تم تحديد {selected.length}</span>
+                <div className="flex flex-wrap items-center gap-2 ms-auto">
+                  <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkStatus("completed")}>
+                    <CheckCircle2 className="h-4 w-4 ms-1" /> إنهاء
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkStatus("pending")}>
+                    <Clock className="h-4 w-4 ms-1" /> قيد التنفيذ
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkStatus("postponed")}>
+                    <PauseCircle className="h-4 w-4 ms-1" /> تأجيل
+                  </Button>
+                  <Button size="sm" variant="destructive" disabled={bulkBusy} onClick={bulkDelete}>
+                    <Trash2 className="h-4 w-4 ms-1" /> حذف
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
+                    <X className="h-4 w-4 ms-1" /> إلغاء
+                  </Button>
+                </div>
               </div>
+            )}
+
+            {loading ? (
+              <ListSkeleton rows={6} />
+            ) : filteredTasks.length === 0 ? (
+              <EmptyState
+                icon={ListChecks}
+                title={filtersActive ? "لا توجد نتائج للفلاتر الحالية" : "لا توجد مهام بعد"}
+                description={filtersActive ? "جرّب تعديل الفلاتر أو إلغاءها." : "ابدأ بإضافة أول مهمة لتظهر هنا."}
+              />
             ) : (
               <ul className="divide-y">
                 {filteredTasks.map((t) => {
@@ -481,6 +566,14 @@ function Dashboard() {
                       onClick={() => openTask(t)}
                     >
                       <div className="flex items-start justify-between gap-4">
+                        <div onClick={(e) => e.stopPropagation()} className="pt-1">
+                          <Checkbox
+                            checked={selected.includes(t.id)}
+                            onCheckedChange={() => toggleSelected(t.id)}
+                            aria-label="تحديد المهمة"
+                          />
+                        </div>
+
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold">{t.title}</h3>
