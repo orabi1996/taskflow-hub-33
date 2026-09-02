@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, User, KeyRound, Palette, Sparkles, Check } from "lucide-react";
 import { toast } from "sonner";
 import { usePreferences, THEMES } from "@/lib/preferences";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/profile")({
   component: ProfilePage,
@@ -97,10 +98,7 @@ function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold">ملفي الشخصي</h1>
-        <p className="text-muted-foreground mt-1">إدارة بياناتك الشخصية وكلمة المرور</p>
-      </div>
+      <PageHeader title="ملفي الشخصي" description="إدارة بياناتك الشخصية وكلمة المرور" icon={User} />
 
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">

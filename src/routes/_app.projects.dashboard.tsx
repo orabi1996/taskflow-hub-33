@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { getProjectsDashboard } from "@/lib/projects-extended.functions";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/projects/dashboard")({
   component: DashboardPage,
@@ -54,9 +55,8 @@ function DashboardPage() {
             <ArrowRight className="h-5 w-5" />
           </Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">لوحة تحليلات المشاريع</h1>
-          <p className="text-muted-foreground text-sm">نظرة شاملة على صحة وأداء المشاريع</p>
+        <div className="flex-1 min-w-0">
+          <PageHeader title="لوحة تحليلات المشاريع" description="نظرة شاملة على صحة وأداء المشاريع" />
         </div>
       </div>
 

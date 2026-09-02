@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ACCESS_RULES, evaluateRule, type AccessRule } from "@/lib/access-rules";
 import { Stethoscope, ArrowLeft, Loader2, Check, Lock, ShieldAlert } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/admin/permissions-diagnose")({
   head: () => ({
@@ -85,14 +86,8 @@ function DiagnosePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <Stethoscope className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">تشخيص الصلاحيات</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              اختر مستخدمًا لمعرفة كل شاشة/إعداد يظهر له أو يُحجب عنه، مع سبب الحجب بالتفصيل.
-            </p>
-          </div>
+        <div className="flex-1 min-w-0">
+          <PageHeader title="تشخيص الصلاحيات" description="اختر مستخدمًا لمعرفة كل شاشة/إعداد يظهر له أو يُحجب عنه، مع سبب الحجب بالتفصيل." icon={Stethoscope} />
         </div>
         <div className="flex gap-2">
           <Button asChild variant="ghost" size="sm">

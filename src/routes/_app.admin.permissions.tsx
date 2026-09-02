@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { ShieldCheck, ArrowLeft, Check, X } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/admin/permissions")({
   head: () => ({
@@ -78,11 +79,8 @@ function PermissionsMatrixPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">مصفوفة الصلاحيات</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            من يمكنه الوصول لكل صفحة وإجراء داخل النظام.
-          </p>
+        <div className="flex-1 min-w-0">
+          <PageHeader title="مصفوفة الصلاحيات" description="من يمكنه الوصول لكل صفحة وإجراء داخل النظام." />
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">

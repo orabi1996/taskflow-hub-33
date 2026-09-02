@@ -14,6 +14,7 @@ import {
   Loader2, RefreshCw, ShieldCheck, Target, Users2, Zap,
 } from "lucide-react";
 import {
+import { PageHeader } from "@/components/common/PageHeader";
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
@@ -69,12 +70,8 @@ function CommandCenter() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Activity className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">مركز القيادة</h1>
-            <p className="text-sm text-muted-foreground">نظرة موحّدة على كل ما يحدث في النظام</p>
-          </div>
+        <div className="flex-1 min-w-0">
+          <PageHeader title="مركز القيادة" description="نظرة موحّدة على كل ما يحدث في النظام" icon={Activity} />
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
