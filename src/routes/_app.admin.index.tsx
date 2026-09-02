@@ -234,7 +234,32 @@ function AdminPage() {
     load();
   };
 
+  // module scope: selecting a parent system includes its sub-systems
+  const moduleScope = (id: string): Set<string> => {
+    const set = new Set<string>([id]);
+    let added = true;
+    while (added) {
+      added = false;
+      modules.forEach((m) => {
+        if (m.parent_id && set.has(m.parent_id) && !set.has(m.id)) {
+          set.add(m.id);
+          added = true;
+        }
+      });
+    }
+    return set;
+  };
+
   const filtered = rows.filter((r) => {
+    if (moduleFilter !== "all") {
+      const mine = empModules.filter((e) => e.user_id === r.id).map((e) => e.module_id);
+      if (moduleFilter === "none") {
+        if (mine.length > 0) return false;
+      } else {
+        const scope = moduleScope(moduleFilter);
+        if (!mine.some((m) => scope.has(m))) return false;
+      }
+    }
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -244,6 +269,7 @@ function AdminPage() {
       (r.department ?? "").toLowerCase().includes(q)
     );
   });
+
 
   const exportCsv = () => {
     const header = ["الاسم", "البريد", "الهاتف", "المسمى", "القسم", "تاريخ التعيين", "الدور", "المدير", "الحالة"];
