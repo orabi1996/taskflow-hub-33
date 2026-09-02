@@ -52,9 +52,13 @@ interface Entry {
   is_paused?: boolean;
   paused_at?: string | null;
   paused_total_seconds?: number;
+  is_billable?: boolean;
+  hourly_rate?: number | null;
+  currency?: string | null;
   task: { title: string } | null;
   project: { name: string } | null;
 }
+
 
 interface TaskOpt { id: string; title: string; project_id: string | null; status?: string; start_at?: string }
 interface ProjectOpt { id: string; name: string }
