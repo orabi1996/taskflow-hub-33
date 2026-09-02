@@ -1,13 +1,16 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
-  Briefcase, LogOut, ListChecks, FolderKanban, Users2, BarChart3, ShieldCheck,
-  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Menu, Clock, LayoutDashboard, TrendingUp, Activity,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider,
+  SidebarRail, SidebarTrigger,
+} from "@/components/ui/sidebar";
+import {
+  LogOut, ListChecks, FolderKanban, Users2, BarChart3, ShieldCheck,
+  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Clock, LayoutDashboard, TrendingUp, Activity,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -37,11 +40,11 @@ export const Route = createFileRoute("/_app")({
   component: AppLayout,
 });
 
+type NavItem = { to: string; icon: typeof ListChecks; label: string };
 
 function AppLayout() {
   const { profile, roles, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
   const isAdmin = roles.includes("admin");
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
@@ -53,36 +56,29 @@ function AppLayout() {
     navigate({ to: "/auth" });
   };
 
-  const navLinks = (
-    <>
-      <NavLink
-        to="/dashboard"
-        icon={isAdminOrGM ? LayoutDashboard : ListChecks}
-        label={isAdminOrGM ? "لوحة التحكم" : "مهامي"}
-        onClick={() => setMobileOpen(false)}
-      />
-      <NavLink to="/time" icon={Clock} label="الوقت" onClick={() => setMobileOpen(false)} />
-      <NavLink to="/my-projects" icon={FolderHeart} label="مشاريعي" onClick={() => setMobileOpen(false)} />
-      <NavLink to="/performance" icon={TrendingUp} label="الأداء" onClick={() => setMobileOpen(false)} />
+  const mainItems: NavItem[] = [
+    {
+      to: "/dashboard",
+      icon: isAdminOrGM ? LayoutDashboard : ListChecks,
+      label: isAdminOrGM ? "لوحة التحكم" : "مهامي",
+    },
+    { to: "/time", icon: Clock, label: "الوقت" },
+    { to: "/my-projects", icon: FolderHeart, label: "مشاريعي" },
+    { to: "/performance", icon: TrendingUp, label: "الأداء" },
+  ];
 
-      {isManager && (
-        <>
-          <NavLink to="/team" icon={Users2} label="الفريق" onClick={() => setMobileOpen(false)} />
-          <NavLink to="/projects" icon={FolderKanban} label="المشاريع" onClick={() => setMobileOpen(false)} />
-          <NavLink to="/reports" icon={BarChart3} label="التقارير" onClick={() => setMobileOpen(false)} />
-        </>
-      )}
-      {isAdminOrGM && (
-        <NavLink to="/admin/overview" icon={Activity} label="مركز القيادة" onClick={() => setMobileOpen(false)} />
-      )}
-      {isAdmin && (
-        <NavLink to="/admin" icon={ShieldCheck} label="الموظفون" onClick={() => setMobileOpen(false)} />
-      )}
-      {canSettings && (
-        <NavLink to="/settings" icon={SettingsIcon} label="الإعدادات" onClick={() => setMobileOpen(false)} />
-      )}
-    </>
-  );
+  const manageItems: NavItem[] = [
+    ...(isManager
+      ? [
+          { to: "/team", icon: Users2, label: "الفريق" },
+          { to: "/projects", icon: FolderKanban, label: "المشاريع" },
+          { to: "/reports", icon: BarChart3, label: "التقارير" },
+        ]
+      : []),
+    ...(isAdminOrGM ? [{ to: "/admin/overview", icon: Activity, label: "مركز القيادة" }] : []),
+    ...(isAdmin ? [{ to: "/admin", icon: ShieldCheck, label: "الموظفون" }] : []),
+    ...(canSettings ? [{ to: "/settings", icon: SettingsIcon, label: "الإعدادات" }] : []),
+  ];
 
   const triggerCmdK = () => {
     const event = new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true });
@@ -99,92 +95,113 @@ function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen app-ambient relative">
+    <SidebarProvider>
       <CommandPalette />
-      <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Mobile menu */}
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-72">
-                <SheetHeader>
-                  <SheetTitle>القائمة</SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col gap-1 mt-6">{navLinks}</nav>
-              </SheetContent>
-            </Sheet>
 
-            <div className="shrink-0" title="C-SmarX — من Classera">
-              <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto" />
-            </div>
-          </div>
+      <Sidebar side="right" collapsible="icon" variant="inset">
+        <SidebarHeader className="p-3">
+          <Link to="/dashboard" className="flex items-center gap-2 min-w-0" title="C-SmarX — من Classera">
+            <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto shrink-0" />
+          </Link>
+        </SidebarHeader>
 
-          <nav className="hidden md:flex items-center gap-1 min-w-0 overflow-x-auto">{navLinks}</nav>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>العمل اليومي</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainItems.map((item) => (
+                  <SidebarNavItem key={item.to} item={item} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-          <div className="flex items-center gap-1">
+          {manageItems.length > 0 && (
+            <SidebarGroup>
+              <SidebarGroupLabel>الإدارة</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {manageItems.map((item) => (
+                    <SidebarNavItem key={item.to} item={item} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+        </SidebarContent>
+
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="ملفي الشخصي">
+                <Link to="/profile" activeProps={{ "data-active": "true" } as any}>
+                  <UserCircle />
+                  <div className="min-w-0 text-start">
+                    <div className="truncate text-sm font-medium">{profile?.full_name || "مستخدم"}</div>
+                    <div className="truncate text-[11px] text-muted-foreground">
+                      {profile?.job_title || roles[0] || ""}
+                    </div>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={handleSignOut} tooltip="تسجيل الخروج">
+                <LogOut />
+                <span>تسجيل الخروج</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset className="app-ambient min-h-screen">
+        <header className="sticky top-0 z-30 h-14 flex items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5">
+          <SidebarTrigger className="shrink-0" />
+          <div className="flex-1 min-w-0">
             <Button
               variant="outline"
               size="sm"
-              className="hidden sm:inline-flex gap-2 text-muted-foreground"
+              className="hidden w-full max-w-sm justify-start gap-2 text-muted-foreground sm:inline-flex"
               onClick={triggerCmdK}
               title="بحث (Ctrl/Cmd + K)"
             >
               <Search className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">بحث...</span>
-              <kbd className="hidden lg:inline px-1.5 py-0.5 text-[10px] rounded bg-muted">⌘K</kbd>
+              <span>بحث سريع...</span>
+              <kbd className="ms-auto rounded bg-muted px-1.5 py-0.5 text-[10px]">⌘K</kbd>
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="sm:hidden"
-              onClick={triggerCmdK}
-              title="بحث"
-            >
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button variant="ghost" size="icon" className="sm:hidden" onClick={triggerCmdK} title="بحث">
               <Search className="h-4 w-4" />
             </Button>
             <ThemeToggle />
             <AiAssistant />
             <NotificationsBell />
-            <Link to="/profile" className="hidden sm:flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent/50 transition-[var(--transition-smooth)] text-end" activeProps={{ className: "bg-secondary" }}>
-              <UserCircle className="h-5 w-5 text-muted-foreground" />
-              <div className="hidden lg:block">
-                <div className="text-sm font-medium">{profile?.full_name || "مستخدم"}</div>
-                <div className="text-xs text-muted-foreground">{profile?.job_title || roles[0] || ""}</div>
-              </div>
-            </Link>
-            <Button variant="ghost" size="icon" onClick={handleSignOut} title="خروج">
-              <LogOut className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="container mx-auto px-4 py-6 sm:py-8 relative z-10 animate-fade-in">
-        <Outlet />
-      </main>
-    </div>
+        <main className="px-4 py-6 sm:px-6 sm:py-8 relative z-10 animate-fade-in">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 
-function NavLink({
-  to, icon: Icon, label, onClick,
-}: {
-  to: string; icon: typeof ListChecks; label: string; onClick?: () => void;
-}) {
+function SidebarNavItem({ item }: { item: NavItem }) {
+  const { icon: Icon, label, to } = item;
   return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="nav-link px-3 py-2 rounded-md text-sm font-medium hover:bg-accent/40 transition-colors flex items-center gap-2 whitespace-nowrap shrink-0"
-      activeProps={{ "data-active": "true" } as any}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </Link>
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip={label}>
+        <Link to={to} activeProps={{ "data-active": "true" } as any}>
+          <Icon />
+          <span>{label}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }
+
