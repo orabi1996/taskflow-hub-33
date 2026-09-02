@@ -14,8 +14,12 @@ import {
 import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
-  LayoutDashboard, Users2, UserCircle,
+  LayoutDashboard, Users2, UserCircle, Trash2,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PageHeader } from "@/components/common/PageHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ListSkeleton } from "@/components/common/ListSkeleton";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
 import { KpiCard } from "@/components/dashboard/KpiCards";
@@ -27,6 +31,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
