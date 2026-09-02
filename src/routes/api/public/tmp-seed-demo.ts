@@ -41,17 +41,20 @@ export const Route = createFileRoute("/api/public/tmp-seed-demo")({
 
         for (const p of people) {
           const uid = ids[p.email]!;
-          await sb.from("profiles").update({
+          const { error: profErr } = await sb.from("profiles").upsert({
+            id: uid,
             full_name: p.name,
             email: p.email,
             is_active: true,
             manager_id: p.mgr ? ids[p.mgr] : null,
-          }).eq("id", uid);
+          }, { onConflict: "id" });
+          if (profErr) return Response.json({ step: "profile", email: p.email, error: profErr.message }, { status: 500 });
           await sb.from("user_roles").delete().eq("user_id", uid);
           await sb.from("user_roles").insert({ user_id: uid, role: p.role });
           await sb.from("employee_modules").delete().eq("user_id", uid);
           await sb.from("employee_modules").insert({ user_id: uid, module_id: p.module, is_primary: true });
         }
+
 
         const projectDefs = [
           { name: "بوابة Classera التعليمية", module: CLASSERA, owner: "demo.gm@classera.test" },
