@@ -26,6 +26,16 @@ interface SearchResults {
 
 const empty: SearchResults = { tasks: [], projects: [], clients: [], employees: [], objectives: [] };
 
+function ShortcutRow({ label, keys }: { label: string; keys: string }) {
+  return (
+    <div className="flex items-center justify-between px-2 py-1.5 text-sm text-muted-foreground">
+      <span>{label}</span>
+      <kbd className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium">{keys}</kbd>
+    </div>
+  );
+}
+
+
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
