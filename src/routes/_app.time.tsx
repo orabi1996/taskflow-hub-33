@@ -542,6 +542,109 @@ function TimeTrackingPage() {
   );
 }
 
+/** تقرير الساعات القابلة للفوترة لكل مشروع مع القيمة المالية */
+function BillingTab({ entries }: { entries: Entry[] }) {
+  const [rate, setRate] = useState<number>(() => {
+    if (typeof window === "undefined") return 100;
+    return Number(localStorage.getItem("billing_default_rate") ?? 100);
+  });
+
+  useEffect(() => {
+    localStorage.setItem("billing_default_rate", String(rate));
+  }, [rate]);
+
+  const rows = useMemo(() => {
+    const map = new Map<string, { name: string; billableMin: number; nonBillableMin: number }>();
+    for (const e of entries) {
+      if (!e.ended_at) continue;
+      const key = e.project_id ?? "none";
+      const cur = map.get(key) ?? { name: e.project?.name ?? "بدون مشروع", billableMin: 0, nonBillableMin: 0 };
+      const mins = e.duration_minutes ?? 0;
+      if (e.is_billable) cur.billableMin += mins; else cur.nonBillableMin += mins;
+      map.set(key, cur);
+    }
+    return [...map.values()]
+      .map((r) => ({ ...r, amount: (r.billableMin / 60) * rate }))
+      .sort((a, b) => b.billableMin - a.billableMin);
+  }, [entries, rate]);
+
+  const totalBillable = rows.reduce((a, r) => a + r.billableMin, 0);
+  const totalAmount = rows.reduce((a, r) => a + r.amount, 0);
+  const money = (n: number) => `${n.toLocaleString("ar-EG", { maximumFractionDigits: 0 })} ر.س`;
+  const hrs = (m: number) => `${(m / 60).toFixed(1)} س`;
+
+  const exportBilling = () => {
+    if (rows.length === 0) { toast.error("لا توجد بيانات"); return; }
+    exportToExcel(
+      rows.map((r) => ({
+        "المشروع": r.name,
+        "ساعات قابلة للفوترة": (r.billableMin / 60).toFixed(2),
+        "ساعات غير قابلة": (r.nonBillableMin / 60).toFixed(2),
+        "القيمة": Math.round(r.amount),
+      })),
+      `billing-${new Date().toISOString().slice(0, 10)}`,
+      "الفوترة"
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <Label>سعر الساعة (ر.س)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={rate}
+            onChange={(ev) => setRate(Number(ev.target.value) || 0)}
+            className="w-36"
+          />
+        </div>
+        <Button variant="outline" size="sm" onClick={exportBilling} className="gap-1.5">
+          <FileSpreadsheet className="h-4 w-4" /> تصدير
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <Card className="p-4"><div className="text-xs text-muted-foreground">ساعات قابلة للفوترة</div><div className="text-2xl font-bold mt-1">{hrs(totalBillable)}</div></Card>
+        <Card className="p-4"><div className="text-xs text-muted-foreground">القيمة التقديرية</div><div className="text-2xl font-bold mt-1">{money(totalAmount)}</div></Card>
+        <Card className="p-4"><div className="text-xs text-muted-foreground">عدد المشاريع</div><div className="text-2xl font-bold mt-1">{rows.length}</div></Card>
+      </div>
+
+      <Card className="overflow-hidden">
+        <div className="px-5 py-3 border-b font-semibold">الفوترة حسب المشروع</div>
+        {rows.length === 0 ? (
+          <div className="p-12 text-center text-muted-foreground">لا توجد جلسات منتهية بعد.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40">
+                <tr>
+                  <th className="text-start px-4 py-3">المشروع</th>
+                  <th className="text-start px-4 py-3">قابلة للفوترة</th>
+                  <th className="text-start px-4 py-3">غير قابلة</th>
+                  <th className="text-start px-4 py-3">القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.name} className="border-t">
+                    <td className="px-4 py-3 font-medium">{r.name}</td>
+                    <td className="px-4 py-3">{hrs(r.billableMin)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{hrs(r.nonBillableMin)}</td>
+                    <td className="px-4 py-3 font-semibold">{money(r.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+
 // Helper to make elapsedSeconds reactive: subscribe to a 1s tick
 function useTickValue() {
   const [v, setV] = useState(0);
