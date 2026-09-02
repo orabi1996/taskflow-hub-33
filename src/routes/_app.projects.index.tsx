@@ -256,11 +256,14 @@ function ProjectsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">المشاريع</h1>
-          <p className="text-muted-foreground mt-1">إدارة قائمة المشاريع المتاحة للموظفين</p>
-        </div>
+      <PageHeader
+        title="المشاريع"
+        description="إدارة قائمة المشاريع المتاحة للموظفين"
+        icon={FolderKanban}
+        actions={<></>}
+      />
+      <div className="flex flex-col sm:flex-row sm:items-end justify-end gap-4">
+
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" asChild>
             <Link to="/projects/dashboard">
