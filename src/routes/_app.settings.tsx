@@ -30,6 +30,7 @@ function SettingsLayout() {
     { to: "/settings/modules", label: "أنظمة الشركة", icon: Boxes, exact: false },
     { to: "/settings/smtp", label: "SMTP", icon: ServerCog, exact: false },
     { to: "/settings/automation", label: "الأتمتة", icon: Bot, exact: false },
+    { to: "/settings/notifications", label: "الإشعارات", icon: Bell, exact: false },
     { to: "/settings/audit", label: "سجل التدقيق", icon: ShieldCheck, exact: false },
     ...(isAdmin
       ? [
