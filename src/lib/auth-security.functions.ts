@@ -56,6 +56,91 @@ export const recordLoginAttempt = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Server-enforced sign-in: applies the lockout BEFORE any password check,
+ * so the limit can't be bypassed by calling the auth API directly from the browser.
+ * Returns session tokens for the client to install via supabase.auth.setSession().
+ */
+export const signInWithLock = createServerFn({ method: "POST" })
+  .inputValidator((input: { email: string; password: string }) => ({
+    email: emailSchema.parse(input.email),
+    password: z.string().min(1).max(200).parse(input.password),
+  }))
+  .handler(async ({ data }) => {
+    const since = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
+    const { data: rows } = await supabaseAdmin
+      .from("login_attempts")
+      .select("success, created_at")
+      .eq("email", data.email)
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    let failedStreak = 0;
+    for (const r of rows ?? []) {
+      if (r.success) break;
+      failedStreak++;
+    }
+
+    const ip = getRequestIP({ xForwardedFor: true }) || "unknown";
+    const ua = getRequestHeader("user-agent")?.slice(0, 500) || null;
+
+    if (failedStreak >= MAX_FAILED) {
+      await supabaseAdmin.from("login_attempts").insert({
+        email: data.email, ip, user_agent: ua, success: false, reason: "locked_out",
+      });
+      return {
+        ok: false as const,
+        locked: true as const,
+        remaining: 0,
+        windowMinutes: WINDOW_MIN,
+        message: `تم قفل المحاولات مؤقتًا بعد ${MAX_FAILED} محاولات فاشلة. حاول بعد ${WINDOW_MIN} دقيقة.`,
+        session: null,
+      };
+    }
+
+    const { createClient } = await import("@supabase/supabase-js");
+    const anon = createClient(
+      process.env["SUPABASE_URL"]!,
+      process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"]!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    );
+    const { data: signIn, error } = await anon.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    await supabaseAdmin.from("login_attempts").insert({
+      email: data.email, ip, user_agent: ua, success: !error, reason: error?.message?.slice(0, 200) ?? null,
+    });
+
+    if (error || !signIn.session) {
+      const nowFailed = failedStreak + 1;
+      return {
+        ok: false as const,
+        locked: nowFailed >= MAX_FAILED,
+        remaining: Math.max(0, MAX_FAILED - nowFailed),
+        windowMinutes: WINDOW_MIN,
+        message: error?.message ?? "تعذّر تسجيل الدخول",
+        session: null,
+      };
+    }
+
+    return {
+      ok: true as const,
+      locked: false as const,
+      remaining: MAX_FAILED,
+      windowMinutes: WINDOW_MIN,
+      message: "ok",
+      session: {
+        access_token: signIn.session.access_token,
+        refresh_token: signIn.session.refresh_token,
+      },
+      userId: signIn.user?.id ?? null,
+    };
+  });
+
+
 /** Public-safe live stats for auth hero panel (no PII). */
 export const getAuthHeroStats = createServerFn({ method: "GET" }).handler(async () => {
   const [{ count: usersCount }, { count: projectsCount }, { count: tasksCount }] =
