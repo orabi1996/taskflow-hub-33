@@ -10,6 +10,10 @@ import { AlertTriangle, BellOff, FolderKanban, RotateCcw } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/common/PageHeader";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ListSkeleton } from "@/components/common/ListSkeleton";
+
 
 export const Route = createFileRoute("/_app/alerts")({
   component: AlertsPage,
