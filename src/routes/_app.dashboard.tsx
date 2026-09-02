@@ -103,8 +103,28 @@ function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("all");
+  const [empSort, setEmpSort] = useState<string>("total");
+
+  // Time range (days; 0 = all time), persisted.
+  const [rangeDays, setRangeDays] = useState<number>(30);
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("dashboard-range") : null;
+    if (saved !== null) setRangeDays(Number(saved));
+  }, []);
+  const changeRange = (d: number) => {
+    setRangeDays(d);
+    if (typeof window !== "undefined") window.localStorage.setItem("dashboard-range", String(d));
+  };
+
+  const tasks = useMemo(() => {
+    if (!rangeDays) return allTasks;
+    const cutoff = new Date(Date.now() - rangeDays * 86400000);
+    return allTasks.filter((t) => new Date(t.start_at) >= cutoff);
+  }, [allTasks, rangeDays]);
 
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
+
+
 
 
   const load = async () => {
