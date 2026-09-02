@@ -209,8 +209,10 @@ function AuthPage() {
       guard = null; // fall back to direct sign-in if the server fn is unreachable
     }
 
-    let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>["data"] | null = null;
+    type SessionLike = NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]>;
+    let data: { user: { id: string } | null; session: SessionLike | null } = { user: null, session: null };
     let error: { message: string } | null = null;
+
 
     if (guard) {
       if (!guard.ok) {
