@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.recalc_objective_progress() FROM PUBLIC, anon, authenticated;
