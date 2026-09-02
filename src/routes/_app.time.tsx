@@ -472,7 +472,9 @@ function TimeTrackingPage() {
                       <th className="text-start px-4 py-3">المشروع</th>
                       <th className="text-start px-4 py-3">البداية</th>
                       <th className="text-start px-4 py-3">المدة</th>
+                      <th className="text-start px-4 py-3">قابلة للفوترة</th>
                       <th className="text-start px-4 py-3"></th>
+
                     </tr>
                   </thead>
                   <tbody>
