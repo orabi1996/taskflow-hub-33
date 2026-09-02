@@ -420,9 +420,30 @@ function TimeTrackingPage() {
         </Card>
       )}
 
+      {conflicts.length > 0 && (
+        <Card className="p-4 border-warning/50 bg-warning/5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-semibold">تعارض في الجلسات ({conflicts.length})</div>
+              <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                {conflicts.slice(0, 3).map(({ a, b }) => (
+                  <li key={`${a.id}-${b.id}`} className="truncate">
+                    «{a.description || a.task?.title || "جلسة"}» تتداخل مع «{b.description || b.task?.title || "جلسة"}» يوم{" "}
+                    {new Date(b.started_at).toLocaleDateString("ar-EG")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Tabs defaultValue="sessions" className="space-y-4">
         <TabsList>
           <TabsTrigger value="sessions" className="gap-1.5"><Clock className="h-4 w-4" /> الجلسات</TabsTrigger>
+          <TabsTrigger value="billing" className="gap-1.5"><Receipt className="h-4 w-4" /> الفوترة</TabsTrigger>
+
           <TabsTrigger value="reports" className="gap-1.5"><BarChart3 className="h-4 w-4" /> التقارير</TabsTrigger>
           {isMgr && <TabsTrigger value="team" className="gap-1.5"><UsersRound className="h-4 w-4" /> الفريق</TabsTrigger>}
         </TabsList>
