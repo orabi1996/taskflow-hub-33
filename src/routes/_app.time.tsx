@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/common/PageHeader";
 import {
   Clock, Play, Square, Plus, Trash2, FileSpreadsheet, Users, Briefcase, GraduationCap,
-  LifeBuoy, MoreHorizontal, Pause, PlayCircle, Pencil, BarChart3, UsersRound,
+  LifeBuoy, MoreHorizontal, Pause, PlayCircle, Pencil, BarChart3, UsersRound, Receipt, AlertTriangle,
 } from "lucide-react";
 import { exportToExcel, exportToCSV } from "@/lib/export-utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, CartesianGrid, LineChart, Line } from "recharts";
@@ -52,9 +52,13 @@ interface Entry {
   is_paused?: boolean;
   paused_at?: string | null;
   paused_total_seconds?: number;
+  is_billable?: boolean;
+  hourly_rate?: number | null;
+  currency?: string | null;
   task: { title: string } | null;
   project: { name: string } | null;
 }
+
 
 interface TaskOpt { id: string; title: string; project_id: string | null; status?: string; start_at?: string }
 interface ProjectOpt { id: string; name: string }
@@ -251,6 +255,30 @@ function TimeTrackingPage() {
     return { minutes, meetingMinutes, supportMinutes, count: completed.length };
   }, [visibleEntries]);
 
+  // كشف التعارضات: جلستان متداخلتان في نفس الوقت
+  const conflicts = useMemo(() => {
+    const done = entries
+      .filter((e) => e.ended_at)
+      .map((e) => ({ ...e, s: new Date(e.started_at).getTime(), t: new Date(e.ended_at!).getTime() }))
+      .sort((a, b) => a.s - b.s);
+    const pairs: { a: Entry; b: Entry }[] = [];
+    for (let i = 1; i < done.length; i++) {
+      const prev = done[i - 1];
+      const cur = done[i];
+      if (cur.s < prev.t) pairs.push({ a: prev, b: cur });
+    }
+    return pairs;
+  }, [entries]);
+
+  const toggleBillable = async (e: Entry) => {
+    const next = !e.is_billable;
+    setEntries((list) => list.map((x) => (x.id === e.id ? { ...x, is_billable: next } : x)));
+    const { error } = await supabase.from("time_entries").update({ is_billable: next }).eq("id", e.id);
+    if (error) { toast.error(error.message); load(); }
+  };
+
+
+
   const fmtHrs = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = Math.round(mins % 60);
@@ -392,9 +420,30 @@ function TimeTrackingPage() {
         </Card>
       )}
 
+      {conflicts.length > 0 && (
+        <Card className="p-4 border-warning/50 bg-warning/5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-semibold">تعارض في الجلسات ({conflicts.length})</div>
+              <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                {conflicts.slice(0, 3).map(({ a, b }) => (
+                  <li key={`${a.id}-${b.id}`} className="truncate">
+                    «{a.description || a.task?.title || "جلسة"}» تتداخل مع «{b.description || b.task?.title || "جلسة"}» يوم{" "}
+                    {new Date(b.started_at).toLocaleDateString("ar-EG")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <Tabs defaultValue="sessions" className="space-y-4">
         <TabsList>
           <TabsTrigger value="sessions" className="gap-1.5"><Clock className="h-4 w-4" /> الجلسات</TabsTrigger>
+          <TabsTrigger value="billing" className="gap-1.5"><Receipt className="h-4 w-4" /> الفوترة</TabsTrigger>
+
           <TabsTrigger value="reports" className="gap-1.5"><BarChart3 className="h-4 w-4" /> التقارير</TabsTrigger>
           {isMgr && <TabsTrigger value="team" className="gap-1.5"><UsersRound className="h-4 w-4" /> الفريق</TabsTrigger>}
         </TabsList>
@@ -423,7 +472,9 @@ function TimeTrackingPage() {
                       <th className="text-start px-4 py-3">المشروع</th>
                       <th className="text-start px-4 py-3">البداية</th>
                       <th className="text-start px-4 py-3">المدة</th>
+                      <th className="text-start px-4 py-3">قابلة للفوترة</th>
                       <th className="text-start px-4 py-3"></th>
+
                     </tr>
                   </thead>
                   <tbody>
@@ -437,7 +488,20 @@ function TimeTrackingPage() {
                           {e.ended_at ? fmtHrs(e.duration_minutes ?? 0) : <Badge variant="default" className="animate-pulse">جارية</Badge>}
                         </td>
                         <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleBillable(e)}
+                            className="inline-flex"
+                            title="تبديل قابلية الفوترة"
+                          >
+                            <Badge variant={e.is_billable ? "default" : "outline"}>
+                              {e.is_billable ? "نعم" : "لا"}
+                            </Badge>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
                           <div className="flex gap-1">
+
                             {e.ended_at && (
                               <Button variant="ghost" size="icon" onClick={() => setEditEntry(e)} title="تعديل">
                                 <Pencil className="h-4 w-4" />
@@ -457,7 +521,12 @@ function TimeTrackingPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="billing">
+          <BillingTab entries={entries} />
+        </TabsContent>
+
         <TabsContent value="reports">
+
           <ReportsTab entries={entries} />
         </TabsContent>
 
@@ -472,6 +541,109 @@ function TimeTrackingPage() {
     </div>
   );
 }
+
+/** تقرير الساعات القابلة للفوترة لكل مشروع مع القيمة المالية */
+function BillingTab({ entries }: { entries: Entry[] }) {
+  const [rate, setRate] = useState<number>(() => {
+    if (typeof window === "undefined") return 100;
+    return Number(localStorage.getItem("billing_default_rate") ?? 100);
+  });
+
+  useEffect(() => {
+    localStorage.setItem("billing_default_rate", String(rate));
+  }, [rate]);
+
+  const rows = useMemo(() => {
+    const map = new Map<string, { name: string; billableMin: number; nonBillableMin: number }>();
+    for (const e of entries) {
+      if (!e.ended_at) continue;
+      const key = e.project_id ?? "none";
+      const cur = map.get(key) ?? { name: e.project?.name ?? "بدون مشروع", billableMin: 0, nonBillableMin: 0 };
+      const mins = e.duration_minutes ?? 0;
+      if (e.is_billable) cur.billableMin += mins; else cur.nonBillableMin += mins;
+      map.set(key, cur);
+    }
+    return [...map.values()]
+      .map((r) => ({ ...r, amount: (r.billableMin / 60) * rate }))
+      .sort((a, b) => b.billableMin - a.billableMin);
+  }, [entries, rate]);
+
+  const totalBillable = rows.reduce((a, r) => a + r.billableMin, 0);
+  const totalAmount = rows.reduce((a, r) => a + r.amount, 0);
+  const money = (n: number) => `${n.toLocaleString("ar-EG", { maximumFractionDigits: 0 })} ر.س`;
+  const hrs = (m: number) => `${(m / 60).toFixed(1)} س`;
+
+  const exportBilling = () => {
+    if (rows.length === 0) { toast.error("لا توجد بيانات"); return; }
+    exportToExcel(
+      rows.map((r) => ({
+        "المشروع": r.name,
+        "ساعات قابلة للفوترة": (r.billableMin / 60).toFixed(2),
+        "ساعات غير قابلة": (r.nonBillableMin / 60).toFixed(2),
+        "القيمة": Math.round(r.amount),
+      })),
+      `billing-${new Date().toISOString().slice(0, 10)}`,
+      "الفوترة"
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <Label>سعر الساعة (ر.س)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={rate}
+            onChange={(ev) => setRate(Number(ev.target.value) || 0)}
+            className="w-36"
+          />
+        </div>
+        <Button variant="outline" size="sm" onClick={exportBilling} className="gap-1.5">
+          <FileSpreadsheet className="h-4 w-4" /> تصدير
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <Card className="p-4"><div className="text-xs text-muted-foreground">ساعات قابلة للفوترة</div><div className="text-2xl font-bold mt-1">{hrs(totalBillable)}</div></Card>
+        <Card className="p-4"><div className="text-xs text-muted-foreground">القيمة التقديرية</div><div className="text-2xl font-bold mt-1">{money(totalAmount)}</div></Card>
+        <Card className="p-4"><div className="text-xs text-muted-foreground">عدد المشاريع</div><div className="text-2xl font-bold mt-1">{rows.length}</div></Card>
+      </div>
+
+      <Card className="overflow-hidden">
+        <div className="px-5 py-3 border-b font-semibold">الفوترة حسب المشروع</div>
+        {rows.length === 0 ? (
+          <div className="p-12 text-center text-muted-foreground">لا توجد جلسات منتهية بعد.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40">
+                <tr>
+                  <th className="text-start px-4 py-3">المشروع</th>
+                  <th className="text-start px-4 py-3">قابلة للفوترة</th>
+                  <th className="text-start px-4 py-3">غير قابلة</th>
+                  <th className="text-start px-4 py-3">القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.name} className="border-t">
+                    <td className="px-4 py-3 font-medium">{r.name}</td>
+                    <td className="px-4 py-3">{hrs(r.billableMin)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{hrs(r.nonBillableMin)}</td>
+                    <td className="px-4 py-3 font-semibold">{money(r.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 
 // Helper to make elapsedSeconds reactive: subscribe to a 1s tick
 function useTickValue() {
