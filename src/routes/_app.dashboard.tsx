@@ -344,11 +344,29 @@ function Dashboard() {
       />
 
 
+      {/* Range selector */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">الفترة:</span>
+        {RANGES.map((r) => (
+          <Button
+            key={r.days}
+            size="sm"
+            variant={rangeDays === r.days ? "default" : "outline"}
+            onClick={() => changeRange(r.days)}
+          >
+            {r.label}
+          </Button>
+        ))}
+        <span className="text-xs text-muted-foreground ms-auto">
+          {tasks.length} مهمة ضمن الفترة
+        </span>
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <KpiCard label="مهام اليوم" value={todayCount} icon={CalendarDays} accent="primary" />
         <KpiCard label="قيد التنفيذ" value={counts.pending} icon={Clock} accent="info" />
-        <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" />
+        <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" hint={`${completionRate}% نسبة الإنجاز`} />
         <KpiCard label="متأخرة" value={overdueCount} icon={AlertTriangle} accent="destructive" hint="تجاوزت موعد الإنهاء" />
         {isAdminOrGM && (
           <KpiCard label="موظفون نشطون" value={employeeStats.length} icon={Users2} accent="info" hint="لديهم مهام مسجّلة" />
@@ -365,6 +383,7 @@ function Dashboard() {
           </>
         )}
       </div>
+
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
