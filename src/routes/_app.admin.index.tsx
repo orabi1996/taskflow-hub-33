@@ -136,6 +136,10 @@ function AdminPage() {
   const [positions, setPositions] = useState<JobPositionLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [modules, setModules] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
+  const [empModules, setEmpModules] = useState<Array<{ user_id: string; module_id: string }>>([]);
+  const [moduleFilter, setModuleFilter] = useState<string>("all");
+
   const [savingId, setSavingId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
