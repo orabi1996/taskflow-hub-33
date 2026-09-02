@@ -488,7 +488,19 @@ function TimeTrackingPage() {
                           {e.ended_at ? fmtHrs(e.duration_minutes ?? 0) : <Badge variant="default" className="animate-pulse">جارية</Badge>}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => toggleBillable(e)}
+                            className="inline-flex"
+                            title="تبديل قابلية الفوترة"
+                          >
+                            <Badge variant={e.is_billable ? "default" : "outline"}>
+                              {e.is_billable ? "نعم" : "لا"}
+                            </Badge>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+
                             {e.ended_at && (
                               <Button variant="ghost" size="icon" onClick={() => setEditEntry(e)} title="تعديل">
                                 <Pencil className="h-4 w-4" />
