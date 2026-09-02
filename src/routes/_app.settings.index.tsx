@@ -6,6 +6,7 @@ import {
   ServerCog,
   ArrowLeft,
   Bot,
+  Bell,
   Boxes,
   ShieldCheck,
   Network,
@@ -53,6 +54,13 @@ function SettingsIndex() {
       icon: Bot,
       title: "محرك الأتمتة",
       desc: "قواعد تلقائية لتنبيه الفريق على المهام المتأخرة، المواعيد القريبة، وانتهاء العقود.",
+      adminOnly: false,
+    },
+    {
+      to: "/settings/notifications",
+      icon: Bell,
+      title: "الإشعارات",
+      desc: "تفعيل إشعارات المتصفح على أجهزتك، قنوات البريد وداخل النظام، ساعات الهدوء، وكتم أنواع التنبيهات.",
       adminOnly: false,
     },
     {

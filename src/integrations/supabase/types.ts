@@ -544,6 +544,72 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_delivery_log: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          notification_id: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notification_id?: string | null
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notification_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_prefs: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          in_app_enabled: boolean
+          muted_types: string[]
+          push_enabled: boolean
+          quiet_hours_end: number | null
+          quiet_hours_start: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          in_app_enabled?: boolean
+          muted_types?: string[]
+          push_enabled?: boolean
+          quiet_hours_end?: number | null
+          quiet_hours_start?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          in_app_enabled?: boolean
+          muted_types?: string[]
+          push_enabled?: boolean
+          quiet_hours_end?: number | null
+          quiet_hours_start?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -1086,6 +1152,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       smtp_settings: {
         Row: {
