@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
 import { ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users, Bell } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsLayout,
@@ -49,10 +50,7 @@ function SettingsLayout() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <SettingsIcon className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">الإعدادات</h1>
-      </div>
+      <PageHeader title="الإعدادات" description="إعدادات الحساب والنظام" icon={SettingsIcon} />
 
       <div className="flex flex-wrap gap-2 border-b pb-2">
         {tabs.map((t) => {

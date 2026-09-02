@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, ArrowLeft, RefreshCw, Loader2, Check, X } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/admin/permissions-check")({
   head: () => ({ meta: [{ title: "فحص الصلاحيات الفعلية" }] }),
@@ -156,11 +157,8 @@ function PermissionsCheckPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">فحص الصلاحيات الفعلية</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            يعرض الأدوار المفعّلة ويختبر القراءات الأساسية على قاعدة البيانات.
-          </p>
+        <div className="flex-1 min-w-0">
+          <PageHeader title="فحص الصلاحيات الفعلية" description="يعرض الأدوار المفعّلة ويختبر القراءات الأساسية على قاعدة البيانات." />
         </div>
         <div className="flex gap-2">
           <Button onClick={run} disabled={running} size="sm">

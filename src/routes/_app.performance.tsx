@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Target, ClipboardCheck, Award, TrendingUp } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/performance")({
   component: PerformanceLayout,
@@ -19,10 +20,7 @@ function PerformanceLayout() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <TrendingUp className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">الأداء</h1>
-      </div>
+      <PageHeader title="الأداء" description="الأهداف والمراجعات والتقدير" icon={TrendingUp} />
 
       <div className="flex flex-wrap gap-2 border-b pb-2">
         {tabs.map((t) => {
