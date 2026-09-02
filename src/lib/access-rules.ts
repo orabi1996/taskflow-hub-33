@@ -27,6 +27,7 @@ export const ACCESS_RULES: AccessRule[] = [
   { key: "settings-automation", label: "محرك الأتمتة", path: "/settings/automation", group: "الإعدادات", allow: ["admin", "support"], rule: "داخل قسم الإعدادات: admin أو support." },
   { key: "settings-audit", label: "سجل التدقيق الأمني", path: "/settings/audit", group: "الإعدادات", allow: ["admin", "support"], rule: "داخل قسم الإعدادات: admin أو support (سياسات RLS تسمح بالقراءة لـ admin/general_manager)." },
 
+  { key: "admin-overview", label: "مركز القيادة", path: "/admin/overview", group: "الإدارة", allow: ["admin", "general_manager"], rule: "يتطلب دور admin أو general_manager." },
   { key: "admin", label: "الموظفون", path: "/admin", group: "الإدارة", allow: ["admin"], rule: "يتطلب دور admin فقط." },
   { key: "admin-hierarchy", label: "الهيكل التنظيمي", path: "/admin/hierarchy", group: "الإدارة", allow: ["admin"], rule: "يتطلب دور admin فقط." },
   { key: "admin-roles", label: "إدارة الأدوار", path: "/admin/roles", group: "الإدارة", allow: ["admin"], rule: "يتطلب دور admin فقط." },
