@@ -24,7 +24,6 @@ import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.ind
 import { Route as AppProjectsIndexRouteImport } from './routes/_app.projects.index'
 import { Route as AppMyProjectsIndexRouteImport } from './routes/_app.my-projects.index'
 import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
-import { Route as ApiPublicTmpSeedDemoRouteImport } from './routes/api/public/tmp-seed-demo'
 import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
 import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
 import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
@@ -120,11 +119,6 @@ const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => AppRoute,
-} as any)
-const ApiPublicTmpSeedDemoRoute = ApiPublicTmpSeedDemoRouteImport.update({
-  id: '/api/public/tmp-seed-demo',
-  path: '/api/public/tmp-seed-demo',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicSeedAdminRoute = ApiPublicSeedAdminRouteImport.update({
   id: '/api/public/seed-admin',
@@ -265,7 +259,6 @@ export interface FileRoutesByFullPath {
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
-  '/api/public/tmp-seed-demo': typeof ApiPublicTmpSeedDemoRoute
   '/admin/': typeof AppAdminIndexRoute
   '/my-projects/': typeof AppMyProjectsIndexRoute
   '/projects/': typeof AppProjectsIndexRoute
@@ -302,7 +295,6 @@ export interface FileRoutesByTo {
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
-  '/api/public/tmp-seed-demo': typeof ApiPublicTmpSeedDemoRoute
   '/admin': typeof AppAdminIndexRoute
   '/my-projects': typeof AppMyProjectsIndexRoute
   '/projects': typeof AppProjectsIndexRoute
@@ -342,7 +334,6 @@ export interface FileRoutesById {
   '/_app/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
-  '/api/public/tmp-seed-demo': typeof ApiPublicTmpSeedDemoRoute
   '/_app/admin/': typeof AppAdminIndexRoute
   '/_app/my-projects/': typeof AppMyProjectsIndexRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
@@ -382,7 +373,6 @@ export interface FileRouteTypes {
     | '/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
-    | '/api/public/tmp-seed-demo'
     | '/admin/'
     | '/my-projects/'
     | '/projects/'
@@ -419,7 +409,6 @@ export interface FileRouteTypes {
     | '/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
-    | '/api/public/tmp-seed-demo'
     | '/admin'
     | '/my-projects'
     | '/projects'
@@ -458,7 +447,6 @@ export interface FileRouteTypes {
     | '/_app/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
-    | '/api/public/tmp-seed-demo'
     | '/_app/admin/'
     | '/_app/my-projects/'
     | '/_app/projects/'
@@ -478,7 +466,6 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiAiAssistantRoute: typeof ApiAiAssistantRoute
   ApiPublicSeedAdminRoute: typeof ApiPublicSeedAdminRoute
-  ApiPublicTmpSeedDemoRoute: typeof ApiPublicTmpSeedDemoRoute
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
   ApiPublicHooksContractAlertsRoute: typeof ApiPublicHooksContractAlertsRoute
   ApiPublicHooksSmtpTestRoute: typeof ApiPublicHooksSmtpTestRoute
@@ -590,13 +577,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AppAdminIndexRouteImport
       parentRoute: typeof AppRoute
-    }
-    '/api/public/tmp-seed-demo': {
-      id: '/api/public/tmp-seed-demo'
-      path: '/api/public/tmp-seed-demo'
-      fullPath: '/api/public/tmp-seed-demo'
-      preLoaderRoute: typeof ApiPublicTmpSeedDemoRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/public/seed-admin': {
       id: '/api/public/seed-admin'
@@ -827,7 +807,6 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiAiAssistantRoute: ApiAiAssistantRoute,
   ApiPublicSeedAdminRoute: ApiPublicSeedAdminRoute,
-  ApiPublicTmpSeedDemoRoute: ApiPublicTmpSeedDemoRoute,
   ApiPublicHooksAutomationTickRoute: ApiPublicHooksAutomationTickRoute,
   ApiPublicHooksContractAlertsRoute: ApiPublicHooksContractAlertsRoute,
   ApiPublicHooksSmtpTestRoute: ApiPublicHooksSmtpTestRoute,
