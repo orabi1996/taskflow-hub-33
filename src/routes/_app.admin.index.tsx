@@ -315,6 +315,17 @@ function AdminPage() {
               className="ps-9 max-w-xs"
             />
           </div>
+          <Select value={moduleFilter} onValueChange={setModuleFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="كل الأنظمة" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الأنظمة</SelectItem>
+              {modules.map((m) => (
+                <SelectItem key={m.id} value={m.id}>{m.parent_id ? `— ${m.name}` : m.name}</SelectItem>
+              ))}
+              <SelectItem value="none">بدون نظام</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" onClick={exportCsv}>
             <Download className="h-4 w-4 ms-1.5" />
             تصدير CSV
