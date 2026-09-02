@@ -281,13 +281,14 @@ function TimeTrackingPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Clock className="h-6 w-6 text-primary" /> تتبّع الوقت</h1>
-          <p className="text-muted-foreground mt-1 text-sm flex items-center gap-2 flex-wrap">
-            سجّل ساعات عملك وصنّف الجلسات.
-            <span className="inline-flex items-center gap-1 text-xs"><Keyboard className="h-3 w-3" /> Alt+S للبدء/الإيقاف · Alt+P للإيقاف المؤقت</span>
-          </p>
+        <div className="flex-1 min-w-0">
+          <PageHeader
+            title="تتبّع الوقت"
+            icon={Clock}
+            description="سجّل ساعات عملك وصنّف الجلسات · Alt+S للبدء/الإيقاف · Alt+P للإيقاف المؤقت"
+          />
         </div>
+
         <div className="flex gap-2">
           <div className="w-40">
             <Select value={filterType} onValueChange={setFilterType}>
