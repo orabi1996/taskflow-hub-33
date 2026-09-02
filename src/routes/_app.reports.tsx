@@ -114,6 +114,9 @@ function ReportsPage() {
   const [departments, setDepartments] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
   const [userDept, setUserDept] = useState<Map<string, string | null>>(new Map());
   const [deptFilter, setDeptFilter] = useState<string>("all");
+  const [modules, setModules] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
+  const [moduleFilter, setModuleFilter] = useState<string>("all");
+
 
   useEffect(() => {
     if (!canSee) return;
@@ -126,7 +129,7 @@ function ReportsPage() {
           .select("id, user_id, session_type, duration_minutes, started_at, ended_at")
           .gte("started_at", start).lt("started_at", end).limit(2000),
         supabase.from("employee_modules").select("user_id, module_id, is_primary"),
-        supabase.from("company_modules").select("id, name"),
+        supabase.from("company_modules").select("id, name, parent_id").order("sort_order"),
         supabase.from("profiles").select("id, full_name, department_id"),
         supabase.from("departments").select("id, name, parent_id").order("sort_order"),
       ]);
