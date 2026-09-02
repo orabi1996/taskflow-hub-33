@@ -269,6 +269,41 @@ function Dashboard() {
   const clearFilters = () => { setSearch(""); setStatusFilter("all"); setProjectFilter("all"); setEmployeeFilter("all"); };
   const filtersActive = search || statusFilter !== "all" || projectFilter !== "all" || employeeFilter !== "all";
 
+  // ---- Bulk actions ----
+  const toggleSelected = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const allVisibleSelected = filteredTasks.length > 0 && filteredTasks.every((t) => selected.includes(t.id));
+  const toggleSelectAll = () =>
+    setSelected(allVisibleSelected ? [] : filteredTasks.map((t) => t.id));
+
+  const bulkStatus = async (status: TaskStatus) => {
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("tasks").update({ status }).in("id", selected);
+    setBulkBusy(false);
+    if (error) toast.error("تعذر تحديث المهام المحددة");
+    else {
+      toast.success(`تم تحديث ${selected.length} مهمة`);
+      setSelected([]);
+      load();
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selected.length === 0) return;
+    if (!window.confirm(`سيتم حذف ${selected.length} مهمة نهائيًا. متابعة؟`)) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("tasks").delete().in("id", selected);
+    setBulkBusy(false);
+    if (error) toast.error("تعذر حذف المهام المحددة");
+    else {
+      toast.success(`تم حذف ${selected.length} مهمة`);
+      setSelected([]);
+      load();
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       {/* Header */}
