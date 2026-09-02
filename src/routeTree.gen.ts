@@ -29,6 +29,7 @@ import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
 import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
 import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
 import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
+import { Route as AppSettingsSecurityRouteImport } from './routes/_app.settings.security'
 import { Route as AppSettingsNotificationsRouteImport } from './routes/_app.settings.notifications'
 import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.modules'
 import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
@@ -149,6 +150,11 @@ const ApiAiAssistantRoute = ApiAiAssistantRouteImport.update({
 const AppSettingsSmtpRoute = AppSettingsSmtpRouteImport.update({
   id: '/smtp',
   path: '/smtp',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppSettingsNotificationsRoute =
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/settings/security': typeof AppSettingsSecurityRoute
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/settings/security': typeof AppSettingsSecurityRoute
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
@@ -384,6 +392,7 @@ export interface FileRoutesById {
   '/_app/settings/employees': typeof AppSettingsEmployeesRoute
   '/_app/settings/modules': typeof AppSettingsModulesRoute
   '/_app/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/_app/settings/security': typeof AppSettingsSecurityRoute
   '/_app/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
   '/api/public/seed-admin': typeof ApiPublicSeedAdminRoute
@@ -429,6 +438,7 @@ export interface FileRouteTypes {
     | '/settings/employees'
     | '/settings/modules'
     | '/settings/notifications'
+    | '/settings/security'
     | '/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/settings/employees'
     | '/settings/modules'
     | '/settings/notifications'
+    | '/settings/security'
     | '/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/_app/settings/employees'
     | '/_app/settings/modules'
     | '/_app/settings/notifications'
+    | '/_app/settings/security'
     | '/_app/settings/smtp'
     | '/api/ai/assistant'
     | '/api/public/seed-admin'
@@ -682,6 +694,13 @@ declare module '@tanstack/react-router' {
       path: '/smtp'
       fullPath: '/settings/smtp'
       preLoaderRoute: typeof AppSettingsSmtpRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/security': {
+      id: '/_app/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof AppSettingsSecurityRouteImport
       parentRoute: typeof AppSettingsRoute
     }
     '/_app/settings/notifications': {
@@ -863,6 +882,7 @@ interface AppSettingsRouteChildren {
   AppSettingsEmployeesRoute: typeof AppSettingsEmployeesRoute
   AppSettingsModulesRoute: typeof AppSettingsModulesRoute
   AppSettingsNotificationsRoute: typeof AppSettingsNotificationsRoute
+  AppSettingsSecurityRoute: typeof AppSettingsSecurityRoute
   AppSettingsSmtpRoute: typeof AppSettingsSmtpRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
@@ -873,6 +893,7 @@ const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsEmployeesRoute: AppSettingsEmployeesRoute,
   AppSettingsModulesRoute: AppSettingsModulesRoute,
   AppSettingsNotificationsRoute: AppSettingsNotificationsRoute,
+  AppSettingsSecurityRoute: AppSettingsSecurityRoute,
   AppSettingsSmtpRoute: AppSettingsSmtpRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
