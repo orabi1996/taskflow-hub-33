@@ -303,6 +303,40 @@ function Dashboard() {
     }
   };
 
+  // ---- Exports ----
+  const exportTasks = () => {
+    exportToExcel(
+      filteredTasks.map((t) => ({
+        "المهمة": t.title,
+        "الموظف": t.owner?.full_name || "",
+        "المشروع": t.project?.name || "",
+        "الحالة": STATUS_META[t.status].label,
+        "البداية": format(new Date(t.start_at), "yyyy-MM-dd HH:mm"),
+        "النهاية": t.end_at ? format(new Date(t.end_at), "yyyy-MM-dd HH:mm") : "",
+        "المدة": formatDuration(t.start_at, t.end_at) || "",
+      })),
+      `tasks-${format(new Date(), "yyyy-MM-dd")}`,
+      "المهام",
+    );
+  };
+
+  const exportEmployees = () => {
+    exportToExcel(
+      employeeStats.map((e) => ({
+        "الموظف": e.name,
+        "المسمى": e.job,
+        "الإجمالي": e.total,
+        "قيد التنفيذ": e.pending,
+        "منتهية": e.completed,
+        "متأخرة": e.overdue,
+        "ساعات": Math.floor(e.minutes / 60),
+        "نسبة الإنجاز %": e.rate,
+      })),
+      `employees-performance-${format(new Date(), "yyyy-MM-dd")}`,
+      "الأداء",
+    );
+  };
+
 
   return (
     <div className="space-y-6">
