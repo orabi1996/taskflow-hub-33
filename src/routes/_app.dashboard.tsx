@@ -14,12 +14,15 @@ import {
 import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
-  LayoutDashboard, Users2, UserCircle, Trash2,
+  LayoutDashboard, Users2, UserCircle, Trash2, Download, RefreshCw,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { exportToExcel } from "@/lib/export-utils";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ListSkeleton } from "@/components/common/ListSkeleton";
+
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
 import { KpiCard } from "@/components/dashboard/KpiCards";
@@ -58,6 +61,14 @@ const STATUS_META: Record<TaskStatus, { label: string; icon: typeof CheckCircle2
   cancelled: { label: "ملغاة", icon: ListChecks, cls: "bg-destructive/10 text-destructive border-destructive/30", color: "oklch(0.6 0.22 27)" },
 };
 
+const RANGES = [
+  { days: 7, label: "7 أيام" },
+  { days: 30, label: "30 يومًا" },
+  { days: 90, label: "90 يومًا" },
+  { days: 0, label: "الكل" },
+];
+
+
 function formatDuration(startISO: string, endISO: string | null): string | null {
   if (!endISO) return null;
   const ms = new Date(endISO).getTime() - new Date(startISO).getTime();
@@ -75,7 +86,7 @@ function Dashboard() {
   const router = useRouter();
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
 
-  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [allTasks, setTasks] = useState<TaskRow[]>([]);
   const [projectsCount, setProjectsCount] = useState<number>(0);
   const [contractAlerts, setContractAlerts] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -103,8 +114,28 @@ function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("all");
+  const [empSort, setEmpSort] = useState<string>("total");
+
+  // Time range (days; 0 = all time), persisted.
+  const [rangeDays, setRangeDays] = useState<number>(30);
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("dashboard-range") : null;
+    if (saved !== null) setRangeDays(Number(saved));
+  }, []);
+  const changeRange = (d: number) => {
+    setRangeDays(d);
+    if (typeof window !== "undefined") window.localStorage.setItem("dashboard-range", String(d));
+  };
+
+  const tasks = useMemo(() => {
+    if (!rangeDays) return allTasks;
+    const cutoff = new Date(Date.now() - rangeDays * 86400000);
+    return allTasks.filter((t) => new Date(t.start_at) >= cutoff);
+  }, [allTasks, rangeDays]);
 
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
+
+
 
 
   const load = async () => {
@@ -162,12 +193,12 @@ function Dashboard() {
   }, [tasks]);
 
   const employeeStats = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number }>();
+    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number; rate: number }>();
     const now = new Date();
     for (const t of tasks) {
       const key = t.user_id;
       if (!map.has(key)) {
-        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0 });
+        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0, rate: 0 });
       }
       const row = map.get(key)!;
       row.total++;
@@ -179,8 +210,20 @@ function Dashboard() {
         if (ms > 0) row.minutes += Math.round(ms / 60000);
       }
     }
-    return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [tasks]);
+    const rows = Array.from(map.values()).map((r) => ({
+      ...r,
+      rate: r.total ? Math.round((r.completed / r.total) * 100) : 0,
+    }));
+    const cmp: Record<string, (a: typeof rows[number], b: typeof rows[number]) => number> = {
+      total: (a, b) => b.total - a.total,
+      completed: (a, b) => b.completed - a.completed,
+      overdue: (a, b) => b.overdue - a.overdue,
+      rate: (a, b) => b.rate - a.rate,
+      hours: (a, b) => b.minutes - a.minutes,
+    };
+    return rows.sort(cmp[empSort] ?? cmp.total);
+  }, [tasks, empSort]);
+
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
@@ -202,12 +245,20 @@ function Dashboard() {
     postponed: tasks.filter((t) => t.status === "postponed").length,
   };
 
+  const completionRate = counts.total ? Math.round((counts.completed / counts.total) * 100) : 0;
+
   const today = new Date();
   const todayStr = today.toDateString();
-  const overdueCount = tasks.filter(
-    (t) => t.status === "pending" && t.end_at && new Date(t.end_at) < today,
-  ).length;
+  const overdueTasks = useMemo(
+    () =>
+      tasks
+        .filter((t) => (t.status === "pending" || t.status === "postponed") && t.end_at && new Date(t.end_at) < new Date())
+        .sort((a, b) => new Date(a.end_at!).getTime() - new Date(b.end_at!).getTime()),
+    [tasks],
+  );
+  const overdueCount = overdueTasks.length;
   const todayCount = tasks.filter((t) => new Date(t.start_at).toDateString() === todayStr).length;
+
 
   const totalMinutes = tasks.reduce((acc, t) => {
     if (!t.end_at) return acc;
@@ -303,6 +354,40 @@ function Dashboard() {
     }
   };
 
+  // ---- Exports ----
+  const exportTasks = () => {
+    exportToExcel(
+      filteredTasks.map((t) => ({
+        "المهمة": t.title,
+        "الموظف": t.owner?.full_name || "",
+        "المشروع": t.project?.name || "",
+        "الحالة": STATUS_META[t.status].label,
+        "البداية": format(new Date(t.start_at), "yyyy-MM-dd HH:mm"),
+        "النهاية": t.end_at ? format(new Date(t.end_at), "yyyy-MM-dd HH:mm") : "",
+        "المدة": formatDuration(t.start_at, t.end_at) || "",
+      })),
+      `tasks-${format(new Date(), "yyyy-MM-dd")}`,
+      "المهام",
+    );
+  };
+
+  const exportEmployees = () => {
+    exportToExcel(
+      employeeStats.map((e) => ({
+        "الموظف": e.name,
+        "المسمى": e.job,
+        "الإجمالي": e.total,
+        "قيد التنفيذ": e.pending,
+        "منتهية": e.completed,
+        "متأخرة": e.overdue,
+        "ساعات": Math.floor(e.minutes / 60),
+        "نسبة الإنجاز %": e.rate,
+      })),
+      `employees-performance-${format(new Date(), "yyyy-MM-dd")}`,
+      "الأداء",
+    );
+  };
+
 
   return (
     <div className="space-y-6">
@@ -316,39 +401,68 @@ function Dashboard() {
             : "إليك نظرة شاملة على نشاطك ومهامك"
         }
         actions={
-          !isAdminOrGM ? (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="shadow-[var(--shadow-elegant)]">
-                  <Plus className="h-4 w-4 ms-1.5" />
-                  إضافة مهمة
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl p-0 gap-0 max-h-[92vh] overflow-hidden flex flex-col">
-                <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
-                  <DialogTitle className="flex items-center gap-2 text-lg">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Plus className="h-4 w-4" />
-                    </span>
-                    إضافة مهمة جديدة
-                  </DialogTitle>
-                  <DialogDescription>سجّل ما عملت عليه مع كافة التفاصيل المرتبطة.</DialogDescription>
-                </DialogHeader>
-                <div className="overflow-y-auto px-6 pb-0">
-                  <TaskForm onSuccess={() => { setOpen(false); load(); router.invalidate(); }} />
-                </div>
-              </DialogContent>
-            </Dialog>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 ms-1.5 ${loading ? "animate-spin" : ""}`} />
+              تحديث
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportTasks} disabled={filteredTasks.length === 0}>
+              <Download className="h-4 w-4 ms-1.5" />
+              تصدير المهام
+            </Button>
+            {!isAdminOrGM && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="shadow-[var(--shadow-elegant)]">
+                    <Plus className="h-4 w-4 ms-1.5" />
+                    إضافة مهمة
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl p-0 gap-0 max-h-[92vh] overflow-hidden flex flex-col">
+                  <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
+                    <DialogTitle className="flex items-center gap-2 text-lg">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Plus className="h-4 w-4" />
+                      </span>
+                      إضافة مهمة جديدة
+                    </DialogTitle>
+                    <DialogDescription>سجّل ما عملت عليه مع كافة التفاصيل المرتبطة.</DialogDescription>
+                  </DialogHeader>
+                  <div className="overflow-y-auto px-6 pb-0">
+                    <TaskForm onSuccess={() => { setOpen(false); load(); router.invalidate(); }} />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         }
+
       />
 
+
+      {/* Range selector */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">الفترة:</span>
+        {RANGES.map((r) => (
+          <Button
+            key={r.days}
+            size="sm"
+            variant={rangeDays === r.days ? "default" : "outline"}
+            onClick={() => changeRange(r.days)}
+          >
+            {r.label}
+          </Button>
+        ))}
+        <span className="text-xs text-muted-foreground ms-auto">
+          {tasks.length} مهمة ضمن الفترة
+        </span>
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <KpiCard label="مهام اليوم" value={todayCount} icon={CalendarDays} accent="primary" />
         <KpiCard label="قيد التنفيذ" value={counts.pending} icon={Clock} accent="info" />
-        <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" />
+        <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" hint={`${completionRate}% نسبة الإنجاز`} />
         <KpiCard label="متأخرة" value={overdueCount} icon={AlertTriangle} accent="destructive" hint="تجاوزت موعد الإنهاء" />
         {isAdminOrGM && (
           <KpiCard label="موظفون نشطون" value={employeeStats.length} icon={Users2} accent="info" hint="لديهم مهام مسجّلة" />
@@ -365,6 +479,7 @@ function Dashboard() {
           </>
         )}
       </div>
+
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -403,34 +518,75 @@ function Dashboard() {
         </Card>
       </div>
 
+      {/* Overdue spotlight */}
+      {overdueTasks.length > 0 && (
+        <Card className="p-4 border-destructive/30 bg-destructive/5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <h2 className="font-semibold text-destructive">مهام تجاوزت موعدها ({overdueTasks.length})</h2>
+          </div>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {overdueTasks.slice(0, 6).map((t) => (
+              <li
+                key={t.id}
+                onClick={() => openTask(t)}
+                className="cursor-pointer rounded-lg border bg-card px-3 py-2 text-sm hover:bg-muted/40"
+              >
+                <div className="font-medium truncate">{t.title}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {isAdminOrGM ? `${t.owner?.full_name || "غير معروف"} · ` : ""}
+                  {t.end_at ? format(new Date(t.end_at), "d MMM yyyy", { locale: ar }) : ""}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {/* Per-employee overview (admin / GM) */}
       {isAdminOrGM && (
         <Card className="overflow-hidden">
-          <div className="px-6 py-4 border-b flex items-center gap-2">
+          <div className="px-6 py-4 border-b flex flex-wrap items-center gap-2">
             <LayoutDashboard className="h-4 w-4 text-primary" />
             <h2 className="font-semibold">أداء الموظفين</h2>
-            <Badge variant="secondary" className="ms-auto">{employeeStats.length}</Badge>
+            <Badge variant="secondary">{employeeStats.length}</Badge>
+            <div className="ms-auto flex items-center gap-2">
+              <Select value={empSort} onValueChange={setEmpSort}>
+                <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="total">الأكثر مهامًا</SelectItem>
+                  <SelectItem value="completed">الأكثر إنجازًا</SelectItem>
+                  <SelectItem value="overdue">الأكثر تأخيرًا</SelectItem>
+                  <SelectItem value="rate">نسبة الإنجاز</SelectItem>
+                  <SelectItem value="hours">ساعات العمل</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button size="sm" variant="outline" onClick={exportEmployees} disabled={employeeStats.length === 0}>
+                <Download className="h-4 w-4 ms-1" /> تصدير
+              </Button>
+            </div>
           </div>
           {employeeStats.length === 0 ? (
-            <div className="p-10 text-center text-muted-foreground text-sm">لا توجد مهام مسجّلة بعد</div>
+            <EmptyState icon={Users2} title="لا توجد مهام مسجّلة بعد" description="ستظهر هنا مؤشرات كل موظف فور تسجيل أول مهمة." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
-                  <tr className="text-end">
+                  <tr>
                     <th className="px-4 py-2 font-medium text-start">الموظف</th>
                     <th className="px-4 py-2 font-medium">الإجمالي</th>
                     <th className="px-4 py-2 font-medium">قيد التنفيذ</th>
                     <th className="px-4 py-2 font-medium">منتهية</th>
                     <th className="px-4 py-2 font-medium">متأخرة</th>
                     <th className="px-4 py-2 font-medium">ساعات</th>
+                    <th className="px-4 py-2 font-medium w-40">نسبة الإنجاز</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {employeeStats.map((e) => (
                     <tr
                       key={e.id}
-                      className="hover:bg-muted/30 cursor-pointer"
+                      className={`hover:bg-muted/30 cursor-pointer ${employeeFilter === e.id ? "bg-primary/5" : ""}`}
                       onClick={() => setEmployeeFilter(e.id === employeeFilter ? "all" : e.id)}
                     >
                       <td className="px-4 py-2">
@@ -447,6 +603,12 @@ function Dashboard() {
                       <td className="px-4 py-2 text-center text-success">{e.completed}</td>
                       <td className="px-4 py-2 text-center text-destructive">{e.overdue}</td>
                       <td className="px-4 py-2 text-center">{Math.floor(e.minutes / 60)} س</td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <Progress value={e.rate} className="h-2" />
+                          <span className="text-xs text-muted-foreground w-9">{e.rate}%</span>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -455,6 +617,7 @@ function Dashboard() {
           )}
         </Card>
       )}
+
 
       {/* Filters */}
       <Card className="p-4">
