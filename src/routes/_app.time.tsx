@@ -521,7 +521,12 @@ function TimeTrackingPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="billing">
+          <BillingTab entries={entries} />
+        </TabsContent>
+
         <TabsContent value="reports">
+
           <ReportsTab entries={entries} />
         </TabsContent>
 
