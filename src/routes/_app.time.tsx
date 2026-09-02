@@ -500,6 +500,7 @@ function TimeTrackingPage() {
                           </button>
                         </td>
                         <td className="px-4 py-3">
+                          <div className="flex gap-1">
 
                             {e.ended_at && (
                               <Button variant="ghost" size="icon" onClick={() => setEditEntry(e)} title="تعديل">
