@@ -75,7 +75,7 @@ function Dashboard() {
   const router = useRouter();
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
 
-  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [allTasks, setTasks] = useState<TaskRow[]>([]);
   const [projectsCount, setProjectsCount] = useState<number>(0);
   const [contractAlerts, setContractAlerts] = useState<number>(0);
   const [loading, setLoading] = useState(true);
