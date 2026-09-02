@@ -100,9 +100,9 @@ function AppLayout() {
 
       <Sidebar side="right" collapsible="icon" variant="inset">
         <SidebarHeader className="p-3">
-          <Link to="/dashboard" className="flex items-center gap-2 min-w-0" title="C-SmarX — من Classera">
-            <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto shrink-0" />
-          </Link>
+          <div className="text-xs font-medium text-muted-foreground group-data-[collapsible=icon]:hidden">
+            التنقّل
+          </div>
         </SidebarHeader>
 
         <SidebarContent>
