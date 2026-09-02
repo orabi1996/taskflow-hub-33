@@ -72,6 +72,9 @@ function AppLayout() {
           <NavLink to="/reports" icon={BarChart3} label="التقارير" onClick={() => setMobileOpen(false)} />
         </>
       )}
+      {isAdminOrGM && (
+        <NavLink to="/admin/overview" icon={Activity} label="مركز القيادة" onClick={() => setMobileOpen(false)} />
+      )}
       {isAdmin && (
         <NavLink to="/admin" icon={ShieldCheck} label="الموظفون" onClick={() => setMobileOpen(false)} />
       )}
