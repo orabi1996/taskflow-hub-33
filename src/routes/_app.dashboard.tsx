@@ -83,6 +83,21 @@ function Dashboard() {
   const [editing, setEditing] = useState<EditableTask | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
+  // View preference (list / kanban / calendar) persisted per user.
+  const [view, setView] = useState<string>("list");
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("dashboard-view") : null;
+    if (saved) setView(saved);
+  }, []);
+  const changeView = (v: string) => {
+    setView(v);
+    if (typeof window !== "undefined") window.localStorage.setItem("dashboard-view", v);
+  };
+
+  // Bulk selection
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
   // Filters
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
@@ -90,6 +105,7 @@ function Dashboard() {
   const [employeeFilter, setEmployeeFilter] = useState<string>("all");
 
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
+
 
   const load = async () => {
     if (!user) return;
