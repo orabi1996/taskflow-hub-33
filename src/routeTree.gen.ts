@@ -35,6 +35,7 @@ import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.m
 import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
 import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
 import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
+import { Route as AppSettingsAccessReviewRouteImport } from './routes/_app.settings.access-review'
 import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
 import { Route as AppPerformanceReviewsRouteImport } from './routes/_app.performance.reviews'
 import { Route as AppPerformanceKudosRouteImport } from './routes/_app.performance.kudos'
@@ -183,6 +184,11 @@ const AppSettingsAuditRoute = AppSettingsAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsAccessReviewRoute = AppSettingsAccessReviewRouteImport.update({
+  id: '/access-review',
+  path: '/access-review',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppProjectsDashboardRoute = AppProjectsDashboardRouteImport.update({
   id: '/projects/dashboard',
   path: '/projects/dashboard',
@@ -299,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/performance/kudos': typeof AppPerformanceKudosRoute
   '/performance/reviews': typeof AppPerformanceReviewsRoute
   '/projects/dashboard': typeof AppProjectsDashboardRoute
+  '/settings/access-review': typeof AppSettingsAccessReviewRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
   '/settings/employees': typeof AppSettingsEmployeesRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByTo {
   '/performance/kudos': typeof AppPerformanceKudosRoute
   '/performance/reviews': typeof AppPerformanceReviewsRoute
   '/projects/dashboard': typeof AppProjectsDashboardRoute
+  '/settings/access-review': typeof AppSettingsAccessReviewRoute
   '/settings/audit': typeof AppSettingsAuditRoute
   '/settings/automation': typeof AppSettingsAutomationRoute
   '/settings/employees': typeof AppSettingsEmployeesRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/_app/performance/kudos': typeof AppPerformanceKudosRoute
   '/_app/performance/reviews': typeof AppPerformanceReviewsRoute
   '/_app/projects/dashboard': typeof AppProjectsDashboardRoute
+  '/_app/settings/access-review': typeof AppSettingsAccessReviewRoute
   '/_app/settings/audit': typeof AppSettingsAuditRoute
   '/_app/settings/automation': typeof AppSettingsAutomationRoute
   '/_app/settings/employees': typeof AppSettingsEmployeesRoute
@@ -433,6 +442,7 @@ export interface FileRouteTypes {
     | '/performance/kudos'
     | '/performance/reviews'
     | '/projects/dashboard'
+    | '/settings/access-review'
     | '/settings/audit'
     | '/settings/automation'
     | '/settings/employees'
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/performance/kudos'
     | '/performance/reviews'
     | '/projects/dashboard'
+    | '/settings/access-review'
     | '/settings/audit'
     | '/settings/automation'
     | '/settings/employees'
@@ -520,6 +531,7 @@ export interface FileRouteTypes {
     | '/_app/performance/kudos'
     | '/_app/performance/reviews'
     | '/_app/projects/dashboard'
+    | '/_app/settings/access-review'
     | '/_app/settings/audit'
     | '/_app/settings/automation'
     | '/_app/settings/employees'
@@ -738,6 +750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsAuditRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/access-review': {
+      id: '/_app/settings/access-review'
+      path: '/access-review'
+      fullPath: '/settings/access-review'
+      preLoaderRoute: typeof AppSettingsAccessReviewRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/projects/dashboard': {
       id: '/_app/projects/dashboard'
       path: '/projects/dashboard'
@@ -877,6 +896,7 @@ const AppPerformanceRouteWithChildren = AppPerformanceRoute._addFileChildren(
 )
 
 interface AppSettingsRouteChildren {
+  AppSettingsAccessReviewRoute: typeof AppSettingsAccessReviewRoute
   AppSettingsAuditRoute: typeof AppSettingsAuditRoute
   AppSettingsAutomationRoute: typeof AppSettingsAutomationRoute
   AppSettingsEmployeesRoute: typeof AppSettingsEmployeesRoute
@@ -888,6 +908,7 @@ interface AppSettingsRouteChildren {
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsAccessReviewRoute: AppSettingsAccessReviewRoute,
   AppSettingsAuditRoute: AppSettingsAuditRoute,
   AppSettingsAutomationRoute: AppSettingsAutomationRoute,
   AppSettingsEmployeesRoute: AppSettingsEmployeesRoute,
