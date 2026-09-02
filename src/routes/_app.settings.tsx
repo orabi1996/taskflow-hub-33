@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
-import { ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users } from "lucide-react";
+import { ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users, Bell } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsLayout,
