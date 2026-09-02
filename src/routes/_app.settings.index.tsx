@@ -121,6 +121,14 @@ function SettingsIndex() {
       desc: "مدة الخمول قبل تسجيل الخروج التلقائي وحماية الحساب عند ترك الجهاز.",
       adminOnly: false,
     },
+    {
+      to: "/settings/access-review",
+      icon: ShieldCheck,
+      title: "مراجعة الصلاحيات الدورية",
+      desc: "من يملك admin أو مدير عام أو مدير ومنذ متى، مع كشف الحسابات الخاملة أو الموقوفة وسحب الأدوار غير المبرّرة.",
+      adminOnly: true,
+    },
+
   ].map((it) => ({ ...it, locked: it.adminOnly && !isAdmin }));
 
 
