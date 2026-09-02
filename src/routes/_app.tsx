@@ -16,7 +16,10 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AiAssistant } from "@/components/AiAssistant";
+import { useIdleLogout } from "@/hooks/use-idle-logout";
+import { toast } from "sonner";
 import brandEmblemAsset from "@/assets/classera-smarx-emblem.png.asset.json";
+
 
 const brandEmblem = brandEmblemAsset.url;
 
