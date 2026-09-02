@@ -316,31 +316,42 @@ function Dashboard() {
             : "إليك نظرة شاملة على نشاطك ومهامك"
         }
         actions={
-          !isAdminOrGM ? (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="shadow-[var(--shadow-elegant)]">
-                  <Plus className="h-4 w-4 ms-1.5" />
-                  إضافة مهمة
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl p-0 gap-0 max-h-[92vh] overflow-hidden flex flex-col">
-                <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
-                  <DialogTitle className="flex items-center gap-2 text-lg">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Plus className="h-4 w-4" />
-                    </span>
-                    إضافة مهمة جديدة
-                  </DialogTitle>
-                  <DialogDescription>سجّل ما عملت عليه مع كافة التفاصيل المرتبطة.</DialogDescription>
-                </DialogHeader>
-                <div className="overflow-y-auto px-6 pb-0">
-                  <TaskForm onSuccess={() => { setOpen(false); load(); router.invalidate(); }} />
-                </div>
-              </DialogContent>
-            </Dialog>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={load} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 ms-1.5 ${loading ? "animate-spin" : ""}`} />
+              تحديث
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportTasks} disabled={filteredTasks.length === 0}>
+              <Download className="h-4 w-4 ms-1.5" />
+              تصدير المهام
+            </Button>
+            {!isAdminOrGM && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="shadow-[var(--shadow-elegant)]">
+                    <Plus className="h-4 w-4 ms-1.5" />
+                    إضافة مهمة
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl p-0 gap-0 max-h-[92vh] overflow-hidden flex flex-col">
+                  <DialogHeader className="px-6 py-4 border-b bg-gradient-to-l from-primary/5 to-transparent shrink-0">
+                    <DialogTitle className="flex items-center gap-2 text-lg">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Plus className="h-4 w-4" />
+                      </span>
+                      إضافة مهمة جديدة
+                    </DialogTitle>
+                    <DialogDescription>سجّل ما عملت عليه مع كافة التفاصيل المرتبطة.</DialogDescription>
+                  </DialogHeader>
+                  <div className="overflow-y-auto px-6 pb-0">
+                    <TaskForm onSuccess={() => { setOpen(false); load(); router.invalidate(); }} />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         }
+
       />
 
 
