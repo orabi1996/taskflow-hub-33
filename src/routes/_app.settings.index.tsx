@@ -56,6 +56,13 @@ function SettingsIndex() {
       adminOnly: false,
     },
     {
+      to: "/settings/notifications",
+      icon: Bell,
+      title: "الإشعارات",
+      desc: "تفعيل إشعارات المتصفح على أجهزتك، قنوات البريد وداخل النظام، ساعات الهدوء، وكتم أنواع التنبيهات.",
+      adminOnly: false,
+    },
+    {
       to: "/settings/audit",
       icon: ShieldCheck,
       title: "سجل التدقيق الأمني",
