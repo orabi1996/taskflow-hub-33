@@ -502,7 +502,7 @@ function Dashboard() {
       </Card>
 
       {/* Tabs: List / Kanban / Calendar */}
-      <Tabs defaultValue="list">
+      <Tabs value={view} onValueChange={changeView}>
         <TabsList>
           <TabsTrigger value="list"><List className="h-4 w-4 ms-1.5" />قائمة</TabsTrigger>
           <TabsTrigger value="kanban"><KanbanSquare className="h-4 w-4 ms-1.5" />Kanban</TabsTrigger>
@@ -511,17 +511,48 @@ function Dashboard() {
 
         <TabsContent value="list" className="mt-4">
           <Card className="overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="px-6 py-4 border-b flex items-center gap-3">
+              <Checkbox
+                checked={allVisibleSelected}
+                onCheckedChange={toggleSelectAll}
+                aria-label="تحديد الكل"
+                disabled={filteredTasks.length === 0}
+              />
               <h2 className="font-semibold">المهام</h2>
-              <Badge variant="secondary">{filteredTasks.length}</Badge>
+              <Badge variant="secondary" className="ms-auto">{filteredTasks.length}</Badge>
             </div>
-            {loading ? (
-              <div className="p-12 text-center text-muted-foreground">جارٍ التحميل...</div>
-            ) : filteredTasks.length === 0 ? (
-              <div className="p-12 text-center">
-                <ListChecks className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="text-muted-foreground">{filtersActive ? "لا توجد نتائج للفلاتر الحالية" : "لا توجد مهام بعد"}</p>
+
+            {selected.length > 0 && (
+              <div className="px-6 py-3 border-b bg-primary/5 flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium">تم تحديد {selected.length}</span>
+                <div className="flex flex-wrap items-center gap-2 ms-auto">
+                  <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkStatus("completed")}>
+                    <CheckCircle2 className="h-4 w-4 ms-1" /> إنهاء
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkStatus("pending")}>
+                    <Clock className="h-4 w-4 ms-1" /> قيد التنفيذ
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkStatus("postponed")}>
+                    <PauseCircle className="h-4 w-4 ms-1" /> تأجيل
+                  </Button>
+                  <Button size="sm" variant="destructive" disabled={bulkBusy} onClick={bulkDelete}>
+                    <Trash2 className="h-4 w-4 ms-1" /> حذف
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelected([])}>
+                    <X className="h-4 w-4 ms-1" /> إلغاء
+                  </Button>
+                </div>
               </div>
+            )}
+
+            {loading ? (
+              <ListSkeleton rows={6} />
+            ) : filteredTasks.length === 0 ? (
+              <EmptyState
+                icon={ListChecks}
+                title={filtersActive ? "لا توجد نتائج للفلاتر الحالية" : "لا توجد مهام بعد"}
+                description={filtersActive ? "جرّب تعديل الفلاتر أو إلغاءها." : "ابدأ بإضافة أول مهمة لتظهر هنا."}
+              />
             ) : (
               <ul className="divide-y">
                 {filteredTasks.map((t) => {
@@ -535,6 +566,14 @@ function Dashboard() {
                       onClick={() => openTask(t)}
                     >
                       <div className="flex items-start justify-between gap-4">
+                        <div onClick={(e) => e.stopPropagation()} className="pt-1">
+                          <Checkbox
+                            checked={selected.includes(t.id)}
+                            onCheckedChange={() => toggleSelected(t.id)}
+                            aria-label="تحديد المهمة"
+                          />
+                        </div>
+
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold">{t.title}</h3>
