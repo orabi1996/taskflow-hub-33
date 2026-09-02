@@ -14,12 +14,15 @@ import {
 import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
-  LayoutDashboard, Users2, UserCircle, Trash2,
+  LayoutDashboard, Users2, UserCircle, Trash2, Download, RefreshCw,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { exportToExcel } from "@/lib/export-utils";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ListSkeleton } from "@/components/common/ListSkeleton";
+
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
 import { KpiCard } from "@/components/dashboard/KpiCards";
