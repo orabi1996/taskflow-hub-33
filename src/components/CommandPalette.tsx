@@ -145,8 +145,16 @@ export function CommandPalette() {
                 </>
               )}
             </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup heading="اختصارات لوحة المفاتيح">
+              <ShortcutRow label="فتح البحث السريع" keys="Ctrl / ⌘ + K" />
+              <ShortcutRow label="إغلاق النافذة الحالية" keys="Esc" />
+              <ShortcutRow label="التنقل بين النتائج" keys="↑ / ↓" />
+              <ShortcutRow label="فتح النتيجة المحددة" keys="Enter" />
+            </CommandGroup>
           </>
         )}
+
 
         {query.length >= 2 && !hasResults && (
           <CommandEmpty>لا توجد نتائج لـ "{query}"</CommandEmpty>
