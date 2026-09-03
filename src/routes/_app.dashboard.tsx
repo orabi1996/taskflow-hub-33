@@ -586,11 +586,13 @@ function Dashboard() {
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
                     <th className="px-4 py-2 font-medium text-start">الموظف</th>
+                    <th className="px-4 py-2 font-medium">المشاريع</th>
                     <th className="px-4 py-2 font-medium">الإجمالي</th>
                     <th className="px-4 py-2 font-medium">قيد التنفيذ</th>
                     <th className="px-4 py-2 font-medium">منتهية</th>
                     <th className="px-4 py-2 font-medium">متأخرة</th>
                     <th className="px-4 py-2 font-medium">ساعات</th>
+
                     <th className="px-4 py-2 font-medium w-40">نسبة الإنجاز</th>
                   </tr>
                 </thead>
