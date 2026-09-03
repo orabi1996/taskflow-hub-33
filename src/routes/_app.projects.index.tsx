@@ -143,14 +143,10 @@ function ProjectsPage() {
   const [loading, setLoading] = useState(true);
 
   // edit / delete state
-  const [editing, setEditing] = useState<Project | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [editOwner, setEditOwner] = useState<string>(UNASSIGNED);
-  const [editActive, setEditActive] = useState(true);
-  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editing, setEditing] = useState<EditableProject | null>(null);
   const [deleting, setDeleting] = useState<Project | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
 
   const [view, setView] = useState<"cards" | "kanban" | "timeline">("cards");
   const [searchTerm, setSearchTerm] = useState("");
