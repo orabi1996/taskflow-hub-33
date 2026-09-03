@@ -492,6 +492,12 @@ function ProjectsPage() {
                     <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
                       <Pencil className="h-3.5 w-3.5 ms-1" /> تعديل
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => toggleActive(p)}>
+                      <Power className="h-3.5 w-3.5 ms-1" /> {p.is_active ? "تعطيل" : "تفعيل"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => duplicateProject(p)}>
+                      <Copy className="h-3.5 w-3.5 ms-1" /> نسخ
+                    </Button>
                     {canDelete && (
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleting(p)}>
                         <Trash2 className="h-3.5 w-3.5 ms-1" /> حذف
@@ -506,54 +512,14 @@ function ProjectsPage() {
       )}
 
       {/* Edit Dialog */}
-      <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>تعديل المشروع</DialogTitle></DialogHeader>
-          <Tabs defaultValue="details" className="pt-2">
-            <TabsList className="w-full">
-              <TabsTrigger value="details" className="flex-1">التفاصيل</TabsTrigger>
-              <TabsTrigger value="modules" className="flex-1">الأنظمة المرتبطة</TabsTrigger>
-            </TabsList>
-            <TabsContent value="details" className="pt-4">
-              <form onSubmit={handleEdit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="e-name">اسم المشروع *</Label>
-                  <Input id="e-name" value={editName} onChange={(e) => setEditName(e.target.value)} required maxLength={150} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="e-desc">الوصف</Label>
-                  <Textarea id="e-desc" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} maxLength={500} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="e-owner">الموظف المسؤول</Label>
-                  <Select value={editOwner} onValueChange={setEditOwner}>
-                    <SelectTrigger id="e-owner">
-                      <SelectValue placeholder="اختر موظفًا (اختياري)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNASSIGNED}>بدون مسؤول</SelectItem>
-                      {employees.map((e) => (
-                        <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <Label htmlFor="e-active" className="cursor-pointer">المشروع نشط</Label>
-                  <Switch id="e-active" checked={editActive} onCheckedChange={setEditActive} />
-                </div>
-                <Button type="submit" disabled={editSubmitting} className="w-full">
-                  {editSubmitting && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
-                  حفظ التعديلات
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="modules" className="pt-4">
-              {editing && <ProjectModulesManager projectId={editing.id} canMutate={isManager} />}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      <ProjectEditDialog
+        project={editing}
+        employees={employees}
+        canManageModules={isManager}
+        onOpenChange={(v) => !v && setEditing(null)}
+        onSaved={load}
+      />
+
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleting} onOpenChange={(v) => !v && setDeleting(null)}>
