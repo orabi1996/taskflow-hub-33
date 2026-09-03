@@ -266,6 +266,7 @@ function ProjectDetailPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="overview" className="flex-1">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="tasks" className="flex-1">المهام</TabsTrigger>
           <TabsTrigger value="milestones" className="flex-1">المراحل</TabsTrigger>
           <TabsTrigger value="members" className="flex-1">الفريق</TabsTrigger>
           <TabsTrigger value="comments" className="flex-1">التعليقات</TabsTrigger>
@@ -278,6 +279,7 @@ function ProjectDetailPage() {
           forceMount
           className="pt-4 space-y-3 data-[state=inactive]:hidden data-[state=active]:animate-fade-in"
         >
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Card className="p-4">
               <div className="text-xs text-muted-foreground">قيمة العقد</div>
