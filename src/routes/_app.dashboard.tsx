@@ -193,15 +193,17 @@ function Dashboard() {
   }, [tasks]);
 
   const employeeStats = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number; rate: number }>();
+    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number; rate: number; projects: Set<string> }>();
     const now = new Date();
-    for (const t of tasks) {
+    const scoped = projectFilter === "all" ? tasks : tasks.filter((t) => t.project_id === projectFilter);
+    for (const t of scoped) {
       const key = t.user_id;
       if (!map.has(key)) {
-        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0, rate: 0 });
+        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0, rate: 0, projects: new Set() });
       }
       const row = map.get(key)!;
       row.total++;
+      if (t.project_id) row.projects.add(t.project_id);
       if (t.status === "pending") row.pending++;
       if (t.status === "completed") row.completed++;
       if (t.status === "pending" && t.end_at && new Date(t.end_at) < now) row.overdue++;
@@ -212,6 +214,7 @@ function Dashboard() {
     }
     const rows = Array.from(map.values()).map((r) => ({
       ...r,
+      projectCount: r.projects.size,
       rate: r.total ? Math.round((r.completed / r.total) * 100) : 0,
     }));
     const cmp: Record<string, (a: typeof rows[number], b: typeof rows[number]) => number> = {
@@ -220,9 +223,11 @@ function Dashboard() {
       overdue: (a, b) => b.overdue - a.overdue,
       rate: (a, b) => b.rate - a.rate,
       hours: (a, b) => b.minutes - a.minutes,
+      projects: (a, b) => b.projectCount - a.projectCount,
     };
     return rows.sort(cmp[empSort] ?? cmp.total);
-  }, [tasks, empSort]);
+  }, [tasks, empSort, projectFilter]);
+
 
 
   const filteredTasks = useMemo(() => {
