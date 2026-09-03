@@ -322,7 +322,18 @@ function ProjectDetailPage() {
               <p className="text-sm whitespace-pre-wrap text-muted-foreground">{project.notes}</p>
             </Card>
           )}
+          <Suspense fallback={<TabFallback />}>
+            <ProjectTasksPanel projectId={projectId} />
+          </Suspense>
         </TabsContent>
+
+        <TabsContent value="tasks" forceMount className="pt-4 data-[state=inactive]:hidden data-[state=active]:animate-fade-in">
+          <Suspense fallback={<TabFallback />}>
+            <ProjectTasksPanel projectId={projectId} />
+          </Suspense>
+        </TabsContent>
+
+
 
         <TabsContent value="milestones" forceMount className="pt-4 data-[state=inactive]:hidden data-[state=active]:animate-fade-in">
           <Suspense fallback={<TabFallback />}>
