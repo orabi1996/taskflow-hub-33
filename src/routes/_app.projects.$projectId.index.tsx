@@ -34,6 +34,7 @@ const ProjectMembersManager = lazy(() => import("@/components/projects/ProjectMe
 const ProjectCommentsThread = lazy(() => import("@/components/projects/ProjectCommentsThread").then(m => ({ default: m.ProjectCommentsThread })));
 const ProjectActivityFeed = lazy(() => import("@/components/projects/ProjectActivityFeed").then(m => ({ default: m.ProjectActivityFeed })));
 const ProjectModulesManager = lazy(() => import("@/components/projects/ProjectModulesManager").then(m => ({ default: m.ProjectModulesManager })));
+const ProjectTasksPanel = lazy(() => import("@/components/projects/ProjectTasksPanel").then(m => ({ default: m.ProjectTasksPanel })));
 
 const TabFallback = () => <Skeleton className="h-32 w-full" />;
 
