@@ -612,7 +612,9 @@ function Dashboard() {
                           </div>
                         </div>
                       </td>
+                      <td className="px-4 py-2 text-center">{e.projectCount}</td>
                       <td className="px-4 py-2 text-center">{e.total}</td>
+
                       <td className="px-4 py-2 text-center text-info">{e.pending}</td>
                       <td className="px-4 py-2 text-center text-success">{e.completed}</td>
                       <td className="px-4 py-2 text-center text-destructive">{e.overdue}</td>
