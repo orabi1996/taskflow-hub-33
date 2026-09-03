@@ -555,6 +555,11 @@ function Dashboard() {
             <LayoutDashboard className="h-4 w-4 text-primary" />
             <h2 className="font-semibold">أداء الموظفين</h2>
             <Badge variant="secondary">{employeeStats.length}</Badge>
+            {projectFilter !== "all" && (
+              <Badge variant="outline">
+                {projectsList.find((p) => p.id === projectFilter)?.name ?? "مشروع محدد"}
+              </Badge>
+            )}
             <div className="ms-auto flex items-center gap-2">
               <Select value={empSort} onValueChange={setEmpSort}>
                 <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
@@ -564,8 +569,10 @@ function Dashboard() {
                   <SelectItem value="overdue">الأكثر تأخيرًا</SelectItem>
                   <SelectItem value="rate">نسبة الإنجاز</SelectItem>
                   <SelectItem value="hours">ساعات العمل</SelectItem>
+                  <SelectItem value="projects">عدد المشاريع</SelectItem>
                 </SelectContent>
               </Select>
+
               <Button size="sm" variant="outline" onClick={exportEmployees} disabled={employeeStats.length === 0}>
                 <Download className="h-4 w-4 ms-1" /> تصدير
               </Button>
