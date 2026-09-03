@@ -193,15 +193,17 @@ function Dashboard() {
   }, [tasks]);
 
   const employeeStats = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number; rate: number }>();
+    const map = new Map<string, { id: string; name: string; job: string; total: number; pending: number; completed: number; overdue: number; minutes: number; rate: number; projects: Set<string> }>();
     const now = new Date();
-    for (const t of tasks) {
+    const scoped = projectFilter === "all" ? tasks : tasks.filter((t) => t.project_id === projectFilter);
+    for (const t of scoped) {
       const key = t.user_id;
       if (!map.has(key)) {
-        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0, rate: 0 });
+        map.set(key, { id: key, name: t.owner?.full_name || "غير معروف", job: t.owner?.job_title || "", total: 0, pending: 0, completed: 0, overdue: 0, minutes: 0, rate: 0, projects: new Set() });
       }
       const row = map.get(key)!;
       row.total++;
+      if (t.project_id) row.projects.add(t.project_id);
       if (t.status === "pending") row.pending++;
       if (t.status === "completed") row.completed++;
       if (t.status === "pending" && t.end_at && new Date(t.end_at) < now) row.overdue++;
@@ -212,6 +214,7 @@ function Dashboard() {
     }
     const rows = Array.from(map.values()).map((r) => ({
       ...r,
+      projectCount: r.projects.size,
       rate: r.total ? Math.round((r.completed / r.total) * 100) : 0,
     }));
     const cmp: Record<string, (a: typeof rows[number], b: typeof rows[number]) => number> = {
@@ -220,9 +223,11 @@ function Dashboard() {
       overdue: (a, b) => b.overdue - a.overdue,
       rate: (a, b) => b.rate - a.rate,
       hours: (a, b) => b.minutes - a.minutes,
+      projects: (a, b) => b.projectCount - a.projectCount,
     };
     return rows.sort(cmp[empSort] ?? cmp.total);
-  }, [tasks, empSort]);
+  }, [tasks, empSort, projectFilter]);
+
 
 
   const filteredTasks = useMemo(() => {
@@ -376,7 +381,9 @@ function Dashboard() {
       employeeStats.map((e) => ({
         "الموظف": e.name,
         "المسمى": e.job,
+        "المشاريع": e.projectCount,
         "الإجمالي": e.total,
+
         "قيد التنفيذ": e.pending,
         "منتهية": e.completed,
         "متأخرة": e.overdue,
@@ -550,6 +557,11 @@ function Dashboard() {
             <LayoutDashboard className="h-4 w-4 text-primary" />
             <h2 className="font-semibold">أداء الموظفين</h2>
             <Badge variant="secondary">{employeeStats.length}</Badge>
+            {projectFilter !== "all" && (
+              <Badge variant="outline">
+                {projectsList.find((p) => p.id === projectFilter)?.name ?? "مشروع محدد"}
+              </Badge>
+            )}
             <div className="ms-auto flex items-center gap-2">
               <Select value={empSort} onValueChange={setEmpSort}>
                 <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
@@ -559,8 +571,10 @@ function Dashboard() {
                   <SelectItem value="overdue">الأكثر تأخيرًا</SelectItem>
                   <SelectItem value="rate">نسبة الإنجاز</SelectItem>
                   <SelectItem value="hours">ساعات العمل</SelectItem>
+                  <SelectItem value="projects">عدد المشاريع</SelectItem>
                 </SelectContent>
               </Select>
+
               <Button size="sm" variant="outline" onClick={exportEmployees} disabled={employeeStats.length === 0}>
                 <Download className="h-4 w-4 ms-1" /> تصدير
               </Button>
@@ -574,11 +588,13 @@ function Dashboard() {
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
                     <th className="px-4 py-2 font-medium text-start">الموظف</th>
+                    <th className="px-4 py-2 font-medium">المشاريع</th>
                     <th className="px-4 py-2 font-medium">الإجمالي</th>
                     <th className="px-4 py-2 font-medium">قيد التنفيذ</th>
                     <th className="px-4 py-2 font-medium">منتهية</th>
                     <th className="px-4 py-2 font-medium">متأخرة</th>
                     <th className="px-4 py-2 font-medium">ساعات</th>
+
                     <th className="px-4 py-2 font-medium w-40">نسبة الإنجاز</th>
                   </tr>
                 </thead>
@@ -598,7 +614,9 @@ function Dashboard() {
                           </div>
                         </div>
                       </td>
+                      <td className="px-4 py-2 text-center">{e.projectCount}</td>
                       <td className="px-4 py-2 text-center">{e.total}</td>
+
                       <td className="px-4 py-2 text-center text-info">{e.pending}</td>
                       <td className="px-4 py-2 text-center text-success">{e.completed}</td>
                       <td className="px-4 py-2 text-center text-destructive">{e.overdue}</td>

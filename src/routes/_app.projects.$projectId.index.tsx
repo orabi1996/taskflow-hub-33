@@ -34,6 +34,7 @@ const ProjectMembersManager = lazy(() => import("@/components/projects/ProjectMe
 const ProjectCommentsThread = lazy(() => import("@/components/projects/ProjectCommentsThread").then(m => ({ default: m.ProjectCommentsThread })));
 const ProjectActivityFeed = lazy(() => import("@/components/projects/ProjectActivityFeed").then(m => ({ default: m.ProjectActivityFeed })));
 const ProjectModulesManager = lazy(() => import("@/components/projects/ProjectModulesManager").then(m => ({ default: m.ProjectModulesManager })));
+const ProjectTasksPanel = lazy(() => import("@/components/projects/ProjectTasksPanel").then(m => ({ default: m.ProjectTasksPanel })));
 
 const TabFallback = () => <Skeleton className="h-32 w-full" />;
 
@@ -266,6 +267,7 @@ function ProjectDetailPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="overview" className="flex-1">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="tasks" className="flex-1">المهام</TabsTrigger>
           <TabsTrigger value="milestones" className="flex-1">المراحل</TabsTrigger>
           <TabsTrigger value="members" className="flex-1">الفريق</TabsTrigger>
           <TabsTrigger value="comments" className="flex-1">التعليقات</TabsTrigger>
@@ -278,6 +280,7 @@ function ProjectDetailPage() {
           forceMount
           className="pt-4 space-y-3 data-[state=inactive]:hidden data-[state=active]:animate-fade-in"
         >
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Card className="p-4">
               <div className="text-xs text-muted-foreground">قيمة العقد</div>
@@ -320,7 +323,18 @@ function ProjectDetailPage() {
               <p className="text-sm whitespace-pre-wrap text-muted-foreground">{project.notes}</p>
             </Card>
           )}
+          <Suspense fallback={<TabFallback />}>
+            <ProjectTasksPanel projectId={projectId} />
+          </Suspense>
         </TabsContent>
+
+        <TabsContent value="tasks" forceMount className="pt-4 data-[state=inactive]:hidden data-[state=active]:animate-fade-in">
+          <Suspense fallback={<TabFallback />}>
+            <ProjectTasksPanel projectId={projectId} />
+          </Suspense>
+        </TabsContent>
+
+
 
         <TabsContent value="milestones" forceMount className="pt-4 data-[state=inactive]:hidden data-[state=active]:animate-fade-in">
           <Suspense fallback={<TabFallback />}>
