@@ -381,7 +381,9 @@ function Dashboard() {
       employeeStats.map((e) => ({
         "الموظف": e.name,
         "المسمى": e.job,
+        "المشاريع": e.projectCount,
         "الإجمالي": e.total,
+
         "قيد التنفيذ": e.pending,
         "منتهية": e.completed,
         "متأخرة": e.overdue,
