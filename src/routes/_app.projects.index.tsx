@@ -35,16 +35,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Plus, FolderKanban, Loader2, User, Pencil, Trash2, CalendarClock } from "lucide-react";
+import { Plus, FolderKanban, Loader2, User, Pencil, Trash2, CalendarClock, Power, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { CardsSkeleton } from "@/components/common/ListSkeleton";
 import { BulkImportDialog, type BulkImportColumn } from "@/components/BulkImportDialog";
 import { bulkImportProjects } from "@/lib/bulk-import.functions";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProjectModulesManager } from "@/components/projects/ProjectModulesManager";
+import { ProjectEditDialog, type EditableProject } from "@/components/projects/ProjectEditDialog";
 import { BulkLinkProjectsToModuleDialog } from "@/components/projects/BulkLinkProjectsToModuleDialog";
 import { BulkUnlinkModuleFromProjectsDialog } from "@/components/projects/BulkUnlinkModuleFromProjectsDialog";
 import { Layers, Unlink } from "lucide-react";
@@ -143,14 +141,10 @@ function ProjectsPage() {
   const [loading, setLoading] = useState(true);
 
   // edit / delete state
-  const [editing, setEditing] = useState<Project | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [editOwner, setEditOwner] = useState<string>(UNASSIGNED);
-  const [editActive, setEditActive] = useState(true);
-  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editing, setEditing] = useState<EditableProject | null>(null);
   const [deleting, setDeleting] = useState<Project | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
 
   const [view, setView] = useState<"cards" | "kanban" | "timeline">("cards");
   const [searchTerm, setSearchTerm] = useState("");
@@ -228,41 +222,38 @@ function ProjectsPage() {
     load();
   };
 
-  const openEdit = (p: Project) => {
-    setEditing(p);
-    setEditName(p.name);
-    setEditDesc(p.description ?? "");
-    setEditOwner(p.owner_id ?? UNASSIGNED);
-    setEditActive(p.is_active);
-  };
-
-  const handleEdit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editing) return;
-    const name = editName.trim();
-    if (name.length < 2 || name.length > 150) {
-      toast.error("اسم المشروع يجب أن يكون بين 2 و 150 حرفًا");
+  const openEdit = async (p: Project) => {
+    const { data, error } = await supabase.from("projects").select("*").eq("id", p.id).maybeSingle();
+    if (error || !data) {
+      toast.error(error?.message || "تعذّر تحميل بيانات المشروع");
       return;
     }
-    setEditSubmitting(true);
-    const { error } = await supabase
-      .from("projects")
-      .update({
-        name,
-        description: editDesc.trim() || null,
-        owner_id: editOwner === UNASSIGNED ? null : editOwner,
-        is_active: editActive,
-      })
-      .eq("id", editing.id);
-    setEditSubmitting(false);
+    setEditing(data as EditableProject);
+  };
+
+  const toggleActive = async (p: Project) => {
+    const { error } = await supabase.from("projects").update({ is_active: !p.is_active }).eq("id", p.id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("تم تحديث المشروع");
-    setEditing(null);
+    toast.success(p.is_active ? "تم تعطيل المشروع" : "تم تفعيل المشروع");
     load();
   };
+
+  const duplicateProject = async (p: Project) => {
+    const { data: src } = await supabase.from("projects").select("*").eq("id", p.id).maybeSingle();
+    if (!src) return;
+    const { id: _id, created_at: _c, updated_at: _u, created_by: _cb, ...rest } = src as any;
+    const { error } = await supabase.from("projects").insert({ ...rest, name: `${src.name} - نسخة` });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم نسخ المشروع");
+    load();
+  };
+
 
   const handleDelete = async () => {
     if (!deleting) return;
@@ -499,6 +490,12 @@ function ProjectsPage() {
                     <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
                       <Pencil className="h-3.5 w-3.5 ms-1" /> تعديل
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => toggleActive(p)}>
+                      <Power className="h-3.5 w-3.5 ms-1" /> {p.is_active ? "تعطيل" : "تفعيل"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => duplicateProject(p)}>
+                      <Copy className="h-3.5 w-3.5 ms-1" /> نسخ
+                    </Button>
                     {canDelete && (
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleting(p)}>
                         <Trash2 className="h-3.5 w-3.5 ms-1" /> حذف
@@ -513,54 +510,14 @@ function ProjectsPage() {
       )}
 
       {/* Edit Dialog */}
-      <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>تعديل المشروع</DialogTitle></DialogHeader>
-          <Tabs defaultValue="details" className="pt-2">
-            <TabsList className="w-full">
-              <TabsTrigger value="details" className="flex-1">التفاصيل</TabsTrigger>
-              <TabsTrigger value="modules" className="flex-1">الأنظمة المرتبطة</TabsTrigger>
-            </TabsList>
-            <TabsContent value="details" className="pt-4">
-              <form onSubmit={handleEdit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="e-name">اسم المشروع *</Label>
-                  <Input id="e-name" value={editName} onChange={(e) => setEditName(e.target.value)} required maxLength={150} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="e-desc">الوصف</Label>
-                  <Textarea id="e-desc" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} maxLength={500} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="e-owner">الموظف المسؤول</Label>
-                  <Select value={editOwner} onValueChange={setEditOwner}>
-                    <SelectTrigger id="e-owner">
-                      <SelectValue placeholder="اختر موظفًا (اختياري)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNASSIGNED}>بدون مسؤول</SelectItem>
-                      {employees.map((e) => (
-                        <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <Label htmlFor="e-active" className="cursor-pointer">المشروع نشط</Label>
-                  <Switch id="e-active" checked={editActive} onCheckedChange={setEditActive} />
-                </div>
-                <Button type="submit" disabled={editSubmitting} className="w-full">
-                  {editSubmitting && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
-                  حفظ التعديلات
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="modules" className="pt-4">
-              {editing && <ProjectModulesManager projectId={editing.id} canMutate={isManager} />}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      <ProjectEditDialog
+        project={editing}
+        employees={employees}
+        canManageModules={isManager}
+        onOpenChange={(v) => !v && setEditing(null)}
+        onSaved={load}
+      />
+
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleting} onOpenChange={(v) => !v && setDeleting(null)}>
