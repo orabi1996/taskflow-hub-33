@@ -35,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Plus, FolderKanban, Loader2, User, Pencil, Trash2, CalendarClock, Power, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -43,7 +42,6 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { CardsSkeleton } from "@/components/common/ListSkeleton";
 import { BulkImportDialog, type BulkImportColumn } from "@/components/BulkImportDialog";
 import { bulkImportProjects } from "@/lib/bulk-import.functions";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProjectEditDialog, type EditableProject } from "@/components/projects/ProjectEditDialog";
 import { BulkLinkProjectsToModuleDialog } from "@/components/projects/BulkLinkProjectsToModuleDialog";
 import { BulkUnlinkModuleFromProjectsDialog } from "@/components/projects/BulkUnlinkModuleFromProjectsDialog";
