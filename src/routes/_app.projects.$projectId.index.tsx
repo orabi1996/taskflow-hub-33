@@ -15,7 +15,19 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { ArrowRight, FolderKanban, AlertCircle } from "lucide-react";
+import { ArrowRight, FolderKanban, AlertCircle, Pencil, Power, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ProjectEditDialog, type EditableProject } from "@/components/projects/ProjectEditDialog";
 
 const ProjectMilestonesManager = lazy(() => import("@/components/projects/ProjectMilestonesManager").then(m => ({ default: m.ProjectMilestonesManager })));
 const ProjectMembersManager = lazy(() => import("@/components/projects/ProjectMembersManager").then(m => ({ default: m.ProjectMembersManager })));
@@ -29,17 +41,8 @@ export const Route = createFileRoute("/_app/projects/$projectId/")({
   component: ProjectDetailPage,
 });
 
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  is_active: boolean;
+interface Project extends EditableProject {
   health_status: string;
-  owner_id: string | null;
-  contract_start_date: string | null;
-  contract_end_date: string | null;
-  contract_value: number | null;
-  currency: string | null;
 }
 
 function ProjectDetailSkeleton() {
@@ -76,6 +79,10 @@ function ProjectDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [ownerName, setOwnerName] = useState<string>("");
   const [isMember, setIsMember] = useState(false);
+  const [editing, setEditing] = useState<EditableProject | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,9 +96,7 @@ function ProjectDetailPage() {
     (async () => {
       const { data, error: err } = await supabase
         .from("projects")
-        .select(
-          "id, name, description, is_active, health_status, owner_id, contract_start_date, contract_end_date, contract_value, currency",
-        )
+        .select("*")
         .eq("id", projectId)
         .maybeSingle();
       if (cancelled) return;
@@ -134,9 +139,28 @@ function ProjectDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [projectId, user?.id]);
+  }, [projectId, user?.id, reloadKey]);
 
   const canManage = isManager || project?.owner_id === user?.id;
+  const canDelete = roles.some((r) => ["admin", "general_manager"].includes(r));
+
+  const toggleActive = async () => {
+    if (!project) return;
+    const { error } = await supabase.from("projects").update({ is_active: !project.is_active }).eq("id", project.id);
+    if (error) return toast.error(error.message);
+    toast.success(project.is_active ? "تم تعطيل المشروع" : "تم تفعيل المشروع");
+    setReloadKey((k) => k + 1);
+  };
+
+  const handleDelete = async () => {
+    if (!project) return;
+    setDeleting(true);
+    const { error } = await supabase.from("projects").delete().eq("id", project.id);
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    toast.success("تم حذف المشروع");
+    navigate({ to: "/projects" });
+  };
 
   if (loading) return <ProjectDetailSkeleton />;
 
@@ -209,11 +233,28 @@ function ProjectDetailPage() {
             {isMember && !isManager && <Badge variant="outline">عضو في الفريق</Badge>}
           </div>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/projects/$projectId/dashboard" params={{ projectId }}>
-            لوحة المشروع
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/projects/$projectId/dashboard" params={{ projectId }}>
+              لوحة المشروع
+            </Link>
+          </Button>
+          {canManage && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setEditing(project)}>
+                <Pencil className="h-3.5 w-3.5 ms-1" /> تعديل
+              </Button>
+              <Button variant="outline" size="sm" onClick={toggleActive}>
+                <Power className="h-3.5 w-3.5 ms-1" /> {project.is_active ? "تعطيل" : "تفعيل"}
+              </Button>
+            </>
+          )}
+          {canDelete && (
+            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+              <Trash2 className="h-3.5 w-3.5 ms-1" /> حذف
+            </Button>
+          )}
+        </div>
       </div>
 
       {project.description && (
@@ -253,6 +294,32 @@ function ProjectDetailPage() {
               <div className="text-lg font-bold mt-1">{project.contract_end_date || "—"}</div>
             </Card>
           </div>
+          <Card className="p-4">
+            <div className="text-sm font-semibold mb-3">بيانات العقد والتواصل</div>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              {[
+                ["رقم العقد", project.contract_number],
+                ["الدولة", project.country],
+                ["العنوان", project.address],
+                ["البريد الأساسي", project.contact_email],
+                ["الهاتف الأساسي", project.contact_phone],
+                ["بريد بديل", project.secondary_email],
+                ["هاتف بديل", project.secondary_phone],
+                ["التنبيه قبل نهاية العقد", project.alert_days_before ? `${project.alert_days_before} يوم` : null],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="flex items-center justify-between gap-2 border-b border-dashed py-1.5">
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-medium truncate">{value || "—"}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+          {project.notes && (
+            <Card className="p-4">
+              <div className="text-sm font-semibold mb-2">ملاحظات</div>
+              <p className="text-sm whitespace-pre-wrap text-muted-foreground">{project.notes}</p>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="milestones" forceMount className="pt-4 data-[state=inactive]:hidden data-[state=active]:animate-fade-in">
@@ -285,6 +352,35 @@ function ProjectDetailPage() {
           </Suspense>
         </TabsContent>
       </Tabs>
+
+      <ProjectEditDialog
+        project={editing}
+        canManageModules={canManage}
+        onOpenChange={(v) => !v && setEditing(null)}
+        onSaved={() => setReloadKey((k) => k + 1)}
+      />
+
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف المشروع</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف "{project.name}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
