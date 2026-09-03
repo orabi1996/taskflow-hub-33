@@ -224,41 +224,38 @@ function ProjectsPage() {
     load();
   };
 
-  const openEdit = (p: Project) => {
-    setEditing(p);
-    setEditName(p.name);
-    setEditDesc(p.description ?? "");
-    setEditOwner(p.owner_id ?? UNASSIGNED);
-    setEditActive(p.is_active);
-  };
-
-  const handleEdit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editing) return;
-    const name = editName.trim();
-    if (name.length < 2 || name.length > 150) {
-      toast.error("اسم المشروع يجب أن يكون بين 2 و 150 حرفًا");
+  const openEdit = async (p: Project) => {
+    const { data, error } = await supabase.from("projects").select("*").eq("id", p.id).maybeSingle();
+    if (error || !data) {
+      toast.error(error?.message || "تعذّر تحميل بيانات المشروع");
       return;
     }
-    setEditSubmitting(true);
-    const { error } = await supabase
-      .from("projects")
-      .update({
-        name,
-        description: editDesc.trim() || null,
-        owner_id: editOwner === UNASSIGNED ? null : editOwner,
-        is_active: editActive,
-      })
-      .eq("id", editing.id);
-    setEditSubmitting(false);
+    setEditing(data as EditableProject);
+  };
+
+  const toggleActive = async (p: Project) => {
+    const { error } = await supabase.from("projects").update({ is_active: !p.is_active }).eq("id", p.id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("تم تحديث المشروع");
-    setEditing(null);
+    toast.success(p.is_active ? "تم تعطيل المشروع" : "تم تفعيل المشروع");
     load();
   };
+
+  const duplicateProject = async (p: Project) => {
+    const { data: src } = await supabase.from("projects").select("*").eq("id", p.id).maybeSingle();
+    if (!src) return;
+    const { id: _id, created_at: _c, updated_at: _u, created_by: _cb, ...rest } = src as any;
+    const { error } = await supabase.from("projects").insert({ ...rest, name: `${src.name} - نسخة` });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم نسخ المشروع");
+    load();
+  };
+
 
   const handleDelete = async () => {
     if (!deleting) return;
