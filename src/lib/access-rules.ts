@@ -13,7 +13,7 @@ export interface AccessRule {
 
 export const ACCESS_RULES: AccessRule[] = [
   { key: "dashboard", label: "مهامي", path: "/dashboard", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
-  { key: "time", label: "الوقت", path: "/time", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
+  { key: "time", label: "الأعمال والوقت", path: "/time", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
   { key: "my-projects", label: "مشاريعي", path: "/my-projects", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
   { key: "profile", label: "الملف الشخصي", path: "/profile", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
   { key: "team", label: "الفريق", path: "/team", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager"], rule: "يتطلب دور مدير أو أعلى (manager / general_manager / admin)." },

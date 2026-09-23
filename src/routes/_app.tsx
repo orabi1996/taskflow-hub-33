@@ -79,7 +79,7 @@ function AppLayout() {
       icon: isAdminOrGM ? LayoutDashboard : ListChecks,
       label: isAdminOrGM ? "لوحة التحكم" : "مهامي",
     },
-    { to: "/time", icon: Clock, label: "الوقت" },
+    { to: "/time", icon: Clock, label: "الأعمال والوقت" },
     { to: "/my-projects", icon: FolderHeart, label: "مشاريعي" },
     { to: "/performance", icon: TrendingUp, label: "الأداء" },
   ];
