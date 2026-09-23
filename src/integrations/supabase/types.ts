@@ -219,6 +219,66 @@ export type Database = {
           },
         ]
       }
+      work_logs: {
+        Row: {
+          id: string
+          user_id: string
+          work_date: string
+          task_id: string | null
+          client_id: string | null
+          module_id: string | null
+          activity_type: string
+          description: string
+          outcome: string
+          blocker: string
+          minutes: number | null
+          status: string
+          review_note: string
+          reviewed_by: string | null
+          reviewed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          work_date: string
+          task_id?: string | null
+          client_id?: string | null
+          module_id?: string | null
+          activity_type: string
+          description: string
+          outcome: string
+          blocker?: string
+          minutes?: number | null
+          status?: string
+          review_note?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          work_date?: string
+          task_id?: string | null
+          client_id?: string | null
+          module_id?: string | null
+          activity_type?: string
+          description?: string
+          outcome?: string
+          blocker?: string
+          minutes?: number | null
+          status?: string
+          review_note?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null

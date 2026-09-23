@@ -1,3 +1,4 @@
+import { WorkJournal } from "@/components/work/WorkJournal";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -312,7 +313,7 @@ function TimeTrackingPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div className="flex-1 min-w-0">
           <PageHeader
-            title="تتبّع الوقت"
+            title="الأعمال والوقت"
             icon={Clock}
             description="سجّل ساعات عملك وصنّف الجلسات · Alt+S للبدء/الإيقاف · Alt+P للإيقاف المؤقت"
           />
@@ -439,8 +440,9 @@ function TimeTrackingPage() {
         </Card>
       )}
 
-      <Tabs defaultValue="sessions" className="space-y-4">
-        <TabsList>
+      <Tabs defaultValue="journal" className="space-y-4">
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="journal">أعمالي اليومية</TabsTrigger>
           <TabsTrigger value="sessions" className="gap-1.5"><Clock className="h-4 w-4" /> الجلسات</TabsTrigger>
           <TabsTrigger value="billing" className="gap-1.5"><Receipt className="h-4 w-4" /> الفوترة</TabsTrigger>
 
@@ -448,6 +450,7 @@ function TimeTrackingPage() {
           {isMgr && <TabsTrigger value="team" className="gap-1.5"><UsersRound className="h-4 w-4" /> الفريق</TabsTrigger>}
         </TabsList>
 
+        <TabsContent value="journal"><WorkJournal /></TabsContent>
         <TabsContent value="sessions" className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card className="p-4"><div className="text-xs text-muted-foreground">عدد الجلسات</div><div className="text-2xl font-bold mt-1">{totals.count}</div></Card>
