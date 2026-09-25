@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { validateWebhookOrCronSecret, recordSecurityAudit } from "@/lib/server-security";
 
 type Rule = {
   id: string;
@@ -20,11 +21,30 @@ type Notif = {
 };
 
 // Cron-triggered endpoint that scans active automation rules and applies actions.
-// Called by pg_cron via /api/public/* (auth bypassed; we still gate via service role usage).
+// Protected by CRON_SECRET or AUTOMATION_WEBHOOK_SECRET.
 export const Route = createFileRoute("/api/public/hooks/automation-tick")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const isAuthorized = validateWebhookOrCronSecret(request, [
+          "CRON_SECRET",
+          "AUTOMATION_WEBHOOK_SECRET",
+        ]);
+
+        if (!isAuthorized) {
+          await recordSecurityAudit({
+            eventType: "hook.automation_tick.unauthorized",
+            severity: "warn",
+            resourceType: "system.automation",
+            metadata: { reason: "Missing or invalid cron secret" },
+            request,
+          });
+          return Response.json(
+            { error: "Unauthorized: Invalid or missing cron secret" },
+            { status: 401 }
+          );
+        }
+
         const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!url || !serviceKey) {

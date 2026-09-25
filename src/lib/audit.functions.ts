@@ -3,6 +3,19 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function assertAdminOrGM(userId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", ["admin", "general_manager"]);
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) {
+    throw new Error("غير مصرح: استعراض سجلات التدقيق متاح فقط لمدير النظام والمدير العام");
+  }
+}
 
 const eventSchema = z.object({
   actorId: z.string().uuid().nullable().optional(),
@@ -51,8 +64,10 @@ const listSchema = z.object({
 });
 
 export const listAuditEvents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => listSchema.parse(input ?? {}))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdminOrGM(context.userId);
     let q = supabaseAdmin
       .from("audit_logs")
       .select(

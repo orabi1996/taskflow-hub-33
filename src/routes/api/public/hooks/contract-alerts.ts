@@ -1,17 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { validateWebhookOrCronSecret, recordSecurityAudit } from "@/lib/server-security";
 
 // Cron endpoint: generates in-app notifications for projects whose contracts are
 // expired or expiring within their custom alert_days_before window.
-// Notifications are sent to project owners + all admins/general managers.
-// Idempotent: skips creating duplicate notifications for the same (user, project, end_date) on the same day.
-
+// Protected by CRON_SECRET or CONTRACT_ALERTS_SECRET.
 export const Route = createFileRoute("/api/public/hooks/contract-alerts")({
   server: {
     handlers: {
-      POST: async () => {
-        const url = process.env.SUPABASE_URL!;
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      POST: async ({ request }) => {
+        const isAuthorized = validateWebhookOrCronSecret(request, [
+          "CRON_SECRET",
+          "CONTRACT_ALERTS_SECRET",
+        ]);
+
+        if (!isAuthorized) {
+          await recordSecurityAudit({
+            eventType: "hook.contract_alerts.unauthorized",
+            severity: "warn",
+            resourceType: "system.contracts",
+            metadata: { reason: "Missing or invalid cron secret" },
+            request,
+          });
+          return Response.json(
+            { error: "Unauthorized: Invalid or missing cron secret" },
+            { status: 401 }
+          );
+        }
+
+        const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!url || !serviceKey) {
+          return Response.json({ error: "missing service credentials" }, { status: 500 });
+        }
         const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 
         // 1) get projects with contract_end_date set
