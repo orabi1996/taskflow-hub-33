@@ -1,88 +1,69 @@
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  saveServerSession,
+  clearServerSession,
+  getStoredServerSession,
+  type RememberDuration,
+  EMAIL_COOKIE,
+  INTENT_COOKIE,
+} from "./auth-session.server";
 
-export type RememberDuration = "session" | "1d" | "7d" | "30d" | "90d";
+export type { RememberDuration };
 
-const AUTH_COOKIE = "app-auth-session-v1";
-const EMAIL_COOKIE = "app-auth-email-v1";
-const INTENT_COOKIE = "app-auth-remember-intent-v1";
+const LEGACY_AUTH_COOKIE = "app-auth-session-v1";
 const LEGACY_EMAIL_KEY = "auth-remember-email";
-
-const DURATION_SECONDS: Record<Exclude<RememberDuration, "session">, number> = {
-  "1d": 24 * 60 * 60,
-  "7d": 7 * 24 * 60 * 60,
-  "30d": 30 * 24 * 60 * 60,
-  "90d": 90 * 24 * 60 * 60,
-};
-
-type CookiePayload = {
-  access_token: string;
-  refresh_token: string;
-  duration: RememberDuration;
-  remember_until?: number;
-  email?: string | null;
-};
 
 const canUseDocument = () => typeof document !== "undefined";
 
-function cookieSuffix(maxAgeSeconds?: number) {
-  const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
-  const age = typeof maxAgeSeconds === "number" ? `; Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}` : "";
-  return `; Path=/; SameSite=Lax${secure}${age}`;
-}
-
-function setCookie(name: string, value: string, maxAgeSeconds?: number) {
-  if (!canUseDocument()) return;
-  document.cookie = `${name}=${encodeURIComponent(value)}${cookieSuffix(maxAgeSeconds)}`;
-}
-
-function getCookie(name: string) {
+function getCookie(name: string): string | null {
   if (!canUseDocument()) return null;
   const prefix = `${name}=`;
   const part = document.cookie.split("; ").find((item) => item.startsWith(prefix));
   return part ? decodeURIComponent(part.slice(prefix.length)) : null;
 }
 
-function deleteCookie(name: string) {
-  setCookie(name, "", 0);
+function deleteClientCookie(name: string) {
+  if (!canUseDocument()) return;
+  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
-function encodePayload(payload: CookiePayload) {
-  return btoa(JSON.stringify(payload));
+function setClientCookie(name: string, value: string, maxAgeSeconds?: number) {
+  if (!canUseDocument()) return;
+  const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
+  const age = typeof maxAgeSeconds === "number" ? `; Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}` : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; SameSite=Lax${secure}${age}`;
 }
 
-function decodePayload(value: string | null): CookiePayload | null {
-  if (!value) return null;
+/**
+ * Purges legacy JavaScript-accessible token storage to ensure tokens are never read from document.cookie or localStorage.
+ */
+export function purgeLegacyAuthStorage() {
+  if (!canUseDocument()) return;
+  deleteClientCookie(LEGACY_AUTH_COOKIE);
   try {
-    return JSON.parse(atob(value)) as CookiePayload;
+    localStorage.removeItem(LEGACY_EMAIL_KEY);
+    // Also remove any direct supabase token caches from localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes("supabase.auth.token") || key.includes("app-auth"))) {
+        localStorage.removeItem(key);
+      }
+    }
   } catch {
-    return null;
+    // Ignore localStorage privacy blocks
   }
-}
-
-function secondsForDuration(duration: RememberDuration) {
-  return duration === "session" ? undefined : DURATION_SECONDS[duration];
-}
-
-function rememberUntil(duration: RememberDuration) {
-  const seconds = secondsForDuration(duration);
-  return seconds ? Date.now() + seconds * 1000 : undefined;
 }
 
 export function purgeSupabaseAuthLocalStorage() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(LEGACY_EMAIL_KEY);
-  } catch {
-    // localStorage can be blocked by browser privacy settings.
-  }
+  purgeLegacyAuthStorage();
 }
 
 export function saveRememberIntent(duration: RememberDuration) {
-  setCookie(INTENT_COOKIE, duration, 10 * 60);
+  setClientCookie(INTENT_COOKIE, duration, 10 * 60);
 }
 
-export function getRememberedEmail() {
+export function getRememberedEmail(): string {
   const email = getCookie(EMAIL_COOKIE);
   if (email) return email;
   try {
@@ -92,77 +73,101 @@ export function getRememberedEmail() {
   }
 }
 
-export function persistAuthSession(session: Session, duration: RememberDuration, email?: string | null) {
-  const maxAge = secondsForDuration(duration);
-  const payload: CookiePayload = {
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    duration,
-    remember_until: rememberUntil(duration),
-    email: email ?? session.user.email ?? null,
-  };
+/**
+ * Securely persists the auth session via an HttpOnly, Secure server cookie.
+ * No access or refresh tokens are written to document.cookie.
+ */
+export async function persistAuthSession(
+  session: Session,
+  duration: RememberDuration,
+  email?: string | null
+): Promise<void> {
+  purgeLegacyAuthStorage();
+  deleteClientCookie(INTENT_COOKIE);
 
-  setCookie(AUTH_COOKIE, encodePayload(payload), maxAge);
-  if (payload.email) setCookie(EMAIL_COOKIE, payload.email, maxAge);
-  deleteCookie(INTENT_COOKIE);
-  purgeSupabaseAuthLocalStorage();
-}
-
-export function refreshStoredAuthSession(session: Session) {
-  const existing = decodePayload(getCookie(AUTH_COOKIE));
-  const intent = getCookie(INTENT_COOKIE) as RememberDuration | null;
-  const duration = existing?.duration ?? intent ?? null;
-  if (!duration) return;
-
-  const remainingSeconds = existing?.remember_until
-    ? Math.max(0, Math.floor((existing.remember_until - Date.now()) / 1000))
-    : secondsForDuration(duration);
-
-  if (remainingSeconds === 0) {
-    clearAuthSessionCookies();
-    return;
+  try {
+    await saveServerSession({
+      data: {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        duration,
+        email: email ?? session.user.email ?? null,
+      },
+    });
+  } catch (err) {
+    console.error("[persistAuthSession] Failed to set HttpOnly session cookie:", err);
   }
-
-  const maxAge = duration === "session" ? undefined : remainingSeconds;
-  setCookie(AUTH_COOKIE, encodePayload({
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-    duration,
-    remember_until: existing?.remember_until ?? rememberUntil(duration),
-    email: existing?.email ?? session.user.email ?? null,
-  }), maxAge);
-  if (existing?.email ?? session.user.email) setCookie(EMAIL_COOKIE, existing?.email ?? session.user.email ?? "", maxAge);
-  deleteCookie(INTENT_COOKIE);
-  purgeSupabaseAuthLocalStorage();
 }
 
-export function clearAuthSessionCookies() {
-  deleteCookie(AUTH_COOKIE);
-  deleteCookie(INTENT_COOKIE);
-  deleteCookie(EMAIL_COOKIE);
-  purgeSupabaseAuthLocalStorage();
+/**
+ * Keeps the server-managed HttpOnly cookie updated when the client session is refreshed.
+ */
+export async function refreshStoredAuthSession(session: Session): Promise<void> {
+  purgeLegacyAuthStorage();
+  const intent = (getCookie(INTENT_COOKIE) as RememberDuration | null) ?? "session";
+
+  try {
+    await saveServerSession({
+      data: {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        duration: intent,
+        email: session.user.email ?? null,
+      },
+    });
+  } catch (err) {
+    console.error("[refreshStoredAuthSession] Failed to update HttpOnly session cookie:", err);
+  }
 }
 
-export async function ensureAuthSessionFromCookies() {
+/**
+ * Clears the session on the server (deleting the HttpOnly cookie) and client.
+ */
+export async function clearAuthSessionCookies(): Promise<void> {
+  purgeLegacyAuthStorage();
+  deleteClientCookie(INTENT_COOKIE);
+  deleteClientCookie(EMAIL_COOKIE);
+
+  try {
+    await clearServerSession();
+  } catch (err) {
+    console.error("[clearAuthSessionCookies] Failed to clear server session:", err);
+  }
+}
+
+/**
+ * Restores or verifies an authenticated session.
+ * Reads the HttpOnly cookie via the server function and initializes the in-memory Supabase client session.
+ */
+export async function ensureAuthSessionFromCookies(): Promise<Session | null> {
   if (typeof window === "undefined") return null;
-  const existing = await supabase.auth.getSession();
-  if (existing.data.session) return existing.data.session;
 
-  const payload = decodePayload(getCookie(AUTH_COOKIE));
-  if (!payload?.access_token || !payload.refresh_token) return null;
-  if (payload.remember_until && payload.remember_until <= Date.now()) {
-    clearAuthSessionCookies();
-    return null;
+  // 1. Check in-memory / active client session
+  const inMemory = await supabase.auth.getSession();
+  if (inMemory.data.session) {
+    return inMemory.data.session;
   }
 
-  const { data, error } = await supabase.auth.setSession({
-    access_token: payload.access_token,
-    refresh_token: payload.refresh_token,
-  });
-  if (error || !data.session) {
-    clearAuthSessionCookies();
+  // 2. Fetch tokens from the secure HttpOnly server cookie
+  try {
+    const res = await getStoredServerSession();
+    if (!res.session?.access_token || !res.session?.refresh_token) {
+      return null;
+    }
+
+    const { data, error } = await supabase.auth.setSession({
+      access_token: res.session.access_token,
+      refresh_token: res.session.refresh_token,
+    });
+
+    if (error || !data.session) {
+      await clearAuthSessionCookies();
+      return null;
+    }
+
+    return data.session;
+  } catch (err) {
+    console.error("[ensureAuthSessionFromCookies] Error restoring server session:", err);
     return null;
   }
-  refreshStoredAuthSession(data.session);
-  return data.session;
 }

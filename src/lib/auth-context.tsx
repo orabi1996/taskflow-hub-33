@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    clearAuthSessionCookies();
+    await clearAuthSessionCookies();
     await supabase.auth.signOut();
   };
 

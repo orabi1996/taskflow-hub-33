@@ -52,19 +52,33 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       throw new Error('Unauthorized: No request headers available');
     }
 
+    let token: string | null = null;
     const authHeader = request.headers.get('authorization');
 
-    if (!authHeader) {
-      throw new Error('Unauthorized: No authorization header provided');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '').trim();
+    } else {
+      // Fallback to reading the server-managed HttpOnly auth cookie
+      const { getCookie } = await import('@tanstack/react-start/server');
+      const { verifyAndUnsealPayload } = await import('@/lib/server-security');
+      const rawCookie = getCookie('app-auth-session-v1');
+      if (rawCookie) {
+        const unsealed = verifyAndUnsealPayload(rawCookie);
+        if (unsealed) {
+          try {
+            const payload = JSON.parse(unsealed) as { access_token?: string; expires_at?: number };
+            if (payload.access_token && (!payload.expires_at || payload.expires_at > Date.now())) {
+              token = payload.access_token;
+            }
+          } catch {
+            // Invalid payload
+          }
+        }
+      }
     }
 
-    if (!authHeader.startsWith('Bearer ')) {
-      throw new Error('Unauthorized: Only Bearer tokens are supported');
-    }
-
-    const token = authHeader.replace('Bearer ', '');
     if (!token) {
-      throw new Error('Unauthorized: No token provided');
+      throw new Error('Unauthorized: No authorization header or valid session cookie provided');
     }
 
     if (token.split('.').length !== 3) {

@@ -1,5 +1,47 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+/**
+ * Signs a payload with HMAC-SHA256 and returns a URL-safe sealed string (payload.signature).
+ */
+export function signPayload(payload: string, secret?: string): string {
+  const key =
+    secret ||
+    process.env.SESSION_SECRET ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    "fallback-session-secret-change-in-production";
+  const b64Payload = Buffer.from(payload, "utf-8").toString("base64url");
+  const hmac = createHmac("sha256", key).update(b64Payload).digest("base64url");
+  return `${b64Payload}.${hmac}`;
+}
+
+/**
+ * Verifies the HMAC-SHA256 signature of a sealed string and returns the original payload,
+ * or null if invalid or tampered with.
+ */
+export function verifyAndUnsealPayload(token: string, secret?: string): string | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [b64Payload, signature] = parts;
+  if (!b64Payload || !signature) return null;
+
+  const key =
+    secret ||
+    process.env.SESSION_SECRET ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    "fallback-session-secret-change-in-production";
+  const expectedHmac = createHmac("sha256", key).update(b64Payload).digest("base64url");
+
+  try {
+    const a = Buffer.from(signature, "utf-8");
+    const b = Buffer.from(expectedHmac, "utf-8");
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+    return Buffer.from(b64Payload, "base64url").toString("utf-8");
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Constant-time string comparison to prevent timing attacks on secrets.
