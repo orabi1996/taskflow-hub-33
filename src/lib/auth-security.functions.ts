@@ -1,13 +1,20 @@
-// Server functions for auth security: rate limiting, attempt logging, public stats.
 import { createServerFn } from "@tanstack/react-start";
-import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
+import { getRequestHeader, getRequestIP, setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { signPayload } from "./server-security";
+import {
+  AUTH_COOKIE,
+  EMAIL_COOKIE,
+  secondsForDuration,
+  type RememberDuration,
+} from "./auth-session.server";
 
 const WINDOW_MIN = 15;
 const MAX_FAILED = 5;
 
 const emailSchema = z.string().trim().toLowerCase().email().max(255);
+const durationSchema = z.enum(["session", "1d", "7d", "30d", "90d"]).default("session");
 
 /** Check if an email/IP is currently rate-limited. Returns lock-out info. */
 export const checkLoginRate = createServerFn({ method: "POST" })
@@ -62,9 +69,10 @@ export const recordLoginAttempt = createServerFn({ method: "POST" })
  * Returns session tokens for the client to install via supabase.auth.setSession().
  */
 export const signInWithLock = createServerFn({ method: "POST" })
-  .inputValidator((input: { email: string; password: string }) => ({
+  .inputValidator((input: { email: string; password: string; duration?: RememberDuration }) => ({
     email: emailSchema.parse(input.email),
     password: z.string().min(1).max(200).parse(input.password),
+    duration: durationSchema.parse(input.duration ?? "session"),
   }))
   .handler(async ({ data }) => {
     const since = new Date(Date.now() - WINDOW_MIN * 60_000).toISOString();
@@ -125,6 +133,38 @@ export const signInWithLock = createServerFn({ method: "POST" })
         session: null,
       };
     }
+
+    // Securely issue HttpOnly, Secure server cookie on success
+    const maxAge = secondsForDuration(data.duration);
+    const expires_at = maxAge ? Date.now() + maxAge * 1000 : undefined;
+    const sealedToken = signPayload(
+      JSON.stringify({
+        access_token: signIn.session.access_token,
+        refresh_token: signIn.session.refresh_token,
+        duration: data.duration,
+        expires_at,
+        email: data.email,
+      })
+    );
+
+    const forwardedProto = getRequestHeader("x-forwarded-proto");
+    const isHttps = (forwardedProto && forwardedProto.includes("https")) || process.env.NODE_ENV === "production";
+
+    setCookie(AUTH_COOKIE, sealedToken, {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: "lax",
+      path: "/",
+      maxAge,
+    });
+
+    setCookie(EMAIL_COOKIE, data.email, {
+      httpOnly: false,
+      secure: isHttps,
+      sameSite: "lax",
+      path: "/",
+      maxAge: maxAge ?? 30 * 24 * 60 * 60,
+    });
 
     return {
       ok: true as const,

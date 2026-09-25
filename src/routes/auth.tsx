@@ -12,7 +12,7 @@ import {
 } from "@/lib/auth-session";
 import { suggestEmail } from "@/lib/email-suggest";
 import { computeDeviceHash } from "@/lib/device-fingerprint";
-import { recordLoginAttempt, getAuthHeroStats, signInWithLock } from "@/lib/auth-security.functions";
+import { getAuthHeroStats, signInWithLock } from "@/lib/auth-security.functions";
 import { recordAuditEvent } from "@/lib/audit.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,95 +201,90 @@ function AuthPage() {
     }
     setLoading(true);
 
-    // Server-enforced lockout + sign-in (limit can't be bypassed client-side)
-    let guard: Awaited<ReturnType<typeof signInWithLock>> | null = null;
+    // Canonical server-enforced lockout + sign-in (rate limit cannot be bypassed client-side)
+    let guard: Awaited<ReturnType<typeof signInWithLock>>;
     try {
-      guard = await signInWithLock({ data: parsed.data });
-    } catch {
-      guard = null; // fall back to direct sign-in if the server fn is unreachable
-    }
-
-    type SessionLike = NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]>;
-    let data: { user: { id: string } | null; session: SessionLike | null } = { user: null, session: null };
-    let error: { message: string } | null = null;
-
-
-    if (guard) {
-      if (!guard.ok) {
-        setLoading(false);
-        setAlert({
-          kind: "error",
-          title: guard.locked ? "تم قفل المحاولات مؤقتًا" : "تعذّر تسجيل الدخول",
-          description: guard.locked
-            ? `تم تجاوز عدد المحاولات المسموح بها. حاول مجددًا بعد ${guard.windowMinutes} دقيقة.`
-            : guard.message === "Invalid login credentials"
-              ? `البريد الإلكتروني أو كلمة المرور غير صحيحة. المحاولات المتبقية: ${guard.remaining}.`
-              : guard.message,
-        });
-        return;
-      }
-      const res = await supabase.auth.setSession({
-        access_token: guard.session!.access_token,
-        refresh_token: guard.session!.refresh_token,
+      guard = await signInWithLock({
+        data: {
+          email: parsed.data.email,
+          password: parsed.data.password,
+          duration: remember ? rememberDuration : "session",
+        },
       });
-      data = res.data;
-      error = res.error;
-    } else {
-      const res = await supabase.auth.signInWithPassword(parsed.data);
-      data = res.data;
-      error = res.error;
-      void recordLoginAttempt({
-        data: { email: parsed.data.email, success: !res.error, reason: res.error?.message },
-      }).catch(() => {});
+    } catch {
+      // Fail safely: NEVER bypass rate limiting by falling back to browser auth!
+      setLoading(false);
+      setAlert({
+        kind: "error",
+        title: "خدمة تسجيل الدخول غير متاحة",
+        description: "تعذّر الاتصال بخدمة التحقق الآمنة. يرجى المحاولة بعد لحظات.",
+      });
+      return;
     }
+
+    if (!guard.ok) {
+      setLoading(false);
+      setAlert({
+        kind: "error",
+        title: guard.locked ? "تم قفل المحاولات مؤقتًا" : "تعذّر تسجيل الدخول",
+        description: guard.locked
+          ? `تم تجاوز عدد المحاولات المسموح بها. حاول مجددًا بعد ${guard.windowMinutes} دقيقة.`
+          : guard.message === "Invalid login credentials"
+            ? `البريد الإلكتروني أو كلمة المرور غير صحيحة. المحاولات المتبقية: ${guard.remaining}.`
+            : guard.message,
+      });
+      return;
+    }
+
+    // Install in-memory session in Supabase client using server-verified tokens
+    const res = await supabase.auth.setSession({
+      access_token: guard.session!.access_token,
+      refresh_token: guard.session!.refresh_token,
+    });
+
+    const session = res.data.session;
     setLoading(false);
+
+    if (res.error || !session) {
+      setAlert({
+        kind: "error",
+        title: "تعذّر تهيئة الجلسة",
+        description: res.error?.message ?? "حدث خطأ أثناء تهيئة جلسة العمل.",
+      });
+      return;
+    }
 
     // Centralized audit log entry
     void recordAuditEvent({
       data: {
-        actorId: data?.user?.id ?? null,
+        actorId: session.user.id,
         actorEmail: parsed.data.email,
-        eventType: error ? "auth.login_failed" : "auth.login_success",
-        severity: error ? "warn" : "info",
+        eventType: "auth.login_success",
+        severity: "info",
         resourceType: "auth.user",
-        resourceId: data?.user?.id ?? null,
-        metadata: error ? { reason: error.message } : null,
+        resourceId: session.user.id,
+        metadata: null,
       },
     }).catch(() => {});
 
-    if (error) {
+    await persistAuthSession(session, remember ? rememberDuration : "session", parsed.data.email);
+    void (async () => {
+      try {
+        const deviceHash = await computeDeviceHash();
+        await supabase
+          .from("trusted_devices")
+          .upsert(
+            {
+              user_id: session.user.id,
+              device_hash: deviceHash,
+              user_agent: navigator.userAgent.slice(0, 500),
+              last_seen_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,device_hash" },
+          );
+      } catch { /* ignore */ }
+    })();
 
-      setAlert({
-        kind: "error",
-        title: "تعذّر تسجيل الدخول",
-        description: error.message === "Invalid login credentials"
-          ? "البريد الإلكتروني أو كلمة المرور غير صحيحة. حاول مرة أخرى."
-          : error.message.includes("Email not confirmed")
-            ? "لم يتم تأكيد البريد بعد. تحقق من صندوق الوارد."
-            : error.message,
-      });
-      return;
-    }
-    if (data.session) {
-      persistAuthSession(data.session, remember ? rememberDuration : "session", parsed.data.email);
-      // Register / refresh trusted device (best-effort)
-      void (async () => {
-        try {
-          const deviceHash = await computeDeviceHash();
-          await supabase
-            .from("trusted_devices")
-            .upsert(
-              {
-                user_id: data.session!.user.id,
-                device_hash: deviceHash,
-                user_agent: navigator.userAgent.slice(0, 500),
-                last_seen_at: new Date().toISOString(),
-              },
-              { onConflict: "user_id,device_hash" },
-            );
-        } catch { /* ignore */ }
-      })();
-    }
     setAlert({ kind: "success", title: "تم تسجيل الدخول بنجاح", description: "جاري تحويلك إلى لوحة التحكم..." });
   };
 
