@@ -134,7 +134,11 @@ function ModulesPage() {
 
   const toggle = (id: string) => {
     const n = new Set(expanded);
-    n.has(id) ? n.delete(id) : n.add(id);
+    if (n.has(id)) {
+      n.delete(id);
+    } else {
+      n.add(id);
+    }
     setExpanded(n);
   };
 
@@ -217,7 +221,11 @@ function ModulesPage() {
   };
   const toggleBulk = (id: string) => {
     const n = new Set(bulkSelected);
-    n.has(id) ? n.delete(id) : n.add(id);
+    if (n.has(id)) {
+      n.delete(id);
+    } else {
+      n.add(id);
+    }
     if (bulkPrimary === id && !n.has(id)) setBulkPrimary("");
     setBulkSelected(n);
   };

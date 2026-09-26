@@ -32,7 +32,9 @@ function readInitial(): { theme: ThemeName; animations: boolean; mode: ColorMode
         mode: (["light", "dark", "system"] as ColorMode[]).includes(p.mode) ? p.mode : "system",
       };
     }
-  } catch {}
+  } catch {
+    /* ignore parsing errors and fallback to defaults */
+  }
   return { theme: "aurora", animations: true, mode: "system" };
 }
 
@@ -60,7 +62,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     applyToDom(theme, animations, mode);
     try {
       localStorage.setItem(LS_KEY, JSON.stringify({ theme, animations, mode }));
-    } catch {}
+    } catch {
+      /* ignore storage quota/permission errors */
+    }
   }, [theme, animations, mode]);
 
   // React to system theme changes when in system mode

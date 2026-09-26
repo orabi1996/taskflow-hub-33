@@ -333,7 +333,7 @@ export function TaskForm({ onSuccess }: { onSuccess: () => void }) {
     if (files.length > 0) {
       let done = 0;
       for (const file of files) {
-        const safeName = file.name.replace(/[^\w.\-]/g, "_");
+        const safeName = file.name.replace(/[^\w.-]/g, "_");
         const path = `${user.id}/${inserted.id}/${Date.now()}_${safeName}`;
         const { error: upErr } = await supabase.storage
           .from("task-attachments").upload(path, file, { contentType: file.type });

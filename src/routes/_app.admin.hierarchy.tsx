@@ -109,7 +109,7 @@ function HierarchyPage() {
 
   const isDescendant = (ancestorId: string, candidateId: string): boolean => {
     // candidate is descendant of ancestor?
-    let stack = [ancestorId];
+    const stack = [ancestorId];
     const visited = new Set<string>();
     while (stack.length) {
       const cur = stack.pop()!;

@@ -59,7 +59,9 @@ d("RLS: تسلسل الأنظمة وعزل البيانات", () => {
     const emp = users.get("نورة القحطاني")!;
     const other = users.get("ريم الدوسري")!;
     expect(await rpc("is_direct_manager_of", { _manager_id: mgr, _employee_id: emp })).toBe(true);
-    expect(await rpc("is_direct_manager_of", { _manager_id: mgr, _employee_id: other })).toBe(false);
+    expect(await rpc("is_direct_manager_of", { _manager_id: mgr, _employee_id: other })).toBe(
+      false,
+    );
     expect(await rpc("is_direct_manager_of", { _manager_id: emp, _employee_id: mgr })).toBe(false);
   });
 
@@ -101,11 +103,15 @@ d("RLS: تسلسل الأنظمة وعزل البيانات", () => {
       .eq("project_id", csmarxProject);
     const memberIds = (members ?? []).map((m) => m.user_id as string);
     for (const uid of memberIds) {
-      expect(await rpc("is_project_member", { _user_id: uid, _project_id: csmarxProject })).toBe(true);
+      expect(await rpc("is_project_member", { _user_id: uid, _project_id: csmarxProject })).toBe(
+        true,
+      );
     }
     const stranger = users.get("ريم الدوسري")!;
     if (!memberIds.includes(stranger)) {
-      expect(await rpc("is_project_member", { _user_id: stranger, _project_id: csmarxProject })).toBe(false);
+      expect(
+        await rpc("is_project_member", { _user_id: stranger, _project_id: csmarxProject }),
+      ).toBe(false);
     }
   });
 
@@ -138,20 +144,30 @@ d("RLS: تسلسل الأنظمة وعزل البيانات", () => {
     const classeraProject = projects.get("بوابة Classera التعليمية")!;
     const csmarxProject = projects.get("منصة C-SmarX لإدارة الأداء")!;
     const classeraEmp = users.get("ريم الدوسري")!;
-    expect(await rpc("can_access_project_module", { _user_id: classeraEmp, _project_id: classeraProject })).toBe(true);
-    expect(await rpc("can_access_project_module", { _user_id: classeraEmp, _project_id: csmarxProject })).toBe(true);
+    expect(
+      await rpc("can_access_project_module", {
+        _user_id: classeraEmp,
+        _project_id: classeraProject,
+      }),
+    ).toBe(true);
+    expect(
+      await rpc("can_access_project_module", { _user_id: classeraEmp, _project_id: csmarxProject }),
+    ).toBe(true);
   });
 
   test("لا توريث للأعلى: نطاق موظف C-SMARX لا يشمل مشاريع Classera", async () => {
     const classeraProject = projects.get("بوابة Classera التعليمية")!;
     const csmarxEmp = users.get("نورة القحطاني")!;
-    expect(await rpc("can_access_project_module", { _user_id: csmarxEmp, _project_id: classeraProject })).toBe(false);
+    expect(
+      await rpc("can_access_project_module", { _user_id: csmarxEmp, _project_id: classeraProject }),
+    ).toBe(false);
   });
-
 
   test("مدير C-SMARX لا يتجاوز حدود نظامه", async () => {
     const classeraProject = projects.get("بوابة Classera التعليمية")!;
     const mgr = users.get("خالد العتيبي")!;
-    expect(await rpc("can_view_project_v3", { _user_id: mgr, _project_id: classeraProject })).toBe(false);
+    expect(await rpc("can_view_project_v3", { _user_id: mgr, _project_id: classeraProject })).toBe(
+      false,
+    );
   });
 });

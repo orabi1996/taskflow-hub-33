@@ -159,7 +159,7 @@ export async function sendEmailToUsers(sb: Sb, userIds: string[], payload: Deliv
     if (payload.type && Array.isArray(p.muted_types) && p.muted_types.includes(payload.type)) return false;
     return true;
   });
-  let skipped = ids.length - eligible.length;
+  const skipped = ids.length - eligible.length;
   if (eligible.length === 0) return { sent: 0, failed: 0, skipped };
 
   const { data: profiles } = await sb.from("profiles").select("id, email, full_name").in("id", eligible);

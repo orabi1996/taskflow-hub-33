@@ -72,7 +72,7 @@ function TeamPage() {
 
   const load = async () => {
     setLoading(true);
-    let q = supabase
+    const q = supabase
       .from("tasks")
       .select("id, title, details, status, start_at, end_at, user_id, project_id, created_at, project:projects(name), owner:profiles!tasks_user_id_fkey(full_name)")
       .order("created_at", { ascending: false })

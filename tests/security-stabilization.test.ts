@@ -122,7 +122,7 @@ describe("Security & Stabilization: Server Security Suite", () => {
       const [b64, sig] = sealed.split(".");
       // Tamper with payload
       const tamperedB64 = Buffer.from(
-        JSON.stringify({ ...JSON.parse(samplePayload), email: "attacker@example.com" })
+        JSON.stringify({ ...JSON.parse(samplePayload), email: "attacker@example.com" }),
       ).toString("base64url");
       const tampered = `${tamperedB64}.${sig}`;
 

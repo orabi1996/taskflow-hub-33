@@ -63,7 +63,11 @@ export function BulkLinkProjectsToModuleDialog({
 
   const toggle = (id: string) => {
     const n = new Set(selected);
-    n.has(id) ? n.delete(id) : n.add(id);
+    if (n.has(id)) {
+      n.delete(id);
+    } else {
+      n.add(id);
+    }
     setSelected(n);
   };
   const toggleAll = () => {

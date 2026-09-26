@@ -18,7 +18,7 @@ export const listMilestones = createServerFn({ method: "GET" })
 
     // compute progress from tasks
     const ids = (rows || []).map((r: any) => r.id);
-    let progress: Record<string, { total: number; done: number }> = {};
+    const progress: Record<string, { total: number; done: number }> = {};
     if (ids.length) {
       const { data: tasks } = await supabase
         .from("tasks")

@@ -63,7 +63,7 @@ export function AttachmentsManager({ taskId, taskOwnerId, canMutate }: Props) {
         toast.warning(`${file.name} تجاوز 20MB`);
         continue;
       }
-      const safeName = file.name.replace(/[^\w.\-]/g, "_");
+      const safeName = file.name.replace(/[^\w.-]/g, "_");
       const path = `${taskOwnerId}/${taskId}/${Date.now()}_${safeName}`;
       const { error: upErr } = await supabase.storage
         .from("task-attachments")

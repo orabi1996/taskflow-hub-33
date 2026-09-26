@@ -143,7 +143,7 @@ export function ProjectCommentsThread({
 
       // upload attachments
       for (const file of pendingFiles) {
-        const safe = file.name.replace(/[^\w.\-]/g, "_");
+        const safe = file.name.replace(/[^\w.-]/g, "_");
         const path = `${projectId}/${row.id}/${Date.now()}_${safe}`;
         const { error: upErr } = await supabase.storage
           .from("project-comment-attachments")
