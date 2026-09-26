@@ -9,59 +9,55 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppRouteImport } from './routes/_app'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
-import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
-import { Route as AppPerformanceRouteImport } from './routes/_app.performance'
-import { Route as AppProfileRouteImport } from './routes/_app.profile'
-import { Route as AppReportsRouteImport } from './routes/_app.reports'
-import { Route as AppSettingsRouteImport } from './routes/_app.settings'
-import { Route as AppTeamRouteImport } from './routes/_app.team'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTimeRouteImport } from './routes/_app.time'
-import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
-import { Route as AppAdminAuditRouteImport } from './routes/_app.admin.audit'
-import { Route as AppAdminEmailProviderRouteImport } from './routes/_app.admin.email-provider'
-import { Route as AppAdminHierarchyRouteImport } from './routes/_app.admin.hierarchy'
-import { Route as AppAdminOverviewRouteImport } from './routes/_app.admin.overview'
-import { Route as AppAdminPermissionsRouteImport } from './routes/_app.admin.permissions'
-import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
-import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
-import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
-import { Route as AppMyProjectsIndexRouteImport } from './routes/_app.my-projects.index'
-import { Route as AppPerformanceIndexRouteImport } from './routes/_app.performance.index'
-import { Route as AppPerformanceKudosRouteImport } from './routes/_app.performance.kudos'
-import { Route as AppPerformanceReviewsRouteImport } from './routes/_app.performance.reviews'
-import { Route as AppProjectsIndexRouteImport } from './routes/_app.projects.index'
-import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
+import { Route as AppTeamRouteImport } from './routes/_app.team'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppReportsRouteImport } from './routes/_app.reports'
+import { Route as AppProfileRouteImport } from './routes/_app.profile'
+import { Route as AppPerformanceRouteImport } from './routes/_app.performance'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
-import { Route as AppSettingsAccessReviewRouteImport } from './routes/_app.settings.access-review'
-import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
-import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
-import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
-import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
-import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.modules'
-import { Route as AppSettingsNotificationsRouteImport } from './routes/_app.settings.notifications'
-import { Route as AppSettingsSecurityRouteImport } from './routes/_app.settings.security'
-import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
-import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
+import { Route as AppProjectsIndexRouteImport } from './routes/_app.projects.index'
+import { Route as AppPerformanceIndexRouteImport } from './routes/_app.performance.index'
+import { Route as AppMyProjectsIndexRouteImport } from './routes/_app.my-projects.index'
+import { Route as AppAdminIndexRouteImport } from './routes/_app.admin.index'
 import { Route as ApiPublicSeedAdminRouteImport } from './routes/api/public/seed-admin'
-import { Route as AppMyProjectsProjectIdClientsRouteImport } from './routes/_app.my-projects.$projectId.clients'
+import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
+import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
+import { Route as AppSettingsSecurityRouteImport } from './routes/_app.settings.security'
+import { Route as AppSettingsNotificationsRouteImport } from './routes/_app.settings.notifications'
+import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.modules'
+import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
+import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.devices'
+import { Route as AppSettingsAutomationRouteImport } from './routes/_app.settings.automation'
+import { Route as AppSettingsAuditRouteImport } from './routes/_app.settings.audit'
+import { Route as AppSettingsAccessReviewRouteImport } from './routes/_app.settings.access-review'
+import { Route as AppProjectsDashboardRouteImport } from './routes/_app.projects.dashboard'
+import { Route as AppPerformanceReviewsRouteImport } from './routes/_app.performance.reviews'
+import { Route as AppPerformanceKudosRouteImport } from './routes/_app.performance.kudos'
+import { Route as AppAdminRolesRouteImport } from './routes/_app.admin.roles'
+import { Route as AppAdminPermissionsDiagnoseRouteImport } from './routes/_app.admin.permissions-diagnose'
+import { Route as AppAdminPermissionsCheckRouteImport } from './routes/_app.admin.permissions-check'
+import { Route as AppAdminPermissionsRouteImport } from './routes/_app.admin.permissions'
+import { Route as AppAdminOverviewRouteImport } from './routes/_app.admin.overview'
+import { Route as AppAdminHierarchyRouteImport } from './routes/_app.admin.hierarchy'
+import { Route as AppAdminEmailProviderRouteImport } from './routes/_app.admin.email-provider'
+import { Route as AppAdminAuditRouteImport } from './routes/_app.admin.audit'
 import { Route as AppProjectsProjectIdIndexRouteImport } from './routes/_app.projects.$projectId.index'
-import { Route as AppProjectsProjectIdDashboardRouteImport } from './routes/_app.projects.$projectId.dashboard'
-import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
-import { Route as ApiPublicHooksContractAlertsRouteImport } from './routes/api/public/hooks/contract-alerts'
 import { Route as ApiPublicHooksSmtpTestRouteImport } from './routes/api/public/hooks/smtp-test'
+import { Route as ApiPublicHooksContractAlertsRouteImport } from './routes/api/public/hooks/contract-alerts'
+import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
+import { Route as AppProjectsProjectIdDashboardRouteImport } from './routes/_app.projects.$projectId.dashboard'
+import { Route as AppMyProjectsProjectIdClientsRouteImport } from './routes/_app.my-projects.$projectId.clients'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -69,39 +65,18 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppAlertsRoute = AppAlertsRouteImport.update({
-  id: '/alerts',
-  path: '/alerts',
-  getParentRoute: () => AppRoute,
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AppDashboardRoute = AppDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPerformanceRoute = AppPerformanceRouteImport.update({
-  id: '/performance',
-  path: '/performance',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AppTimeRoute = AppTimeRouteImport.update({
+  id: '/time',
+  path: '/time',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTeamRoute = AppTeamRouteImport.update({
@@ -109,86 +84,34 @@ const AppTeamRoute = AppTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTimeRoute = AppTimeRouteImport.update({
-  id: '/time',
-  path: '/time',
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminAuditRoute = AppAdminAuditRouteImport.update({
-  id: '/admin/audit',
-  path: '/admin/audit',
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminEmailProviderRoute = AppAdminEmailProviderRouteImport.update({
-  id: '/admin/email-provider',
-  path: '/admin/email-provider',
+const AppPerformanceRoute = AppPerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminHierarchyRoute = AppAdminHierarchyRouteImport.update({
-  id: '/admin/hierarchy',
-  path: '/admin/hierarchy',
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminOverviewRoute = AppAdminOverviewRouteImport.update({
-  id: '/admin/overview',
-  path: '/admin/overview',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAdminPermissionsRoute = AppAdminPermissionsRouteImport.update({
-  id: '/admin/permissions',
-  path: '/admin/permissions',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAdminPermissionsCheckRoute =
-  AppAdminPermissionsCheckRouteImport.update({
-    id: '/admin/permissions-check',
-    path: '/admin/permissions-check',
-    getParentRoute: () => AppRoute,
-  } as any)
-const AppAdminPermissionsDiagnoseRoute =
-  AppAdminPermissionsDiagnoseRouteImport.update({
-    id: '/admin/permissions-diagnose',
-    path: '/admin/permissions-diagnose',
-    getParentRoute: () => AppRoute,
-  } as any)
-const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
-  id: '/admin/roles',
-  path: '/admin/roles',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMyProjectsIndexRoute = AppMyProjectsIndexRouteImport.update({
-  id: '/my-projects/',
-  path: '/my-projects/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPerformanceIndexRoute = AppPerformanceIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppPerformanceRoute,
-} as any)
-const AppPerformanceKudosRoute = AppPerformanceKudosRouteImport.update({
-  id: '/kudos',
-  path: '/kudos',
-  getParentRoute: () => AppPerformanceRoute,
-} as any)
-const AppPerformanceReviewsRoute = AppPerformanceReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => AppPerformanceRoute,
-} as any)
-const AppProjectsIndexRoute = AppProjectsIndexRouteImport.update({
-  id: '/projects/',
-  path: '/projects/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProjectsDashboardRoute = AppProjectsDashboardRouteImport.update({
-  id: '/projects/dashboard',
-  path: '/projects/dashboard',
+const AppAlertsRoute = AppAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
@@ -196,34 +119,44 @@ const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppSettingsAccessReviewRoute = AppSettingsAccessReviewRouteImport.update({
-  id: '/access-review',
-  path: '/access-review',
+const AppProjectsIndexRoute = AppProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerformanceIndexRoute = AppPerformanceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPerformanceRoute,
+} as any)
+const AppMyProjectsIndexRoute = AppMyProjectsIndexRouteImport.update({
+  id: '/my-projects/',
+  path: '/my-projects/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiPublicSeedAdminRoute = ApiPublicSeedAdminRouteImport.update({
+  id: '/api/public/seed-admin',
+  path: '/api/public/seed-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiAssistantRoute = ApiAiAssistantRouteImport.update({
+  id: '/api/ai/assistant',
+  path: '/api/ai/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsSmtpRoute = AppSettingsSmtpRouteImport.update({
+  id: '/smtp',
+  path: '/smtp',
   getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppSettingsAuditRoute = AppSettingsAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsAutomationRoute = AppSettingsAutomationRouteImport.update({
-  id: '/automation',
-  path: '/automation',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
-  id: '/devices',
-  path: '/devices',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsEmployeesRoute = AppSettingsEmployeesRouteImport.update({
-  id: '/employees',
-  path: '/employees',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsModulesRoute = AppSettingsModulesRouteImport.update({
-  id: '/modules',
-  path: '/modules',
+const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppSettingsNotificationsRoute =
@@ -232,43 +165,109 @@ const AppSettingsNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AppSettingsRoute,
   } as any)
-const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
+const AppSettingsModulesRoute = AppSettingsModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
   getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppSettingsSmtpRoute = AppSettingsSmtpRouteImport.update({
-  id: '/smtp',
-  path: '/smtp',
+const AppSettingsEmployeesRoute = AppSettingsEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
   getParentRoute: () => AppSettingsRoute,
 } as any)
-const ApiAiAssistantRoute = ApiAiAssistantRouteImport.update({
-  id: '/api/ai/assistant',
-  path: '/api/ai/assistant',
-  getParentRoute: () => rootRouteImport,
+const AppSettingsDevicesRoute = AppSettingsDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const ApiPublicSeedAdminRoute = ApiPublicSeedAdminRouteImport.update({
-  id: '/api/public/seed-admin',
-  path: '/api/public/seed-admin',
-  getParentRoute: () => rootRouteImport,
+const AppSettingsAutomationRoute = AppSettingsAutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppMyProjectsProjectIdClientsRoute =
-  AppMyProjectsProjectIdClientsRouteImport.update({
-    id: '/my-projects/$projectId/clients',
-    path: '/my-projects/$projectId/clients',
+const AppSettingsAuditRoute = AppSettingsAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsAccessReviewRoute = AppSettingsAccessReviewRouteImport.update({
+  id: '/access-review',
+  path: '/access-review',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppProjectsDashboardRoute = AppProjectsDashboardRouteImport.update({
+  id: '/projects/dashboard',
+  path: '/projects/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerformanceReviewsRoute = AppPerformanceReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AppPerformanceRoute,
+} as any)
+const AppPerformanceKudosRoute = AppPerformanceKudosRouteImport.update({
+  id: '/kudos',
+  path: '/kudos',
+  getParentRoute: () => AppPerformanceRoute,
+} as any)
+const AppAdminRolesRoute = AppAdminRolesRouteImport.update({
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminPermissionsDiagnoseRoute =
+  AppAdminPermissionsDiagnoseRouteImport.update({
+    id: '/admin/permissions-diagnose',
+    path: '/admin/permissions-diagnose',
     getParentRoute: () => AppRoute,
   } as any)
+const AppAdminPermissionsCheckRoute =
+  AppAdminPermissionsCheckRouteImport.update({
+    id: '/admin/permissions-check',
+    path: '/admin/permissions-check',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppAdminPermissionsRoute = AppAdminPermissionsRouteImport.update({
+  id: '/admin/permissions',
+  path: '/admin/permissions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminOverviewRoute = AppAdminOverviewRouteImport.update({
+  id: '/admin/overview',
+  path: '/admin/overview',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminHierarchyRoute = AppAdminHierarchyRouteImport.update({
+  id: '/admin/hierarchy',
+  path: '/admin/hierarchy',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminEmailProviderRoute = AppAdminEmailProviderRouteImport.update({
+  id: '/admin/email-provider',
+  path: '/admin/email-provider',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminAuditRoute = AppAdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsProjectIdIndexRoute =
   AppProjectsProjectIdIndexRouteImport.update({
     id: '/projects/$projectId/',
     path: '/projects/$projectId/',
     getParentRoute: () => AppRoute,
   } as any)
-const AppProjectsProjectIdDashboardRoute =
-  AppProjectsProjectIdDashboardRouteImport.update({
-    id: '/projects/$projectId/dashboard',
-    path: '/projects/$projectId/dashboard',
-    getParentRoute: () => AppRoute,
+const ApiPublicHooksSmtpTestRoute = ApiPublicHooksSmtpTestRouteImport.update({
+  id: '/api/public/hooks/smtp-test',
+  path: '/api/public/hooks/smtp-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksContractAlertsRoute =
+  ApiPublicHooksContractAlertsRouteImport.update({
+    id: '/api/public/hooks/contract-alerts',
+    path: '/api/public/hooks/contract-alerts',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksAutomationTickRoute =
   ApiPublicHooksAutomationTickRouteImport.update({
@@ -276,17 +275,18 @@ const ApiPublicHooksAutomationTickRoute =
     path: '/api/public/hooks/automation-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksContractAlertsRoute =
-  ApiPublicHooksContractAlertsRouteImport.update({
-    id: '/api/public/hooks/contract-alerts',
-    path: '/api/public/hooks/contract-alerts',
-    getParentRoute: () => rootRouteImport,
+const AppProjectsProjectIdDashboardRoute =
+  AppProjectsProjectIdDashboardRouteImport.update({
+    id: '/projects/$projectId/dashboard',
+    path: '/projects/$projectId/dashboard',
+    getParentRoute: () => AppRoute,
   } as any)
-const ApiPublicHooksSmtpTestRoute = ApiPublicHooksSmtpTestRouteImport.update({
-  id: '/api/public/hooks/smtp-test',
-  path: '/api/public/hooks/smtp-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AppMyProjectsProjectIdClientsRoute =
+  AppMyProjectsProjectIdClientsRouteImport.update({
+    id: '/my-projects/$projectId/clients',
+    path: '/my-projects/$projectId/clients',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -580,18 +580,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AppRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -601,53 +594,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/alerts': {
-      id: '/_app/alerts'
-      path: '/alerts'
-      fullPath: '/alerts'
-      preLoaderRoute: typeof AppAlertsRouteImport
-      parentRoute: typeof AppRoute
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_app/dashboard': {
-      id: '/_app/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AppDashboardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/performance': {
-      id: '/_app/performance'
-      path: '/performance'
-      fullPath: '/performance'
-      preLoaderRoute: typeof AppPerformanceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/profile': {
-      id: '/_app/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports': {
-      id: '/_app/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
+    '/_app/time': {
+      id: '/_app/time'
+      path: '/time'
+      fullPath: '/time'
+      preLoaderRoute: typeof AppTimeRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/team': {
@@ -657,116 +622,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTeamRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/time': {
-      id: '/_app/time'
-      path: '/time'
-      fullPath: '/time'
-      preLoaderRoute: typeof AppTimeRouteImport
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/': {
-      id: '/_app/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AppAdminIndexRouteImport
+    '/_app/reports': {
+      id: '/_app/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/audit': {
-      id: '/_app/admin/audit'
-      path: '/admin/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AppAdminAuditRouteImport
+    '/_app/profile': {
+      id: '/_app/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/email-provider': {
-      id: '/_app/admin/email-provider'
-      path: '/admin/email-provider'
-      fullPath: '/admin/email-provider'
-      preLoaderRoute: typeof AppAdminEmailProviderRouteImport
+    '/_app/performance': {
+      id: '/_app/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof AppPerformanceRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/hierarchy': {
-      id: '/_app/admin/hierarchy'
-      path: '/admin/hierarchy'
-      fullPath: '/admin/hierarchy'
-      preLoaderRoute: typeof AppAdminHierarchyRouteImport
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/overview': {
-      id: '/_app/admin/overview'
-      path: '/admin/overview'
-      fullPath: '/admin/overview'
-      preLoaderRoute: typeof AppAdminOverviewRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/admin/permissions': {
-      id: '/_app/admin/permissions'
-      path: '/admin/permissions'
-      fullPath: '/admin/permissions'
-      preLoaderRoute: typeof AppAdminPermissionsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/admin/permissions-check': {
-      id: '/_app/admin/permissions-check'
-      path: '/admin/permissions-check'
-      fullPath: '/admin/permissions-check'
-      preLoaderRoute: typeof AppAdminPermissionsCheckRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/admin/permissions-diagnose': {
-      id: '/_app/admin/permissions-diagnose'
-      path: '/admin/permissions-diagnose'
-      fullPath: '/admin/permissions-diagnose'
-      preLoaderRoute: typeof AppAdminPermissionsDiagnoseRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/admin/roles': {
-      id: '/_app/admin/roles'
-      path: '/admin/roles'
-      fullPath: '/admin/roles'
-      preLoaderRoute: typeof AppAdminRolesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/my-projects/': {
-      id: '/_app/my-projects/'
-      path: '/my-projects'
-      fullPath: '/my-projects/'
-      preLoaderRoute: typeof AppMyProjectsIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/performance/': {
-      id: '/_app/performance/'
-      path: '/'
-      fullPath: '/performance/'
-      preLoaderRoute: typeof AppPerformanceIndexRouteImport
-      parentRoute: typeof AppPerformanceRoute
-    }
-    '/_app/performance/kudos': {
-      id: '/_app/performance/kudos'
-      path: '/kudos'
-      fullPath: '/performance/kudos'
-      preLoaderRoute: typeof AppPerformanceKudosRouteImport
-      parentRoute: typeof AppPerformanceRoute
-    }
-    '/_app/performance/reviews': {
-      id: '/_app/performance/reviews'
-      path: '/reviews'
-      fullPath: '/performance/reviews'
-      preLoaderRoute: typeof AppPerformanceReviewsRouteImport
-      parentRoute: typeof AppPerformanceRoute
-    }
-    '/_app/projects/': {
-      id: '/_app/projects/'
-      path: '/projects'
-      fullPath: '/projects/'
-      preLoaderRoute: typeof AppProjectsIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/projects/dashboard': {
-      id: '/_app/projects/dashboard'
-      path: '/projects/dashboard'
-      fullPath: '/projects/dashboard'
-      preLoaderRoute: typeof AppProjectsDashboardRouteImport
+    '/_app/alerts': {
+      id: '/_app/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AppAlertsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings/': {
@@ -776,53 +671,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsIndexRouteImport
       parentRoute: typeof AppSettingsRoute
     }
-    '/_app/settings/access-review': {
-      id: '/_app/settings/access-review'
-      path: '/access-review'
-      fullPath: '/settings/access-review'
-      preLoaderRoute: typeof AppSettingsAccessReviewRouteImport
-      parentRoute: typeof AppSettingsRoute
+    '/_app/projects/': {
+      id: '/_app/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof AppProjectsIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/audit': {
-      id: '/_app/settings/audit'
-      path: '/audit'
-      fullPath: '/settings/audit'
-      preLoaderRoute: typeof AppSettingsAuditRouteImport
-      parentRoute: typeof AppSettingsRoute
+    '/_app/performance/': {
+      id: '/_app/performance/'
+      path: '/'
+      fullPath: '/performance/'
+      preLoaderRoute: typeof AppPerformanceIndexRouteImport
+      parentRoute: typeof AppPerformanceRoute
     }
-    '/_app/settings/automation': {
-      id: '/_app/settings/automation'
-      path: '/automation'
-      fullPath: '/settings/automation'
-      preLoaderRoute: typeof AppSettingsAutomationRouteImport
-      parentRoute: typeof AppSettingsRoute
+    '/_app/my-projects/': {
+      id: '/_app/my-projects/'
+      path: '/my-projects'
+      fullPath: '/my-projects/'
+      preLoaderRoute: typeof AppMyProjectsIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/devices': {
-      id: '/_app/settings/devices'
-      path: '/devices'
-      fullPath: '/settings/devices'
-      preLoaderRoute: typeof AppSettingsDevicesRouteImport
-      parentRoute: typeof AppSettingsRoute
+    '/_app/admin/': {
+      id: '/_app/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/_app/settings/employees': {
-      id: '/_app/settings/employees'
-      path: '/employees'
-      fullPath: '/settings/employees'
-      preLoaderRoute: typeof AppSettingsEmployeesRouteImport
-      parentRoute: typeof AppSettingsRoute
+    '/api/public/seed-admin': {
+      id: '/api/public/seed-admin'
+      path: '/api/public/seed-admin'
+      fullPath: '/api/public/seed-admin'
+      preLoaderRoute: typeof ApiPublicSeedAdminRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_app/settings/modules': {
-      id: '/_app/settings/modules'
-      path: '/modules'
-      fullPath: '/settings/modules'
-      preLoaderRoute: typeof AppSettingsModulesRouteImport
-      parentRoute: typeof AppSettingsRoute
+    '/api/ai/assistant': {
+      id: '/api/ai/assistant'
+      path: '/api/ai/assistant'
+      fullPath: '/api/ai/assistant'
+      preLoaderRoute: typeof ApiAiAssistantRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_app/settings/notifications': {
-      id: '/_app/settings/notifications'
-      path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof AppSettingsNotificationsRouteImport
+    '/_app/settings/smtp': {
+      id: '/_app/settings/smtp'
+      path: '/smtp'
+      fullPath: '/settings/smtp'
+      preLoaderRoute: typeof AppSettingsSmtpRouteImport
       parentRoute: typeof AppSettingsRoute
     }
     '/_app/settings/security': {
@@ -832,32 +727,130 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsSecurityRouteImport
       parentRoute: typeof AppSettingsRoute
     }
-    '/_app/settings/smtp': {
-      id: '/_app/settings/smtp'
-      path: '/smtp'
-      fullPath: '/settings/smtp'
-      preLoaderRoute: typeof AppSettingsSmtpRouteImport
+    '/_app/settings/notifications': {
+      id: '/_app/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AppSettingsNotificationsRouteImport
       parentRoute: typeof AppSettingsRoute
     }
-    '/api/ai/assistant': {
-      id: '/api/ai/assistant'
-      path: '/api/ai/assistant'
-      fullPath: '/api/ai/assistant'
-      preLoaderRoute: typeof ApiAiAssistantRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_app/settings/modules': {
+      id: '/_app/settings/modules'
+      path: '/modules'
+      fullPath: '/settings/modules'
+      preLoaderRoute: typeof AppSettingsModulesRouteImport
+      parentRoute: typeof AppSettingsRoute
     }
-    '/api/public/seed-admin': {
-      id: '/api/public/seed-admin'
-      path: '/api/public/seed-admin'
-      fullPath: '/api/public/seed-admin'
-      preLoaderRoute: typeof ApiPublicSeedAdminRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_app/settings/employees': {
+      id: '/_app/settings/employees'
+      path: '/employees'
+      fullPath: '/settings/employees'
+      preLoaderRoute: typeof AppSettingsEmployeesRouteImport
+      parentRoute: typeof AppSettingsRoute
     }
-    '/_app/my-projects/$projectId/clients': {
-      id: '/_app/my-projects/$projectId/clients'
-      path: '/my-projects/$projectId/clients'
-      fullPath: '/my-projects/$projectId/clients'
-      preLoaderRoute: typeof AppMyProjectsProjectIdClientsRouteImport
+    '/_app/settings/devices': {
+      id: '/_app/settings/devices'
+      path: '/devices'
+      fullPath: '/settings/devices'
+      preLoaderRoute: typeof AppSettingsDevicesRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/automation': {
+      id: '/_app/settings/automation'
+      path: '/automation'
+      fullPath: '/settings/automation'
+      preLoaderRoute: typeof AppSettingsAutomationRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/audit': {
+      id: '/_app/settings/audit'
+      path: '/audit'
+      fullPath: '/settings/audit'
+      preLoaderRoute: typeof AppSettingsAuditRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/access-review': {
+      id: '/_app/settings/access-review'
+      path: '/access-review'
+      fullPath: '/settings/access-review'
+      preLoaderRoute: typeof AppSettingsAccessReviewRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/projects/dashboard': {
+      id: '/_app/projects/dashboard'
+      path: '/projects/dashboard'
+      fullPath: '/projects/dashboard'
+      preLoaderRoute: typeof AppProjectsDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/performance/reviews': {
+      id: '/_app/performance/reviews'
+      path: '/reviews'
+      fullPath: '/performance/reviews'
+      preLoaderRoute: typeof AppPerformanceReviewsRouteImport
+      parentRoute: typeof AppPerformanceRoute
+    }
+    '/_app/performance/kudos': {
+      id: '/_app/performance/kudos'
+      path: '/kudos'
+      fullPath: '/performance/kudos'
+      preLoaderRoute: typeof AppPerformanceKudosRouteImport
+      parentRoute: typeof AppPerformanceRoute
+    }
+    '/_app/admin/roles': {
+      id: '/_app/admin/roles'
+      path: '/admin/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AppAdminRolesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/permissions-diagnose': {
+      id: '/_app/admin/permissions-diagnose'
+      path: '/admin/permissions-diagnose'
+      fullPath: '/admin/permissions-diagnose'
+      preLoaderRoute: typeof AppAdminPermissionsDiagnoseRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/permissions-check': {
+      id: '/_app/admin/permissions-check'
+      path: '/admin/permissions-check'
+      fullPath: '/admin/permissions-check'
+      preLoaderRoute: typeof AppAdminPermissionsCheckRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/permissions': {
+      id: '/_app/admin/permissions'
+      path: '/admin/permissions'
+      fullPath: '/admin/permissions'
+      preLoaderRoute: typeof AppAdminPermissionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/overview': {
+      id: '/_app/admin/overview'
+      path: '/admin/overview'
+      fullPath: '/admin/overview'
+      preLoaderRoute: typeof AppAdminOverviewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/hierarchy': {
+      id: '/_app/admin/hierarchy'
+      path: '/admin/hierarchy'
+      fullPath: '/admin/hierarchy'
+      preLoaderRoute: typeof AppAdminHierarchyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/email-provider': {
+      id: '/_app/admin/email-provider'
+      path: '/admin/email-provider'
+      fullPath: '/admin/email-provider'
+      preLoaderRoute: typeof AppAdminEmailProviderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/audit': {
+      id: '/_app/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AppAdminAuditRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/projects/$projectId/': {
@@ -867,18 +860,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsProjectIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/projects/$projectId/dashboard': {
-      id: '/_app/projects/$projectId/dashboard'
-      path: '/projects/$projectId/dashboard'
-      fullPath: '/projects/$projectId/dashboard'
-      preLoaderRoute: typeof AppProjectsProjectIdDashboardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/api/public/hooks/automation-tick': {
-      id: '/api/public/hooks/automation-tick'
-      path: '/api/public/hooks/automation-tick'
-      fullPath: '/api/public/hooks/automation-tick'
-      preLoaderRoute: typeof ApiPublicHooksAutomationTickRouteImport
+    '/api/public/hooks/smtp-test': {
+      id: '/api/public/hooks/smtp-test'
+      path: '/api/public/hooks/smtp-test'
+      fullPath: '/api/public/hooks/smtp-test'
+      preLoaderRoute: typeof ApiPublicHooksSmtpTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/contract-alerts': {
@@ -888,12 +874,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksContractAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/smtp-test': {
-      id: '/api/public/hooks/smtp-test'
-      path: '/api/public/hooks/smtp-test'
-      fullPath: '/api/public/hooks/smtp-test'
-      preLoaderRoute: typeof ApiPublicHooksSmtpTestRouteImport
+    '/api/public/hooks/automation-tick': {
+      id: '/api/public/hooks/automation-tick'
+      path: '/api/public/hooks/automation-tick'
+      fullPath: '/api/public/hooks/automation-tick'
+      preLoaderRoute: typeof ApiPublicHooksAutomationTickRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/projects/$projectId/dashboard': {
+      id: '/_app/projects/$projectId/dashboard'
+      path: '/projects/$projectId/dashboard'
+      fullPath: '/projects/$projectId/dashboard'
+      preLoaderRoute: typeof AppProjectsProjectIdDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/my-projects/$projectId/clients': {
+      id: '/_app/my-projects/$projectId/clients'
+      path: '/my-projects/$projectId/clients'
+      fullPath: '/my-projects/$projectId/clients'
+      preLoaderRoute: typeof AppMyProjectsProjectIdClientsRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }

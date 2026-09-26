@@ -46,7 +46,7 @@ function isRequestSecure(): boolean {
  * JavaScript in the browser CANNOT read this cookie, mitigating token theft via XSS.
  */
 export const saveServerSession = createServerFn({ method: "POST" })
-  .validator((input: unknown) => saveSessionSchema.parse(input))
+  .inputValidator((input: unknown) => saveSessionSchema.parse(input))
   .handler(async ({ data }) => {
     const maxAge = secondsForDuration(data.duration);
     const expires_at = maxAge ? Date.now() + maxAge * 1000 : undefined;
