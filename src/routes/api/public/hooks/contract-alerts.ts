@@ -1,29 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { validateWebhookOrCronSecret, recordSecurityAudit } from "@/lib/server-security";
+import { validateWebhookOrCronSecret, verifyAdminOrSupportUser, recordSecurityAudit } from "@/lib/server-security";
 
 // Cron endpoint: generates in-app notifications for projects whose contracts are
 // expired or expiring within their custom alert_days_before window.
-// Protected by CRON_SECRET or CONTRACT_ALERTS_SECRET.
+// Protected by CRON_SECRET or CONTRACT_ALERTS_SECRET, or an authenticated Admin/Manager session.
 export const Route = createFileRoute("/api/public/hooks/contract-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const isAuthorized = validateWebhookOrCronSecret(request, [
+        const hasSecret = validateWebhookOrCronSecret(request, [
           "CRON_SECRET",
           "CONTRACT_ALERTS_SECRET",
         ]);
+        const adminAuth = hasSecret ? { authorized: true } : await verifyAdminOrSupportUser(request);
 
-        if (!isAuthorized) {
+        if (!hasSecret && !adminAuth.authorized) {
           await recordSecurityAudit({
             eventType: "hook.contract_alerts.unauthorized",
             severity: "warn",
             resourceType: "system.contracts",
-            metadata: { reason: "Missing or invalid cron secret" },
+            metadata: { reason: adminAuth.error ?? "Missing or invalid cron secret" },
             request,
           });
           return Response.json(
-            { error: "Unauthorized: Invalid or missing cron secret" },
+            { error: "Unauthorized: Invalid or missing cron secret or admin credentials" },
             { status: 401 }
           );
         }

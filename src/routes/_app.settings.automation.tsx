@@ -149,7 +149,12 @@ function AutomationPage() {
   const runNow = async () => {
     setRunning(true);
     try {
-      const res = await fetch("/api/public/hooks/automation-tick", { method: "POST" });
+      const { data: sessData } = await supabase.auth.getSession();
+      const token = sessData.session?.access_token;
+      const res = await fetch("/api/public/hooks/automation-tick", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "فشل التشغيل");
       toast.success(`تم تشغيل ${json.processed} قاعدة`);

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { validateWebhookOrCronSecret, recordSecurityAudit } from "@/lib/server-security";
+import { validateWebhookOrCronSecret, verifyAdminOrSupportUser, recordSecurityAudit } from "@/lib/server-security";
 
 type Rule = {
   id: string;
@@ -21,26 +21,27 @@ type Notif = {
 };
 
 // Cron-triggered endpoint that scans active automation rules and applies actions.
-// Protected by CRON_SECRET or AUTOMATION_WEBHOOK_SECRET.
+// Protected by CRON_SECRET or AUTOMATION_WEBHOOK_SECRET, or an authenticated Admin/Manager session.
 export const Route = createFileRoute("/api/public/hooks/automation-tick")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const isAuthorized = validateWebhookOrCronSecret(request, [
+        const hasSecret = validateWebhookOrCronSecret(request, [
           "CRON_SECRET",
           "AUTOMATION_WEBHOOK_SECRET",
         ]);
+        const adminAuth = hasSecret ? { authorized: true } : await verifyAdminOrSupportUser(request);
 
-        if (!isAuthorized) {
+        if (!hasSecret && !adminAuth.authorized) {
           await recordSecurityAudit({
             eventType: "hook.automation_tick.unauthorized",
             severity: "warn",
             resourceType: "system.automation",
-            metadata: { reason: "Missing or invalid cron secret" },
+            metadata: { reason: adminAuth.error ?? "Missing or invalid cron secret" },
             request,
           });
           return Response.json(
-            { error: "Unauthorized: Invalid or missing cron secret" },
+            { error: "Unauthorized: Invalid or missing cron secret or admin credentials" },
             { status: 401 }
           );
         }
