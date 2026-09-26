@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate, isRedirect } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useMemo, type FormEvent } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,9 +28,15 @@ const brandLogo = brandLogoAsset.url;
 import heroPhoto from "@/assets/auth-hero-photo-overlay.jpg";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   beforeLoad: async () => {
-    const session = await ensureAuthSessionFromCookies();
-    if (session) throw redirect({ to: "/dashboard" });
+    try {
+      const session = await ensureAuthSessionFromCookies();
+      if (session) throw redirect({ to: "/dashboard" });
+    } catch (err) {
+      if (isRedirect(err)) throw err;
+      console.warn("[auth.beforeLoad] Non-fatal session lookup error:", err);
+    }
   },
   component: AuthPage,
 });
@@ -148,12 +154,18 @@ function AuthPage() {
 
   // Watch session: if user becomes authenticated, push to dashboard automatically
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate({ to: "/dashboard" });
-      }
-    });
-    return () => subscription.unsubscribe();
+    try {
+      const res = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          navigate({ to: "/dashboard" });
+        }
+      });
+      return () => {
+        res?.data?.subscription?.unsubscribe?.();
+      };
+    } catch {
+      return () => {};
+    }
   }, [navigate]);
 
   // Reset alert when switching modes

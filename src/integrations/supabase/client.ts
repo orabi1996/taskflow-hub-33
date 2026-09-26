@@ -29,19 +29,41 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 
 function createSupabaseClient() {
-  // Use import.meta.env for client-side (Vite build-time replacement)
-  // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
+  // Check client-side env vars (Vite) and server-side process.env (SSR / Server Functions)
+  const SUPABASE_URL =
+    import.meta.env['VITE_SUPABASE_URL'] ||
+    (typeof process !== 'undefined'
+      ? process.env['SUPABASE_URL'] || process.env['VITE_SUPABASE_URL']
+      : undefined);
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    import.meta.env['VITE_SUPABASE_ANON_KEY'] ||
+    import.meta.env['VITE_SUPABASE_KEY'] ||
+    (typeof process !== 'undefined'
+      ? process.env['SUPABASE_PUBLISHABLE_KEY'] ||
+        process.env['SUPABASE_ANON_KEY'] ||
+        process.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+        process.env['VITE_SUPABASE_ANON_KEY']
+      : undefined);
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
+      ...(!SUPABASE_URL ? ['SUPABASE_URL / VITE_SUPABASE_URL'] : []),
+      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_ANON_KEY'] : []),
     ];
     const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn(`[Supabase] ${message}`);
+
+    // Return a safe placeholder client in preview/testing environments instead of throwing
+    // a fatal error that crashes TanStack Router before any UI or guidance can render.
+    return createClient<Database>('https://placeholder-project.supabase.co', 'placeholder-anon-key', {
+      auth: {
+        storage: brokeredPreviewStorage(),
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

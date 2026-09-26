@@ -3,7 +3,20 @@ import { routeTree } from "./routeTree.gen";
 
 function DefaultErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
-  const errorMessage = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : error && typeof error === "object" && "message" in error
+          ? String((error as { message: unknown }).message)
+          : "";
+  const errorStack = error instanceof Error ? error.stack : undefined;
+
+  // Ensure router errors are always visible in browser console for fast debugging
+  if (typeof window !== "undefined") {
+    console.error("[Router Error]", error);
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -28,10 +41,16 @@ function DefaultErrorComponent({ error, reset }: ErrorComponentProps) {
         <p className="mt-2 text-sm text-muted-foreground">
           An unexpected error occurred. Please try again.
         </p>
-        {import.meta.env.DEV && errorMessage && (
-          <pre className="mt-4 max-h-40 overflow-auto rounded-md bg-muted p-3 text-left font-mono text-xs text-destructive">
-            {errorMessage}
-          </pre>
+        {errorMessage && (
+          <details className="mt-4 rounded-md border border-border/50 bg-muted/50 p-2 text-left">
+            <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
+              Error details
+            </summary>
+            <pre className="mt-2 max-h-40 overflow-auto rounded bg-muted p-2 font-mono text-xs text-destructive">
+              {errorMessage}
+              {errorStack && `\n\n${errorStack}`}
+            </pre>
+          </details>
         )}
         <div className="mt-6 flex items-center justify-center gap-3">
           <button

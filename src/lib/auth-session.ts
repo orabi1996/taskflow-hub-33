@@ -142,16 +142,16 @@ export async function clearAuthSessionCookies(): Promise<void> {
 export async function ensureAuthSessionFromCookies(): Promise<Session | null> {
   if (typeof window === "undefined") return null;
 
-  // 1. Check in-memory / active client session
-  const inMemory = await supabase.auth.getSession();
-  if (inMemory.data.session) {
-    return inMemory.data.session;
-  }
-
-  // 2. Fetch tokens from the secure HttpOnly server cookie
   try {
-    const res = await getStoredServerSession();
-    if (!res.session?.access_token || !res.session?.refresh_token) {
+    // 1. Check in-memory / active client session
+    const inMemory = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    if (inMemory?.data?.session) {
+      return inMemory.data.session;
+    }
+
+    // 2. Fetch tokens from the secure HttpOnly server cookie
+    const res = await getStoredServerSession().catch(() => null);
+    if (!res?.session?.access_token || !res.session?.refresh_token) {
       return null;
     }
 
@@ -160,14 +160,14 @@ export async function ensureAuthSessionFromCookies(): Promise<Session | null> {
       refresh_token: res.session.refresh_token,
     });
 
-    if (error || !data.session) {
+    if (error || !data?.session) {
       await clearAuthSessionCookies();
       return null;
     }
 
     return data.session;
   } catch (err) {
-    console.error("[ensureAuthSessionFromCookies] Error restoring server session:", err);
+    console.warn("[ensureAuthSessionFromCookies] Error restoring server session:", err);
     return null;
   }
 }
