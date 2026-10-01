@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -212,12 +211,26 @@ function OkrsPage() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>نسبة الإنجاز</span>
-                  <span>{Number(o.progress).toFixed(0)}%</span>
+                  <span className={`font-semibold ${
+                    Number(o.progress) >= 80 ? "text-success" :
+                    Number(o.progress) >= 50 ? "text-info" :
+                    "text-warning-foreground"
+                  }`}>{Number(o.progress).toFixed(0)}%</span>
                 </div>
-                <Progress value={Number(o.progress)} />
+                <div className="relative h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      Number(o.progress) >= 80 ? "bg-success" :
+                      Number(o.progress) >= 50 ? "bg-info" :
+                      Number(o.progress) > 0 ? "bg-warning" :
+                      "bg-muted-foreground/30"
+                    }`}
+                    style={{ width: `${Math.min(100, Number(o.progress))}%` }}
+                  />
+                </div>
               </div>
 
               <div className="rounded-md border divide-y">
@@ -227,9 +240,34 @@ function OkrsPage() {
                 {o.key_results.map((kr) => (
                   <div key={kr.id} className="p-3 flex flex-wrap items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm truncate">{kr.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {kr.start_value} ← {kr.target_value} {kr.unit === "percent" ? "%" : ""} · {KR_STATUS_LABEL[kr.status]}
+                      <div className="text-sm truncate font-medium">{kr.title}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              kr.status === "done" ? "bg-success" :
+                              kr.status === "on_track" ? "bg-info" :
+                              kr.status === "at_risk" ? "bg-warning" :
+                              "bg-destructive"
+                            }`}
+                            style={{
+                              width: `${kr.target_value === kr.start_value ? 100 : Math.min(100, Math.max(0,
+                                ((kr.current_value - kr.start_value) / (kr.target_value - kr.start_value)) * 100
+                              ))}%`
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {kr.current_value} / {kr.target_value}{kr.unit === "percent" ? "%" : ""}
+                        </span>
+                        <Badge variant="outline" className={`text-[10px] py-0 ${
+                          kr.status === "done" ? "border-success/40 text-success" :
+                          kr.status === "on_track" ? "border-info/40 text-info" :
+                          kr.status === "at_risk" ? "border-warning/40 text-warning-foreground" :
+                          "border-destructive/40 text-destructive"
+                        }`}>
+                          {KR_STATUS_LABEL[kr.status]}
+                        </Badge>
                       </div>
                     </div>
                     <Input

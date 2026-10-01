@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ClipboardCheck, Loader2, Plus, Trash2 } from "lucide-react";
+import { ClipboardCheck, Loader2, Plus, Trash2, Download, Star, CheckCircle2, ThumbsUp } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { listReviews, upsertReview, deleteReview, listPeopleLite } from "@/lib/performance.functions";
+import { exportToExcel } from "@/lib/export-utils";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 export const Route = createFileRoute("/_app/performance/reviews")({
   component: ReviewsPage,
@@ -51,8 +55,9 @@ const avg = (r: Review) => {
 };
 
 function ReviewsPage() {
-  const { roles } = useAuth();
+  const { user, roles } = useAuth();
   const canReview = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
+
 
   const fetchReviews = useServerFn(listReviews);
   const fetchPeople = useServerFn(listPeopleLite);
@@ -61,6 +66,7 @@ function ReviewsPage() {
 
   const [items, setItems] = useState<Review[] | null>(null);
   const [people, setPeople] = useState<Person[]>([]);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const reload = async () => setItems((await fetchReviews({})) as Review[]);
 
@@ -70,74 +76,137 @@ function ReviewsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const filtered = useMemo(() => {
+    if (!items) return [];
+    return items.filter((r) => statusFilter === "all" || r.status === statusFilter);
+  }, [items, statusFilter]);
+
+  const exportReviews = () => {
+    exportToExcel(
+      (items ?? []).map((r) => ({
+        "الموظف": r.employee_name,
+        "المُقيّم": r.reviewer_name,
+        "من تاريخ": r.period_start,
+        "إلى تاريخ": r.period_end,
+        "الإنجاز": r.score_delivery ?? "",
+        "الجودة": r.score_quality ?? "",
+        "التعاون": r.score_collaboration ?? "",
+        "الالتزام": r.score_timeliness ?? "",
+        "المتوسط": avg(r),
+        "الحالة": STATUS_LABEL[r.status],
+      })),
+      `reviews-${format(new Date(), "yyyy-MM-dd")}`,
+      "تقييمات الأداء"
+    );
+  };
+
   return (
     <div className="space-y-5">
-      {canReview && (
-        <div className="flex justify-end">
-          <ReviewDialog
-            people={people}
-            onSave={async (payload) => {
-              await save({ data: payload });
-              toast.success("تم حفظ التقييم");
-              await reload();
-            }}
-          />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-lg">تقييمات الأداء</span>
+          {items !== null && <Badge variant="secondary">{items.length} تقييم</Badge>}
         </div>
-      )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder="الحالة" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الحالات</SelectItem>
+              {Object.entries(STATUS_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={exportReviews} disabled={!items?.length}>
+            <Download className="h-4 w-4 ms-1" /> تصدير
+          </Button>
+          {canReview && (
+            <ReviewDialog
+              people={people}
+              onSave={async (payload) => {
+                await save({ data: payload });
+                toast.success("تم حفظ التقييم");
+                await reload();
+              }}
+            />
+          )}
+        </div>
+      </div>
 
       {items === null ? (
         <Card className="p-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Card>
-      ) : items.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <Card className="p-10 text-center text-sm text-muted-foreground">
-          <ClipboardCheck className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          لا توجد تقييمات بعد.
+          <ClipboardCheck className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          {items.length === 0 ? "لا توجد تقييمات بعد." : "لا توجد تقييمات بهذه الحالة."}
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {items.map((r) => (
-            <Card key={r.id} className="p-5 space-y-3">
+          {filtered.map((r) => (
+            <Card key={r.id} className="p-5 space-y-4 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="font-semibold">{r.employee_name}</div>
+                  <div className="font-semibold text-base">{r.employee_name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    المُقيّم: {r.reviewer_name}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    المُقيِّم: {r.reviewer_name} · {r.period_start} ← {r.period_end}
+                    {format(new Date(r.period_start), "d MMM yyyy", { locale: ar })} ← {format(new Date(r.period_end), "d MMM yyyy", { locale: ar })}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={r.status === "acknowledged" ? "default" : "secondary"}>{STATUS_LABEL[r.status]}</Badge>
-                  <Badge variant="outline">{avg(r)} / 5</Badge>
+                <div className="flex flex-col items-end gap-1.5">
+                  <Badge variant={r.status === "acknowledged" ? "default" : r.status === "submitted" ? "secondary" : "outline"}>
+                    {r.status === "acknowledged" ? <><CheckCircle2 className="h-3 w-3 me-1" />{STATUS_LABEL[r.status]}</> : STATUS_LABEL[r.status]}
+                  </Badge>
+                  <div className="text-lg font-bold text-primary">{avg(r)}<span className="text-xs text-muted-foreground font-normal">/5</span></div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <ScoreRow label="الإنجاز" value={r.score_delivery} />
-                <ScoreRow label="الجودة" value={r.score_quality} />
-                <ScoreRow label="التعاون" value={r.score_collaboration} />
-                <ScoreRow label="الالتزام بالمواعيد" value={r.score_timeliness} />
+              <div className="grid grid-cols-2 gap-2">
+                <StarScoreRow label="الإنجاز" value={r.score_delivery} />
+                <StarScoreRow label="الجودة" value={r.score_quality} />
+                <StarScoreRow label="التعاون" value={r.score_collaboration} />
+                <StarScoreRow label="الالتزام" value={r.score_timeliness} />
               </div>
 
-              {r.strengths && <p className="text-sm"><span className="text-muted-foreground">نقاط القوة: </span>{r.strengths}</p>}
-              {r.improvements && <p className="text-sm"><span className="text-muted-foreground">فرص التطوير: </span>{r.improvements}</p>}
-
-              {canReview && (
-                <div className="flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={async () => {
-                      try {
-                        await remove({ data: { id: r.id } });
-                        toast.success("تم الحذف");
-                        await reload();
-                      } catch (e) {
-                        toast.error(e instanceof Error ? e.message : "تعذر الحذف");
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+              {(r.strengths || r.improvements) && (
+                <div className="space-y-1.5 pt-2 border-t">
+                  {r.strengths && <p className="text-xs"><span className="text-muted-foreground font-medium">نقاط القوة: </span>{r.strengths}</p>}
+                  {r.improvements && <p className="text-xs"><span className="text-muted-foreground font-medium">فرص التطوير: </span>{r.improvements}</p>}
                 </div>
               )}
+
+              <div className="flex items-center justify-between pt-1">
+                {/* Employee can acknowledge their own review */}
+                {r.status === "submitted" && r.employee_id === user?.id && (
+                  <Button size="sm" variant="outline" className="gap-1.5 text-success border-success/40 hover:bg-success/10"
+                    onClick={async () => {
+                      try {
+                        await save({ data: { ...r, status: "acknowledged" } });
+                        toast.success("تم اعتماد التقييم");
+                        await reload();
+                      } catch (e) { toast.error(e instanceof Error ? e.message : "تعذر"); }
+                    }}
+                  >
+                    <ThumbsUp className="h-3.5 w-3.5" />
+                    اعتماد التقييم
+                  </Button>
+                )}
+                <div className="ms-auto">
+                  {canReview && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8"
+                      onClick={async () => {
+                        try {
+                          await remove({ data: { id: r.id } });
+                          toast.success("تم الحذف");
+                          await reload();
+                        } catch (e) { toast.error(e instanceof Error ? e.message : "تعذر الحذف"); }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </Card>
           ))}
         </div>
@@ -146,11 +215,23 @@ function ReviewsPage() {
   );
 }
 
-function ScoreRow({ label, value }: { label: string; value: number | null }) {
+
+function StarScoreRow({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="flex items-center justify-between rounded-md border px-2 py-1.5">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value ?? "—"}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <Star
+            key={n}
+            className={`h-3 w-3 ${
+              value !== null && n <= value
+                ? "fill-amber-400 text-amber-400"
+                : "text-muted-foreground/30"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

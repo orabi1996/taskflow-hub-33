@@ -141,7 +141,7 @@ function SmtpPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
-      toast.success("تم إرسال البريد التجريبي بنجاح");
+      toast.success(json?.message || "تم إرسال البريد التجريبي بنجاح");
     } catch (e: any) {
       toast.error(`فشل الإرسال: ${e?.message ?? "خطأ غير معروف"}`);
     } finally {
