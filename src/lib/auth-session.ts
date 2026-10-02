@@ -1,5 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, configureSupabaseClient } from "@/integrations/supabase/client";
 import {
   saveServerSession,
   clearServerSession,
@@ -135,6 +135,24 @@ export async function clearAuthSessionCookies(): Promise<void> {
   }
 }
 
+function parseJwtPayload(token: string): Record<string, any> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Restores or verifies an authenticated session.
  * Reads the HttpOnly cookie via the server function and initializes the in-memory Supabase client session.
@@ -155,17 +173,51 @@ export async function ensureAuthSessionFromCookies(): Promise<Session | null> {
       return null;
     }
 
-    const { data, error } = await supabase.auth.setSession({
-      access_token: res.session.access_token,
-      refresh_token: res.session.refresh_token,
-    });
-
-    if (error || !data?.session) {
-      await clearAuthSessionCookies();
-      return null;
+    // If server returned public config, configure client dynamically
+    if (res.publicConfig?.supabaseUrl && res.publicConfig?.supabaseAnonKey) {
+      configureSupabaseClient(res.publicConfig.supabaseUrl, res.publicConfig.supabaseAnonKey);
     }
 
-    return data.session;
+    let clientSession: Session | null = null;
+    try {
+      const { data, error } = await supabase.auth.setSession({
+        access_token: res.session.access_token,
+        refresh_token: res.session.refresh_token,
+      });
+      if (!error && data?.session) {
+        clientSession = data.session;
+      }
+    } catch (setErr) {
+      console.warn("[ensureAuthSessionFromCookies] Client setSession fetch error, falling back to server session:", setErr);
+    }
+
+    if (clientSession) {
+      return clientSession;
+    }
+
+    // Construct resilient fallback session from server tokens
+    // Never clear server cookies on a transient fetch/network glitch!
+    const tokenPayload = parseJwtPayload(res.session.access_token);
+    const userId = tokenPayload?.sub ?? "auth-user";
+    const userEmail = tokenPayload?.email ?? res.email ?? "";
+
+    const fallbackSession = {
+      access_token: res.session.access_token,
+      refresh_token: res.session.refresh_token,
+      expires_in: 3600,
+      token_type: "bearer",
+      user: {
+        id: userId,
+        email: userEmail,
+        aud: "authenticated",
+        role: "authenticated",
+        app_metadata: tokenPayload?.app_metadata ?? {},
+        user_metadata: tokenPayload?.user_metadata ?? {},
+        created_at: new Date().toISOString(),
+      },
+    } as unknown as Session;
+
+    return fallbackSession;
   } catch (err) {
     console.warn("[ensureAuthSessionFromCookies] Error restoring server session:", err);
     return null;

@@ -99,6 +99,21 @@ export const clearServerSession = createServerFn({ method: "POST" }).handler(asy
   return { ok: true };
 });
 
+export const getPublicSupabaseConfig = createServerFn({ method: "GET" }).handler(async () => {
+  const supabaseUrl = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? null;
+  const supabaseAnonKey =
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ??
+    process.env["SUPABASE_ANON_KEY"] ??
+    process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
+    process.env["VITE_SUPABASE_ANON_KEY"] ??
+    null;
+
+  return {
+    supabaseUrl,
+    supabaseAnonKey,
+  };
+});
+
 /**
  * Server function to retrieve session tokens from the HttpOnly cookie.
  * Called during bootstrap / route loading to initialize or restore in-memory Supabase client session.
@@ -108,28 +123,45 @@ export const getStoredServerSession = createServerFn({ method: "POST" }).handler
     session: { access_token: string; refresh_token: string } | null;
     duration: RememberDuration | null;
     email: string | null;
+    publicConfig: { supabaseUrl: string; supabaseAnonKey: string } | null;
   }> => {
+    const supabaseUrl = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? null;
+    const supabaseAnonKey =
+      process.env["SUPABASE_PUBLISHABLE_KEY"] ??
+      process.env["SUPABASE_ANON_KEY"] ??
+      process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
+      process.env["VITE_SUPABASE_ANON_KEY"] ??
+      null;
+
+    const publicConfig =
+      supabaseUrl && supabaseAnonKey
+        ? {
+            supabaseUrl,
+            supabaseAnonKey,
+          }
+        : null;
+
     const rawCookie = getCookie(AUTH_COOKIE);
     if (!rawCookie) {
-      return { session: null, duration: null, email: null };
+      return { session: null, duration: null, email: null, publicConfig };
     }
 
     const unsealed = verifyAndUnsealPayload(rawCookie);
     if (!unsealed) {
       deleteCookie(AUTH_COOKIE, { path: "/" });
-      return { session: null, duration: null, email: null };
+      return { session: null, duration: null, email: null, publicConfig };
     }
 
     try {
       const payload = JSON.parse(unsealed) as StoredSessionPayload;
       if (!payload.access_token || !payload.refresh_token) {
         deleteCookie(AUTH_COOKIE, { path: "/" });
-        return { session: null, duration: null, email: null };
+        return { session: null, duration: null, email: null, publicConfig };
       }
 
       if (payload.expires_at && payload.expires_at <= Date.now()) {
         deleteCookie(AUTH_COOKIE, { path: "/" });
-        return { session: null, duration: null, email: null };
+        return { session: null, duration: null, email: null, publicConfig };
       }
 
       return {
@@ -139,10 +171,12 @@ export const getStoredServerSession = createServerFn({ method: "POST" }).handler
         },
         duration: payload.duration,
         email: payload.email ?? null,
+        publicConfig,
       };
     } catch {
       deleteCookie(AUTH_COOKIE, { path: "/" });
-      return { session: null, duration: null, email: null };
+      return { session: null, duration: null, email: null, publicConfig };
     }
   }
 );
+

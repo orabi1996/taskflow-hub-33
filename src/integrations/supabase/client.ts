@@ -28,15 +28,31 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 
-function createSupabaseClient() {
-  // Check client-side env vars (Vite) and server-side process.env (SSR / Server Functions)
+let _dynamicUrl: string | undefined;
+let _dynamicKey: string | undefined;
+let _isPlaceholder = false;
+
+function resolveConfig() {
+  let storedUrl: string | undefined;
+  let storedKey: string | undefined;
+  if (typeof window !== 'undefined') {
+    try {
+      storedUrl = window.localStorage.getItem('__sb_public_url__') || undefined;
+      storedKey = window.localStorage.getItem('__sb_public_key__') || undefined;
+    } catch {}
+  }
+
   const SUPABASE_URL =
+    _dynamicUrl ||
+    storedUrl ||
     import.meta.env['VITE_SUPABASE_URL'] ||
     (typeof process !== 'undefined'
       ? process.env['SUPABASE_URL'] || process.env['VITE_SUPABASE_URL']
       : undefined);
 
   const SUPABASE_PUBLISHABLE_KEY =
+    _dynamicKey ||
+    storedKey ||
     import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
     import.meta.env['VITE_SUPABASE_ANON_KEY'] ||
     import.meta.env['VITE_SUPABASE_KEY'] ||
@@ -47,13 +63,21 @@ function createSupabaseClient() {
         process.env['VITE_SUPABASE_ANON_KEY']
       : undefined);
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  return { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY };
+}
+
+function createSupabaseClient() {
+  const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = resolveConfig();
+
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || SUPABASE_URL.includes('placeholder-project.supabase.co')) {
+    _isPlaceholder = true;
     const missing = [
       ...(!SUPABASE_URL ? ['SUPABASE_URL / VITE_SUPABASE_URL'] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY / VITE_SUPABASE_ANON_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.warn(`[Supabase] ${message}`);
+    if (missing.length > 0) {
+      console.warn(`[Supabase] Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`);
+    }
 
     // Return a safe placeholder client in preview/testing environments instead of throwing
     // a fatal error that crashes TanStack Router before any UI or guidance can render.
@@ -66,6 +90,7 @@ function createSupabaseClient() {
     });
   }
 
+  _isPlaceholder = false;
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
@@ -80,6 +105,24 @@ function createSupabaseClient() {
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
 
+export function configureSupabaseClient(url?: string | null, key?: string | null) {
+  if (!url || !key) return;
+  _dynamicUrl = url;
+  _dynamicKey = key;
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem('__sb_public_url__', url);
+      window.localStorage.setItem('__sb_public_key__', key);
+    } catch {}
+  }
+  _supabase = createSupabaseClient();
+}
+
+export function isSupabasePlaceholder(): boolean {
+  if (!_supabase) _supabase = createSupabaseClient();
+  return _isPlaceholder;
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
@@ -88,4 +131,5 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return Reflect.get(_supabase, prop, receiver);
   },
 });
+
 

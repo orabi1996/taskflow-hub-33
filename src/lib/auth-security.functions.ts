@@ -166,6 +166,14 @@ export const signInWithLock = createServerFn({ method: "POST" })
       maxAge: maxAge ?? 30 * 24 * 60 * 60,
     });
 
+    const supabaseUrl = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? null;
+    const supabaseAnonKey =
+      process.env["SUPABASE_PUBLISHABLE_KEY"] ??
+      process.env["SUPABASE_ANON_KEY"] ??
+      process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
+      process.env["VITE_SUPABASE_ANON_KEY"] ??
+      null;
+
     return {
       ok: true as const,
       locked: false as const,
@@ -177,6 +185,21 @@ export const signInWithLock = createServerFn({ method: "POST" })
         refresh_token: signIn.session.refresh_token,
       },
       userId: signIn.user?.id ?? null,
+      user: signIn.user
+        ? {
+            id: signIn.user.id,
+            email: signIn.user.email ?? data.email,
+            user_metadata: signIn.user.user_metadata ?? {},
+            app_metadata: signIn.user.app_metadata ?? {},
+          }
+        : null,
+      publicConfig:
+        supabaseUrl && supabaseAnonKey
+          ? {
+              supabaseUrl,
+              supabaseAnonKey,
+            }
+          : null,
     };
   });
 

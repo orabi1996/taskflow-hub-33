@@ -37,12 +37,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfileAndRoles = async (uid: string) => {
-    const [{ data: prof }, { data: roleRows }] = await Promise.all([
-      supabase.from("profiles").select("id, full_name, job_title, email, department").eq("id", uid).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", uid),
-    ]);
-    setProfile(prof ?? null);
-    setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
+    try {
+      const [{ data: prof }, { data: roleRows }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, job_title, email, department").eq("id", uid).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+      ]);
+      setProfile(prof ?? null);
+      setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
+    } catch (err) {
+      console.warn("[AuthProvider] Non-fatal loadProfileAndRoles error:", err);
+    }
   };
 
   useEffect(() => {
@@ -63,15 +67,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Then check existing session
-    ensureAuthSessionFromCookies().then((existing) => {
-      setSession(existing);
-      setUser(existing?.user ?? null);
-      if (existing?.user) {
-        loadProfileAndRoles(existing.user.id).finally(() => setLoading(false));
-      } else {
+    ensureAuthSessionFromCookies()
+      .then((existing) => {
+        setSession(existing);
+        setUser(existing?.user ?? null);
+        if (existing?.user) {
+          loadProfileAndRoles(existing.user.id).finally(() => setLoading(false));
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn("[AuthProvider] Non-fatal ensureAuthSession error:", err);
         setLoading(false);
-      }
-    });
+      });
 
     // Auto-refresh roles when tab becomes visible again (no need for F5)
     const onVisibility = () => {

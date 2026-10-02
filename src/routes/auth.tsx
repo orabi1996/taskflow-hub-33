@@ -1,7 +1,8 @@
 import { createFileRoute, redirect, useNavigate, isRedirect } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useMemo, type FormEvent } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
+import { supabase, configureSupabaseClient } from "@/integrations/supabase/client";
 import {
   ensureAuthSessionFromCookies,
   getRememberedEmail,
@@ -156,8 +157,10 @@ function AuthPage() {
   useEffect(() => {
     try {
       const res = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          navigate({ to: "/dashboard" });
+        if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+          navigate({ to: "/dashboard" }).catch(() => {
+            window.location.href = "/dashboard";
+          });
         }
       });
       return () => {
@@ -248,25 +251,55 @@ function AuthPage() {
       return;
     }
 
-    // Install in-memory session in Supabase client using server-verified tokens
-    const res = await supabase.auth.setSession({
-      access_token: guard.session!.access_token,
-      refresh_token: guard.session!.refresh_token,
-    });
+    // Configure Supabase client dynamically if server provided public credentials
+    if (guard.publicConfig?.supabaseUrl && guard.publicConfig?.supabaseAnonKey) {
+      configureSupabaseClient(guard.publicConfig.supabaseUrl, guard.publicConfig.supabaseAnonKey);
+    }
 
-    const session = res.data.session;
+    // Attempt to install in-memory session in Supabase client using server-verified tokens
+    let session: Session | null = null;
+    try {
+      const res = await supabase.auth.setSession({
+        access_token: guard.session!.access_token,
+        refresh_token: guard.session!.refresh_token,
+      });
+      session = res?.data?.session ?? null;
+    } catch (sessionErr) {
+      console.warn("[Auth] Client setSession fetch error, falling back to server session:", sessionErr);
+    }
+
+    // Fallback: If client setSession encountered a fetch/network glitch, use the server-verified session
+    if (!session && guard.session) {
+      const fallbackUser = (guard.user as any) ?? {
+        id: guard.userId ?? "auth-user",
+        email: parsed.data.email,
+        aud: "authenticated",
+        role: "authenticated",
+        app_metadata: {},
+        user_metadata: {},
+        created_at: new Date().toISOString(),
+      };
+      session = {
+        access_token: guard.session.access_token,
+        refresh_token: guard.session.refresh_token,
+        expires_in: 3600,
+        token_type: "bearer",
+        user: fallbackUser,
+      } as unknown as Session;
+    }
+
     setLoading(false);
 
-    if (res.error || !session) {
+    if (!session) {
       setAlert({
         kind: "error",
         title: "تعذّر تهيئة الجلسة",
-        description: res.error?.message ?? "حدث خطأ أثناء تهيئة جلسة العمل.",
+        description: "حدث خطأ أثناء تهيئة جلسة العمل. يرجى المحاولة مرة أخرى.",
       });
       return;
     }
 
-    // Centralized audit log entry
+    // Centralized audit log entry (non-blocking)
     void recordAuditEvent({
       data: {
         actorId: session.user.id,
@@ -287,7 +320,7 @@ function AuthPage() {
           .from("trusted_devices")
           .upsert(
             {
-              user_id: session.user.id,
+              user_id: session!.user.id,
               device_hash: deviceHash,
               user_agent: navigator.userAgent.slice(0, 500),
               last_seen_at: new Date().toISOString(),
@@ -298,6 +331,16 @@ function AuthPage() {
     })();
 
     setAlert({ kind: "success", title: "تم تسجيل الدخول بنجاح", description: "جاري تحويلك إلى لوحة التحكم..." });
+
+    // Navigate immediately to dashboard with fallback to full reload
+    navigate({ to: "/dashboard" }).catch(() => {
+      window.location.href = "/dashboard";
+    });
+    setTimeout(() => {
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/auth")) {
+        window.location.href = "/dashboard";
+      }
+    }, 400);
   };
 
   const handleForgot = async (e: FormEvent<HTMLFormElement>) => {

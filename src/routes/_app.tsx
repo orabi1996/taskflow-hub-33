@@ -1,4 +1,4 @@
-import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, redirect, useNavigate, isRedirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 import { useAuth } from "@/lib/auth-context";
@@ -30,14 +30,19 @@ export const Route = createFileRoute("/_app")({
     const session = await ensureAuthSessionFromCookies();
     if (!session) throw redirect({ to: "/auth" });
     // Admins can revoke a user's system access from Settings → Employees.
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("is_active")
-      .eq("id", session.user.id)
-      .maybeSingle();
-    if (prof && prof.is_active === false) {
-      await supabase.auth.signOut();
-      throw redirect({ to: "/auth" });
+    try {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("is_active")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (prof && prof.is_active === false) {
+        await supabase.auth.signOut();
+        throw redirect({ to: "/auth" });
+      }
+    } catch (err) {
+      if (isRedirect(err)) throw err;
+      console.warn("[_app.beforeLoad] Non-fatal profile status check:", err);
     }
   },
   component: AppLayout,
