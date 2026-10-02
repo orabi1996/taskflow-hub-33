@@ -14,7 +14,7 @@ import {
 import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
-  LayoutDashboard, Users2, UserCircle, Trash2, Download, RefreshCw,
+  LayoutDashboard, Users2, UserCircle, Trash2, Download, RefreshCw, ClipboardList,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
@@ -28,7 +28,7 @@ import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDi
 import { KpiCard } from "@/components/dashboard/KpiCards";
 import { KanbanBoard, type KanbanTask, type TaskStatus } from "@/components/dashboard/KanbanBoard";
 import { CalendarView } from "@/components/dashboard/CalendarView";
-import { DailyJournalDialog } from "@/components/dashboard/DailyJournalDialog";
+import { DailyJournalDialog, DailyJournalView } from "@/components/dashboard/DailyJournalDialog";
 import { format, isAfter, isBefore } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
@@ -690,6 +690,7 @@ function Dashboard() {
           <TabsTrigger value="list"><List className="h-4 w-4 ms-1.5" />قائمة</TabsTrigger>
           <TabsTrigger value="kanban"><KanbanSquare className="h-4 w-4 ms-1.5" />Kanban</TabsTrigger>
           <TabsTrigger value="calendar"><CalendarDays className="h-4 w-4 ms-1.5" />التقويم</TabsTrigger>
+          <TabsTrigger value="journal"><ClipboardList className="h-4 w-4 ms-1.5" />سجل اليومية</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="mt-4">
@@ -806,6 +807,12 @@ function Dashboard() {
 
         <TabsContent value="calendar" className="mt-4">
           <CalendarView tasks={kanbanTasks} onTaskClick={openTask} />
+        </TabsContent>
+
+        <TabsContent value="journal" className="mt-4">
+          <Card className="p-6">
+            <DailyJournalView tasks={allTasks} userName={profile?.full_name || undefined} />
+          </Card>
         </TabsContent>
       </Tabs>
 
