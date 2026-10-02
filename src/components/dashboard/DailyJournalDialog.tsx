@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import {
   ClipboardList,
@@ -23,8 +24,23 @@ import {
   ChevronLeft,
   FolderKanban,
   Check,
+  CheckCircle2,
+  AlertCircle,
+  Send,
+  ShieldCheck,
+  Loader2,
+  MessageSquare,
+  FileText,
+  RotateCcw,
 } from "lucide-react";
 import { exportToExcel } from "@/lib/export-utils";
+import { useAuth } from "@/lib/auth-context";
+import {
+  getJournalSubmission,
+  submitDailyJournal,
+  reviewDailyJournal,
+  type JournalSubmissionRecord,
+} from "@/lib/daily-journal.functions";
 import { toast } from "sonner";
 
 export interface JournalTask {
@@ -41,8 +57,10 @@ export interface JournalTask {
 export interface DailyJournalViewProps {
   tasks: JournalTask[];
   userName?: string;
+  userId?: string;
   initialDateStr?: string;
   isModal?: boolean;
+  onSubmissionChanged?: () => void;
 }
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
@@ -67,11 +85,33 @@ function formatMinutes(min: number): string {
   return `${h} س و ${m} د`;
 }
 
-export function DailyJournalView({ tasks, userName, initialDateStr, isModal = false }: DailyJournalViewProps) {
+export function DailyJournalView({
+  tasks,
+  userName,
+  userId,
+  initialDateStr,
+  isModal = false,
+  onSubmissionChanged,
+}: DailyJournalViewProps) {
+  const { user, roles } = useAuth();
+  const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
+  const effectiveUserId = userId || user?.id;
+  const isViewingOwn = user?.id === effectiveUserId;
+
   const [selectedDateStr, setSelectedDateStr] = useState<string>(
     () => initialDateStr || new Date().toISOString().slice(0, 10)
   );
   const [copied, setCopied] = useState(false);
+
+  // Submission & Review states
+  const [submission, setSubmission] = useState<JournalSubmissionRecord | null>(null);
+  const [loadingSubmission, setLoadingSubmission] = useState(false);
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [employeeNotes, setEmployeeNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [managerNotes, setManagerNotes] = useState("");
+  const [isReviewing, setIsReviewing] = useState(false);
 
   const selectedDate = useMemo(() => new Date(selectedDateStr + "T00:00:00"), [selectedDateStr]);
 
@@ -110,6 +150,34 @@ export function DailyJournalView({ tasks, userName, initialDateStr, isModal = fa
       projectsList: Array.from(projectSet),
     };
   }, [dayTasks]);
+
+  // Load submission record
+  const fetchSubmission = async () => {
+    if (!effectiveUserId) return;
+    setLoadingSubmission(true);
+    try {
+      const res = await getJournalSubmission({
+        data: {
+          userId: effectiveUserId,
+          date: selectedDateStr,
+        },
+      });
+      if (res.ok) {
+        setSubmission(res.submission || null);
+        if (res.submission?.manager_notes) {
+          setManagerNotes(res.submission.manager_notes);
+        }
+      }
+    } catch (e) {
+      console.warn("[DailyJournalView] Failed to fetch submission:", e);
+    } finally {
+      setLoadingSubmission(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubmission();
+  }, [effectiveUserId, selectedDateStr]);
 
   const shiftDate = (days: number) => {
     const d = new Date(selectedDate);
@@ -171,6 +239,65 @@ export function DailyJournalView({ tasks, userName, initialDateStr, isModal = fa
     toast.success("تم تصدير اليومية إلى ملف Excel");
   };
 
+  const handleSubmitJournal = async () => {
+    if (dayTasks.length === 0) {
+      toast.error("لا يمكن إرسال يومية فارغة. يرجى تسجيل مهام اليوم أولاً.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await submitDailyJournal({
+        data: {
+          date: selectedDateStr,
+          totalTasks: stats.totalTasks,
+          completedTasks: stats.completed,
+          totalMinutes: stats.totalMinutes,
+          employeeNotes: employeeNotes.trim() || undefined,
+        },
+      });
+
+      if (res.ok) {
+        toast.success(res.message || "تم إرسال اليومية بنجاح للاعتماد!");
+        setSubmission(res.submission || null);
+        setShowSubmitDialog(false);
+        setEmployeeNotes("");
+        onSubmissionChanged?.();
+      } else {
+        toast.error(res.error || "تعذّر إرسال اليومية");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ في الاتصال بالخادم");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReview = async (status: "approved" | "revision_requested") => {
+    if (!submission?.id) return;
+    setIsReviewing(true);
+    try {
+      const res = await reviewDailyJournal({
+        data: {
+          submissionId: submission.id,
+          status,
+          managerNotes: managerNotes.trim() || undefined,
+        },
+      });
+
+      if (res.ok) {
+        toast.success(res.message || "تم تحديث حالة الاعتماد بنجاح");
+        setSubmission(res.submission || null);
+        onSubmissionChanged?.();
+      } else {
+        toast.error(res.error || "تعذّر اعتماد اليومية");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ أثناء الاعتماد");
+    } finally {
+      setIsReviewing(false);
+    }
+  };
+
   return (
     <div className={`space-y-4 ${isModal ? "" : "p-1"}`} dir="rtl">
       {/* Header and Date Selector */}
@@ -181,7 +308,7 @@ export function DailyJournalView({ tasks, userName, initialDateStr, isModal = fa
             سجل يومية العمل (Daily Work Journal)
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            استعراض ومراجعة وتوثيق ساعات العمل والمهام المنفذة لكل يوم بدقة.
+            استعراض ومراجعة وتوثيق ساعات العمل والمهام المنفذة واعتمادها من الإدارة.
           </p>
         </div>
 
@@ -216,7 +343,7 @@ export function DailyJournalView({ tasks, userName, initialDateStr, isModal = fa
         </div>
       </div>
 
-      {/* Date Display and quick jumps */}
+      {/* Date Display and Quick Jumps */}
       <div className="flex items-center justify-between gap-2 py-1">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-4 w-4 text-muted-foreground" />
@@ -253,6 +380,233 @@ export function DailyJournalView({ tasks, userName, initialDateStr, isModal = fa
           </Button>
         </div>
       </div>
+
+      {/* Official Approval Status Banner */}
+      {loadingSubmission ? (
+        <Card className="p-3 border bg-muted/20 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          جاري التحقق من حالة اعتماد اليومية...
+        </Card>
+      ) : submission?.status === "approved" ? (
+        <Card className="p-4 border-emerald-500/30 bg-emerald-500/10 text-emerald-950 dark:text-emerald-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-semibold text-sm text-emerald-800 dark:text-emerald-300">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              تم اعتماد يومية العمل رسمياً
+              <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white text-[11px] py-0">
+                معتمدة ✅
+              </Badge>
+            </div>
+            <p className="text-xs text-emerald-700/90 dark:text-emerald-300/80">
+              اعتمدها: <span className="font-medium">{submission.reviewer_name || "المدير المباشر"}</span>
+              {submission.reviewed_at && (
+                <span> • {format(new Date(submission.reviewed_at), "yyyy/MM/dd - hh:mm a", { locale: ar })}</span>
+              )}
+            </p>
+            {submission.manager_notes && (
+              <div className="text-xs bg-emerald-500/15 p-2 rounded border border-emerald-500/20 mt-1">
+                💬 <span className="font-medium">ملاحظات المدير:</span> {submission.manager_notes}
+              </div>
+            )}
+          </div>
+
+          <Badge variant="outline" className="border-emerald-500/40 text-emerald-700 dark:text-emerald-300 shrink-0 text-xs">
+            سجل موثق
+          </Badge>
+        </Card>
+      ) : submission?.status === "revision_requested" ? (
+        <Card className="p-4 border-amber-500/30 bg-amber-500/10 text-amber-950 dark:text-amber-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-semibold text-sm text-amber-800 dark:text-amber-300">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              مطلوب مراجعة وتعديل مهام اليومية
+              <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-300 text-[11px] py-0">
+                مطلوب تعديل ⚠️
+              </Badge>
+            </div>
+            {submission.manager_notes ? (
+              <div className="text-xs bg-amber-500/15 p-2 rounded border border-amber-500/20 mt-1">
+                💬 <span className="font-medium">توجيهات المدير:</span> {submission.manager_notes}
+              </div>
+            ) : (
+              <p className="text-xs text-amber-700/90 dark:text-amber-300/80">
+                يرجى مراجعة المهام المسجلة لليوم وتحديث الساعات أو التفاصيل ثم إعادة الإرسال.
+              </p>
+            )}
+          </div>
+
+          {isViewingOwn && (
+            <Button
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white shrink-0 gap-1.5 text-xs"
+              onClick={() => setShowSubmitDialog(true)}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              إعادة الإرسال بعد التعديل
+            </Button>
+          )}
+        </Card>
+      ) : submission?.status === "submitted" ? (
+        <Card className="p-4 border-blue-500/30 bg-blue-500/10 text-blue-950 dark:text-blue-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 font-semibold text-sm text-blue-800 dark:text-blue-300">
+              <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              اليومية مُرسلة وبانتظار اعتماد المدير
+              <Badge variant="outline" className="border-blue-500 text-blue-700 dark:text-blue-300 text-[11px] py-0">
+                قيد المراجعة ⏳
+              </Badge>
+            </div>
+            <p className="text-xs text-blue-700/90 dark:text-blue-300/80">
+              تم إرسالها في {format(new Date(submission.updated_at), "yyyy/MM/dd - hh:mm a", { locale: ar })}
+              {submission.employee_notes && ` • ملاحظة الموظف: "${submission.employee_notes}"`}
+            </p>
+          </div>
+
+          {isViewingOwn && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-blue-500/40 text-blue-800 dark:text-blue-200 shrink-0 gap-1.5 text-xs"
+              onClick={() => setShowSubmitDialog(true)}
+            >
+              تحديث الملاحظات / إعادة الإرسال
+            </Button>
+          )}
+        </Card>
+      ) : (
+        <Card className="p-3 border-dashed bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <FileText className="h-4 w-4 text-muted-foreground/70" />
+            <span>مسودة يومية لم تُرسل للاعتماد بعد.</span>
+          </div>
+
+          {isViewingOwn && dayTasks.length > 0 && (
+            <Button
+              size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 gap-1.5 text-xs"
+              onClick={() => setShowSubmitDialog(true)}
+            >
+              <Send className="h-3.5 w-3.5" />
+              إرسال تقرير اليومية للاعتماد
+            </Button>
+          )}
+        </Card>
+      )}
+
+      {/* Employee Submission Modal/Dialog */}
+      {showSubmitDialog && (
+        <Card className="p-4 border-primary/30 bg-primary/5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="font-semibold text-sm flex items-center gap-1.5">
+              <Send className="h-4 w-4 text-primary" />
+              إرسال تقرير يومية العمل للمدير المباشر
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground"
+              onClick={() => setShowSubmitDialog(false)}
+            >
+              ✕
+            </Button>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            ملخص التقرير المرفوع: <span className="font-bold text-foreground">{stats.totalTasks} مهام</span> •{" "}
+            <span className="font-bold text-foreground">{formatMinutes(stats.totalMinutes)} عمل</span> •{" "}
+            <span className="font-bold text-foreground">نسبة إنجاز {stats.completionRate}%</span>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium flex items-center gap-1">
+              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              ملاحظات أو توضيحات إضافية للمدير (اختياري):
+            </label>
+            <Textarea
+              placeholder="مثال: تم إنجاز ربط الفوترة الإلكترونية بنجاح وحل مشكلة ترحيل القيود لفرع الرياض..."
+              value={employeeNotes}
+              onChange={(e) => setEmployeeNotes(e.target.value)}
+              className="h-20 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSubmitDialog(false)}
+              disabled={isSubmitting}
+              className="h-8 text-xs"
+            >
+              إلغاء
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSubmitJournal}
+              disabled={isSubmitting}
+              className="h-8 gap-1.5 text-xs"
+            >
+              {isSubmitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              تأكيد وإرسال للاعتماد
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Manager Review Action Box */}
+      {isManager && submission && submission.status !== "approved" && (
+        <Card className="p-4 border-primary/40 bg-card shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b pb-2">
+            <div className="font-semibold text-sm flex items-center gap-2 text-primary">
+              <ShieldCheck className="h-4 w-4" />
+              لوحة قرار المدير لاعتماد اليومية
+            </div>
+            <Badge variant="outline" className="text-xs font-normal">
+              صلاحية مدير
+            </Badge>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <MessageSquare className="h-3.5 w-3.5" />
+              ملاحظات المدير أو التوجيهات للموظف:
+            </label>
+            <Textarea
+              placeholder="اكتب ملاحظاتك هنا في حال الرغبة في توجيه الموظف أو تبرير طلب التعديل..."
+              value={managerNotes}
+              onChange={(e) => setManagerNotes(e.target.value)}
+              className="h-16 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleReview("revision_requested")}
+              disabled={isReviewing}
+              className="border-amber-500/40 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20 h-8 gap-1.5 text-xs"
+            >
+              <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+              طلب تعديل ⚠️
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={() => handleReview("approved")}
+              disabled={isReviewing}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 gap-1.5 text-xs"
+            >
+              {isReviewing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              )}
+              اعتماد اليومية رسمياً ✅
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Daily Stats Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -391,7 +745,21 @@ export function DailyJournalView({ tasks, userName, initialDateStr, isModal = fa
   );
 }
 
-export function DailyJournalDialog({ tasks, userName, trigger }: { tasks: JournalTask[]; userName?: string; trigger?: React.ReactNode }) {
+export function DailyJournalDialog({
+  tasks,
+  userName,
+  userId,
+  initialDateStr,
+  trigger,
+  onSubmissionChanged,
+}: {
+  tasks: JournalTask[];
+  userName?: string;
+  userId?: string;
+  initialDateStr?: string;
+  trigger?: React.ReactNode;
+  onSubmissionChanged?: () => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -406,7 +774,14 @@ export function DailyJournalDialog({ tasks, userName, trigger }: { tasks: Journa
       </DialogTrigger>
 
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
-        <DailyJournalView tasks={tasks} userName={userName} isModal={true} />
+        <DailyJournalView
+          tasks={tasks}
+          userName={userName}
+          userId={userId}
+          initialDateStr={initialDateStr}
+          isModal={true}
+          onSubmissionChanged={onSubmissionChanged}
+        />
       </DialogContent>
     </Dialog>
   );

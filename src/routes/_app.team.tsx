@@ -26,6 +26,8 @@ import {
   AlertTriangle,
   ClipboardList,
   UserCheck,
+  ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { format, isSameDay, subDays } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -33,6 +35,11 @@ import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDi
 import { DailyJournalDialog, type JournalTask } from "@/components/dashboard/DailyJournalDialog";
 import { useAuth } from "@/lib/auth-context";
 import { exportToExcel } from "@/lib/export-utils";
+import {
+  getTeamPendingJournals,
+  reviewDailyJournal,
+  type JournalSubmissionRecord,
+} from "@/lib/daily-journal.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/team")({
@@ -100,6 +107,43 @@ function TeamPage() {
   const [editing, setEditing] = useState<EditableTask | null>(null);
   const [open, setOpen] = useState(false);
 
+  const [pendingJournals, setPendingJournals] = useState<JournalSubmissionRecord[]>([]);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const loadPendingJournals = async () => {
+    try {
+      const res = await getTeamPendingJournals();
+      if (res.ok) {
+        setPendingJournals(res.submissions || []);
+      }
+    } catch (e) {
+      console.warn("Failed to load pending journals", e);
+    }
+  };
+
+  const handleQuickApprove = async (subId: string) => {
+    setApprovingId(subId);
+    try {
+      const res = await reviewDailyJournal({
+        data: {
+          submissionId: subId,
+          status: "approved",
+          managerNotes: "تم الاعتماد السريع من لوحة الإشراف",
+        },
+      });
+      if (res.ok) {
+        toast.success(res.message || "تم اعتماد اليومية بنجاح");
+        await loadPendingJournals();
+      } else {
+        toast.error(res.error || "تعذّر الاعتماد");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "حدث خطأ أثناء الاعتماد");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   const load = async () => {
     setLoading(true);
     const q = supabase
@@ -108,12 +152,15 @@ function TeamPage() {
       .order("created_at", { ascending: false })
       .limit(400);
 
-    const { data, error } = await q;
+    const [{ data, error }, { data: projs }] = await Promise.all([
+      q,
+      supabase.from("projects").select("id, name").order("name"),
+    ]);
+
     if (error) console.error(error);
     setTasks(((data ?? []) as unknown) as TeamTask[]);
-
-    const { data: projs } = await supabase.from("projects").select("id, name").order("name");
     setProjects(projs ?? []);
+    await loadPendingJournals();
     setLoading(false);
   };
 
@@ -307,6 +354,8 @@ function TeamPage() {
                   ? employees.find((e) => e.id === employeeFilter)?.name
                   : "كامل الفريق"
               }
+              userId={employeeFilter !== "all" ? employeeFilter : undefined}
+              onSubmissionChanged={loadPendingJournals}
             />
           </div>
         }
@@ -345,6 +394,95 @@ function TeamPage() {
         </Card>
       </div>
 
+      {/* Pending Daily Journal Approvals Queue */}
+      {pendingJournals.filter((j) => j.status === "submitted").length > 0 && (
+        <Card className="p-4 border-amber-500/40 bg-amber-500/5 space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div>
+                <div className="font-semibold text-sm">
+                  طلبات اعتماد يوميات العمل للمراجعة ({pendingJournals.filter((j) => j.status === "submitted").length})
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  يوميات رفعها أعضاء الفريق بانتظار قرار الاعتماد الرسمي.
+                </div>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-300 text-xs">
+              تتطلب قرار الإدارة
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingJournals
+              .filter((j) => j.status === "submitted")
+              .map((sub) => {
+                const empTasks = tasks.filter((t) => t.user_id === sub.user_id);
+                return (
+                  <div
+                    key={sub.id}
+                    className="p-3.5 bg-card rounded-lg border border-amber-500/20 shadow-xs flex flex-col justify-between gap-3"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-sm">{sub.employee_name || "موظف"}</span>
+                        <Badge variant="outline" className="text-[11px] font-normal">
+                          {sub.journal_date}
+                        </Badge>
+                      </div>
+
+                      <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2">
+                        <span className="font-medium text-foreground">{sub.total_tasks} مهام</span>
+                        <span>•</span>
+                        <span>{sub.completed_tasks} منجزة</span>
+                        <span>•</span>
+                        <span className="text-primary font-medium">{formatHoursAndMinutes(sub.total_minutes)}</span>
+                      </div>
+
+                      {sub.employee_notes && (
+                        <p className="text-xs text-muted-foreground mt-2 italic bg-muted/30 p-2 rounded border border-muted/50">
+                          💬 "{sub.employee_notes}"
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1 border-t">
+                      <DailyJournalDialog
+                        tasks={empTasks as unknown as JournalTask[]}
+                        userName={sub.employee_name || undefined}
+                        userId={sub.user_id}
+                        initialDateStr={sub.journal_date}
+                        onSubmissionChanged={loadPendingJournals}
+                        trigger={
+                          <Button variant="outline" size="sm" className="h-7 text-xs flex-1 gap-1">
+                            <Eye className="h-3.5 w-3.5 text-primary" />
+                            مراجعة اليومية
+                          </Button>
+                        }
+                      />
+
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                        onClick={() => handleQuickApprove(sub.id)}
+                        disabled={approvingId === sub.id}
+                      >
+                        {approvingId === sub.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-3 w-3" />
+                        )}
+                        اعتماد سريع
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </Card>
+      )}
+
       {/* Team Member Daily Cards (Progress & Daily Journal shortcut per employee) */}
       {employeeMetrics.length > 0 && (
         <Card className="p-4 bg-muted/20 border-dashed">
@@ -371,6 +509,8 @@ function TeamPage() {
                     <DailyJournalDialog
                       tasks={emp.tasks as unknown as JournalTask[]}
                       userName={emp.name}
+                      userId={emp.id}
+                      onSubmissionChanged={loadPendingJournals}
                       trigger={
                         <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary">
                           <ClipboardList className="h-3.5 w-3.5" />

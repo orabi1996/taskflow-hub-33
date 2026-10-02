@@ -352,6 +352,69 @@ export type Database = {
           },
         ]
       }
+      daily_journal_submissions: {
+        Row: {
+          completed_tasks: number
+          created_at: string
+          employee_notes: string | null
+          id: string
+          journal_date: string
+          manager_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: "submitted" | "approved" | "revision_requested"
+          total_minutes: number
+          total_tasks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_tasks?: number
+          created_at?: string
+          employee_notes?: string | null
+          id?: string
+          journal_date: string
+          manager_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: "submitted" | "approved" | "revision_requested"
+          total_minutes?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_tasks?: number
+          created_at?: string
+          employee_notes?: string | null
+          id?: string
+          journal_date?: string
+          manager_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: "submitted" | "approved" | "revision_requested"
+          total_minutes?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_journal_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_journal_submissions_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string

@@ -418,7 +418,11 @@ function Dashboard() {
               <Download className="h-4 w-4 ms-1.5" />
               تصدير المهام
             </Button>
-            <DailyJournalDialog tasks={allTasks} userName={profile?.full_name || undefined} />
+            <DailyJournalDialog
+              tasks={allTasks}
+              userName={profile?.full_name || undefined}
+              userId={user?.id}
+            />
             {!isAdminOrGM && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
