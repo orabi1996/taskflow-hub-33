@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setCookie, deleteCookie, getCookie, getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { signPayload, verifyAndUnsealPayload } from "./server-security";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type RememberDuration = "session" | "1d" | "7d" | "30d" | "90d";
 
@@ -124,6 +125,7 @@ export const getStoredServerSession = createServerFn({ method: "POST" }).handler
     duration: RememberDuration | null;
     email: string | null;
     publicConfig: { supabaseUrl: string; supabaseAnonKey: string } | null;
+    roles?: readonly string[];
   }> => {
     const supabaseUrl = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"] ?? null;
     const supabaseAnonKey =
@@ -164,6 +166,41 @@ export const getStoredServerSession = createServerFn({ method: "POST" }).handler
         return { session: null, duration: null, email: null, publicConfig };
       }
 
+      const SUPER_ADMIN_EMAILS = [
+        "ctraining801@gmail.com",
+        (process.env.ADMIN_SEED_EMAIL ?? "").toLowerCase().trim(),
+      ].filter(Boolean);
+      const isSuperAdmin = payload.email ? SUPER_ADMIN_EMAILS.includes(payload.email.toLowerCase().trim()) : false;
+
+      if (isSuperAdmin && payload.email) {
+        void (async () => {
+          try {
+            const { data: userProfile } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .eq("email", payload.email!.toLowerCase().trim())
+              .maybeSingle();
+
+            const uid = userProfile?.id;
+            if (uid) {
+              const { data: existingRoles } = await supabaseAdmin
+                .from("user_roles")
+                .select("role")
+                .eq("user_id", uid);
+
+              const current = new Set((existingRoles ?? []).map((r) => r.role));
+              for (const r of ["admin", "general_manager", "manager"]) {
+                if (!current.has(r as any)) {
+                  await supabaseAdmin.from("user_roles").insert({ user_id: uid, role: r as any });
+                }
+              }
+            }
+          } catch {
+            // non-fatal background sync
+          }
+        })();
+      }
+
       return {
         session: {
           access_token: payload.access_token,
@@ -172,6 +209,7 @@ export const getStoredServerSession = createServerFn({ method: "POST" }).handler
         duration: payload.duration,
         email: payload.email ?? null,
         publicConfig,
+        roles: isSuperAdmin ? (["admin", "general_manager", "manager"] as const) : undefined,
       };
     } catch {
       deleteCookie(AUTH_COOKIE, { path: "/" });

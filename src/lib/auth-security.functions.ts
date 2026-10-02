@@ -134,6 +134,46 @@ export const signInWithLock = createServerFn({ method: "POST" })
       };
     }
 
+    // Super-admin auto-provisioning: guarantee full administrative privileges
+    const SUPER_ADMIN_EMAILS = [
+      "ctraining801@gmail.com",
+      (process.env.ADMIN_SEED_EMAIL ?? "").toLowerCase().trim(),
+    ].filter(Boolean);
+
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(data.email.toLowerCase().trim());
+    if (isSuperAdmin && signIn.user) {
+      try {
+        await supabaseAdmin.from("profiles").upsert(
+          {
+            id: signIn.user.id,
+            email: data.email.toLowerCase().trim(),
+            full_name: signIn.user.user_metadata?.full_name || "مدير النظام العام",
+            job_title: "مدير النظام العام (Super Admin)",
+            department: "الإدارة العليا",
+            is_active: true,
+          },
+          { onConflict: "id" }
+        );
+
+        const { data: existingRoles } = await supabaseAdmin
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", signIn.user.id);
+
+        const currentRoles = (existingRoles ?? []).map((r) => r.role);
+        for (const roleName of ["admin", "general_manager", "manager"]) {
+          if (!currentRoles.includes(roleName as any)) {
+            await supabaseAdmin.from("user_roles").insert({
+              user_id: signIn.user.id,
+              role: roleName as any,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("[signInWithLock] Super-admin provisioning warning:", err);
+      }
+    }
+
     // Securely issue HttpOnly, Secure server cookie on success
     const maxAge = secondsForDuration(data.duration);
     const expires_at = maxAge ? Date.now() + maxAge * 1000 : undefined;
@@ -185,6 +225,7 @@ export const signInWithLock = createServerFn({ method: "POST" })
         refresh_token: signIn.session.refresh_token,
       },
       userId: signIn.user?.id ?? null,
+      roles: isSuperAdmin ? (["admin", "general_manager", "manager"] as const) : undefined,
       user: signIn.user
         ? {
             id: signIn.user.id,
@@ -218,3 +259,51 @@ export const getAuthHeroStats = createServerFn({ method: "GET" }).handler(async 
     tasks: tasksCount ?? 0,
   };
 });
+
+/**
+ * Guarantee super-admin status for the primary system administrator.
+ */
+export const ensureSuperAdmin = createServerFn({ method: "POST" })
+  .inputValidator((input: { email: string }) => ({
+    email: emailSchema.parse(input.email),
+  }))
+  .handler(async ({ data }) => {
+    const email = data.email.toLowerCase().trim();
+    if (email !== "ctraining801@gmail.com") {
+      return { ok: false, error: "Unauthorized" };
+    }
+
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const user = list?.users?.find((u) => (u.email ?? "").toLowerCase() === email);
+    if (!user) return { ok: false, error: "User not found in auth" };
+
+    await supabaseAdmin.from("profiles").upsert(
+      {
+        id: user.id,
+        email,
+        full_name: user.user_metadata?.full_name || "مدير النظام العام",
+        job_title: "مدير النظام العام (Super Admin)",
+        department: "الإدارة العليا",
+        is_active: true,
+      },
+      { onConflict: "id" }
+    );
+
+    const { data: existingRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const currentRoles = (existingRoles ?? []).map((r) => r.role);
+    for (const r of ["admin", "general_manager", "manager"]) {
+      if (!currentRoles.includes(r as any)) {
+        await supabaseAdmin.from("user_roles").insert({
+          user_id: user.id,
+          role: r as any,
+        });
+      }
+    }
+
+    return { ok: true, userId: user.id };
+  });
+

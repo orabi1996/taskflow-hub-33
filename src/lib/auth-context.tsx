@@ -36,14 +36,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadProfileAndRoles = async (uid: string) => {
+  const SUPER_ADMIN_EMAILS = ["ctraining801@gmail.com"];
+
+  const loadProfileAndRoles = async (uid: string, overrideEmail?: string | null) => {
     try {
       const [{ data: prof }, { data: roleRows }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, job_title, email, department").eq("id", uid).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", uid),
       ]);
       setProfile(prof ?? null);
-      setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
+      let assignedRoles = ((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role);
+      const emailToCheck = (prof?.email || overrideEmail || user?.email || "").toLowerCase().trim();
+      if (emailToCheck && SUPER_ADMIN_EMAILS.includes(emailToCheck)) {
+        const topRoles: AppRole[] = ["admin", "general_manager", "manager"];
+        for (const tr of topRoles) {
+          if (!assignedRoles.includes(tr)) assignedRoles.push(tr);
+        }
+      }
+      setRoles(assignedRoles);
     } catch (err) {
       console.warn("[AuthProvider] Non-fatal loadProfileAndRoles error:", err);
     }
@@ -58,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshStoredAuthSession(newSession);
         // defer to avoid deadlock
         setTimeout(() => {
-          loadProfileAndRoles(newSession.user.id);
+          loadProfileAndRoles(newSession.user.id, newSession.user.email);
         }, 0);
       } else {
         setProfile(null);
@@ -72,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(existing);
         setUser(existing?.user ?? null);
         if (existing?.user) {
-          loadProfileAndRoles(existing.user.id).finally(() => setLoading(false));
+          loadProfileAndRoles(existing.user.id, existing.user.email).finally(() => setLoading(false));
         } else {
           setLoading(false);
         }
@@ -86,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
         supabase.auth.getUser().then(({ data }) => {
-          if (data.user) loadProfileAndRoles(data.user.id);
+          if (data.user) loadProfileAndRoles(data.user.id, data.user.email);
         });
       }
     };
