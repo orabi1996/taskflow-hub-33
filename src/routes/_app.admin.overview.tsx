@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/table";
 import {
   Activity, AlertTriangle, BarChart3, Bell, CheckCircle2, FolderKanban,
-  Loader2, RefreshCw, ShieldCheck, Target, Users2, Zap,
+  Loader2, RefreshCw, ShieldCheck, Target, Users2, Zap, Sparkles,
 } from "lucide-react";
+import { toast } from "sonner";
+import { seedEnterpriseData } from "@/lib/seed-enterprise.functions";
 import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -40,6 +42,7 @@ function CommandCenter() {
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -50,6 +53,23 @@ function CommandCenter() {
       setError(e?.message || "تعذّر تحميل البيانات");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSeedData = async () => {
+    setSeeding(true);
+    try {
+      const res = await seedEnterpriseData();
+      if (res.ok) {
+        toast.success(res.message || "تم توليد البيانات التأسيسية للمنظومة بنجاح!");
+        await load();
+      } else {
+        toast.error(res.error || "تعذّر توليد البيانات");
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "حدث خطأ أثناء الاتصال بالخادم");
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -73,7 +93,17 @@ function CommandCenter() {
         <div className="flex-1 min-w-0">
           <PageHeader title="مركز القيادة" description="نظرة موحّدة على كل ما يحدث في النظام" icon={Activity} />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="default"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={handleSeedData}
+            disabled={seeding || loading}
+          >
+            {seeding ? <Loader2 className="h-4 w-4 animate-spin ms-2" /> : <Sparkles className="h-4 w-4 ms-2" />}
+            توليد بيانات تأسيسية
+          </Button>
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             <span className="ms-2">تحديث</span>
@@ -85,6 +115,28 @@ function CommandCenter() {
           </Button>
         </div>
       </div>
+
+      {data && data.projects.active === 0 && (
+        <Card className="p-6 border-emerald-500/30 bg-emerald-500/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="space-y-1 text-center sm:text-start">
+            <div className="font-semibold text-emerald-900 dark:text-emerald-200 flex items-center justify-center sm:justify-start gap-2">
+              <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              تجهيز النظام بالبيانات التأسيسية
+            </div>
+            <p className="text-sm text-muted-foreground">
+              يمكنك بنقرة واحدة توليد أقسام الشركة، موديولات ERP و LMS، ونماذج المشاريع الحية لتجربة كافة الشاشات فوراً.
+            </p>
+          </div>
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+            onClick={handleSeedData}
+            disabled={seeding}
+          >
+            {seeding ? <Loader2 className="h-4 w-4 animate-spin ms-2" /> : <Sparkles className="h-4 w-4 ms-2" />}
+            توليد البيانات الآن
+          </Button>
+        </Card>
+      )}
 
       {error && (
         <Card className="p-4 border-destructive/40 text-destructive text-sm">{error}</Card>
