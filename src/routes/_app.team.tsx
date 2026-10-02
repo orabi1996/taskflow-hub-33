@@ -16,6 +16,7 @@ import { Users2, Eye, Filter, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
+import { DailyJournalDialog } from "@/components/dashboard/DailyJournalDialog";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
@@ -189,7 +190,21 @@ function TeamPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="مهام الفريق" description="عرض ومتابعة مهام أعضاء فريقك" icon={Users2} />
+      <PageHeader
+        title="مهام الفريق"
+        description="عرض ومتابعة مهام أعضاء فريقك"
+        icon={Users2}
+        actions={
+          <DailyJournalDialog
+            tasks={filtered}
+            userName={
+              employeeFilter !== "all"
+                ? employees.find((e) => e.id === employeeFilter)?.name
+                : "الفريق"
+            }
+          />
+        }
+      />
 
       <Card className="p-4">
         <div className="flex items-center gap-3 flex-wrap">

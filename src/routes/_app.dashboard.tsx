@@ -28,6 +28,7 @@ import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDi
 import { KpiCard } from "@/components/dashboard/KpiCards";
 import { KanbanBoard, type KanbanTask, type TaskStatus } from "@/components/dashboard/KanbanBoard";
 import { CalendarView } from "@/components/dashboard/CalendarView";
+import { DailyJournalDialog } from "@/components/dashboard/DailyJournalDialog";
 import { format, isAfter, isBefore } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
@@ -417,6 +418,7 @@ function Dashboard() {
               <Download className="h-4 w-4 ms-1.5" />
               تصدير المهام
             </Button>
+            <DailyJournalDialog tasks={allTasks} userName={profile?.full_name || undefined} />
             {!isAdminOrGM && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
