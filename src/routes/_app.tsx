@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LogOut, ListChecks, FolderKanban, Users2, BarChart3, ShieldCheck,
-  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Clock, LayoutDashboard, TrendingUp, Activity,
+  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Clock, LayoutDashboard, TrendingUp, Activity, LifeBuoy,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -84,6 +84,7 @@ function AppLayout() {
       icon: isAdminOrGM ? LayoutDashboard : ListChecks,
       label: isAdminOrGM ? "لوحة التحكم" : "مهامي",
     },
+    { to: "/tickets", icon: LifeBuoy, label: "تذاكر الدعم والـ SLA" },
     { to: "/time", icon: Clock, label: "الوقت" },
     { to: "/my-projects", icon: FolderHeart, label: "مشاريعي" },
     { to: "/performance", icon: TrendingUp, label: "الأداء" },

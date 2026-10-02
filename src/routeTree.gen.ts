@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTimeRouteImport } from './routes/_app.time'
+import { Route as AppTicketsRouteImport } from './routes/_app.tickets'
 import { Route as AppTeamRouteImport } from './routes/_app.team'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReportsRouteImport } from './routes/_app.reports'
@@ -77,6 +78,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppTimeRoute = AppTimeRouteImport.update({
   id: '/time',
   path: '/time',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTicketsRoute = AppTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTeamRoute = AppTeamRouteImport.update({
@@ -299,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof AppReportsRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/team': typeof AppTeamRoute
+  '/tickets': typeof AppTicketsRoute
   '/time': typeof AppTimeRoute
   '/admin/audit': typeof AppAdminAuditRoute
   '/admin/email-provider': typeof AppAdminEmailProviderRoute
@@ -343,6 +350,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
   '/team': typeof AppTeamRoute
+  '/tickets': typeof AppTicketsRoute
   '/time': typeof AppTimeRoute
   '/admin/audit': typeof AppAdminAuditRoute
   '/admin/email-provider': typeof AppAdminEmailProviderRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/_app/reports': typeof AppReportsRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/team': typeof AppTeamRoute
+  '/_app/tickets': typeof AppTicketsRoute
   '/_app/time': typeof AppTimeRoute
   '/_app/admin/audit': typeof AppAdminAuditRoute
   '/_app/admin/email-provider': typeof AppAdminEmailProviderRoute
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/team'
+    | '/tickets'
     | '/time'
     | '/admin/audit'
     | '/admin/email-provider'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reports'
     | '/team'
+    | '/tickets'
     | '/time'
     | '/admin/audit'
     | '/admin/email-provider'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/_app/reports'
     | '/_app/settings'
     | '/_app/team'
+    | '/_app/tickets'
     | '/_app/time'
     | '/_app/admin/audit'
     | '/_app/admin/email-provider'
@@ -613,6 +625,13 @@ declare module '@tanstack/react-router' {
       path: '/time'
       fullPath: '/time'
       preLoaderRoute: typeof AppTimeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/tickets': {
+      id: '/_app/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof AppTicketsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/team': {
@@ -952,6 +971,7 @@ interface AppRouteChildren {
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppTeamRoute: typeof AppTeamRoute
+  AppTicketsRoute: typeof AppTicketsRoute
   AppTimeRoute: typeof AppTimeRoute
   AppAdminAuditRoute: typeof AppAdminAuditRoute
   AppAdminEmailProviderRoute: typeof AppAdminEmailProviderRoute
@@ -978,6 +998,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppTeamRoute: AppTeamRoute,
+  AppTicketsRoute: AppTicketsRoute,
   AppTimeRoute: AppTimeRoute,
   AppAdminAuditRoute: AppAdminAuditRoute,
   AppAdminEmailProviderRoute: AppAdminEmailProviderRoute,
