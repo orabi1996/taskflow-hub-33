@@ -306,6 +306,53 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
       }
     }
 
+    // 8. Automation Rules Seeding
+    const defaultRules = [
+      {
+        name: "خرق اتفاقية SLA للاستجابة",
+        description: "تنبيه الإدارة عند تجاوز تذكرة الدعم الفني مهلة أول استجابة محددة بالاتفاقية",
+        trigger_type: "ticket_sla_response_breach",
+        trigger_config: { cooldown_hours: 12 },
+        action_type: "notify_admins",
+        action_config: {},
+        is_active: true,
+      },
+      {
+        name: "خرق اتفاقية SLA لحل التذكرة",
+        description: "تنبيه الإدارة والمدراء عند تجاوز التذكرة المهلة القصوى للحل النهائي دون إغلاق",
+        trigger_type: "ticket_sla_resolve_breach",
+        trigger_config: { cooldown_hours: 12 },
+        action_type: "notify_admins",
+        action_config: {},
+        is_active: true,
+      },
+      {
+        name: "تحذير اقتراب انتهاء مهلة حل التذكرة SLA",
+        description: "تحذير المسؤول والمدير قبل ساعتين من موعد خرق اتفاقية حل التذكرة",
+        trigger_type: "ticket_sla_warning",
+        trigger_config: { hours: 2, cooldown_hours: 4 },
+        action_type: "notify_manager",
+        action_config: {},
+        is_active: true,
+      },
+      {
+        name: "تذكير برفع يومية العمل للاعتماد",
+        description: "تذكير الموظفين الذين أنجزوا مهام اليوم بإرسال يومية العمل للاعتماد من مديرهم",
+        trigger_type: "daily_journal_missing",
+        trigger_config: { cooldown_hours: 12 },
+        action_type: "notify_user",
+        action_config: {},
+        is_active: true,
+      },
+    ];
+
+    for (const r of defaultRules) {
+      const { data: ex } = await supabaseAdmin.from("automation_rules").select("id").eq("name", r.name).maybeSingle();
+      if (!ex) {
+        await supabaseAdmin.from("automation_rules").insert(r);
+      }
+    }
+
     return {
       ok: true,
       message: "تم توليد البيانات التأسيسية للمنظومة بنجاح!",

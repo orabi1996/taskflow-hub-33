@@ -44,7 +44,10 @@ const TRIGGER_LABELS: Record<string, string> = {
   task_due_soon: "موعد مهمة قريب",
   contract_expiring: "عقد سينتهي قريباً",
   project_inactive: "مشروع بلا نشاط",
-
+  ticket_sla_response_breach: "خرق اتفاقية SLA للاستجابة للتذكرة",
+  ticket_sla_resolve_breach: "خرق اتفاقية SLA لحل التذكرة",
+  ticket_sla_warning: "تحذير: اقتراب انتهاء مهلة حل التذكرة SLA",
+  daily_journal_missing: "تذكير برفع يومية العمل للاعتماد",
   task_assigned: "تم إسناد مهمة",
   task_completed: "تم إنجاز مهمة",
   daily_summary: "ملخص يومي",
@@ -110,7 +113,7 @@ function AutomationPage() {
   const save = async () => {
     if (!name.trim()) { toast.error("الاسم مطلوب"); return; }
     const trigger_config: Record<string, number> = {};
-    if (triggerType === "task_due_soon") trigger_config.hours = triggerHours;
+    if (triggerType === "task_due_soon" || triggerType === "ticket_sla_warning") trigger_config.hours = triggerHours;
     if (triggerType === "contract_expiring") trigger_config.days = triggerDays;
 
     const payload = {
@@ -211,9 +214,9 @@ function AutomationPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  {triggerType === "task_due_soon" && (
+                  {(triggerType === "task_due_soon" || triggerType === "ticket_sla_warning") && (
                     <div>
-                      <Label>قبل كم ساعة من الموعد؟</Label>
+                      <Label>قبل كم ساعة من الموعد أو مهلة الـ SLA؟</Label>
                       <Input type="number" min={1} value={triggerHours} onChange={(e) => setTriggerHours(Number(e.target.value))} />
                     </div>
                   )}

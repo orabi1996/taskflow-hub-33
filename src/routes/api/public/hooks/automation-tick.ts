@@ -159,6 +159,126 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
                   project_id: p.id,
                 });
               }
+            } else if (rule.trigger_type === "ticket_sla_response_breach") {
+              const { data: tickets } = await sb
+                .from("support_tickets")
+                .select("id, ticket_number, title, assigned_to, project_id, sla_response_due_at, first_response_at")
+                .is("first_response_at", null)
+                .lt("sla_response_due_at", now.toISOString())
+                .in("status", ["open", "in_progress"])
+                .limit(200);
+
+              for (const t of (tickets ?? []) as {
+                id: string;
+                ticket_number: string;
+                title: string;
+                assigned_to: string | null;
+                project_id: string | null;
+                sla_response_due_at: string;
+              }[]) {
+                await push(t.id, t.assigned_to, {
+                  type: "sla_breach",
+                  title: `خرق اتفاقية الرد SLA (${t.ticket_number})`,
+                  body: `تجاوزت التذكرة "${t.title}" الحد الأقصى لأول استجابة فنية للعميل`,
+                  link: `/tickets?id=${t.id}`,
+                  project_id: t.project_id,
+                });
+              }
+            } else if (rule.trigger_type === "ticket_sla_resolve_breach") {
+              const { data: tickets } = await sb
+                .from("support_tickets")
+                .select("id, ticket_number, title, assigned_to, project_id, sla_resolve_due_at, resolved_at")
+                .is("resolved_at", null)
+                .lt("sla_resolve_due_at", now.toISOString())
+                .in("status", ["open", "in_progress", "waiting_client"])
+                .limit(200);
+
+              for (const t of (tickets ?? []) as {
+                id: string;
+                ticket_number: string;
+                title: string;
+                assigned_to: string | null;
+                project_id: string | null;
+                sla_resolve_due_at: string;
+              }[]) {
+                await push(t.id, t.assigned_to, {
+                  type: "sla_breach",
+                  title: `خرق اتفاقية الحل SLA (${t.ticket_number})`,
+                  body: `تجاوزت التذكرة "${t.title}" مهلة الحل المحددة بالاتفاقية دون إغلاق`,
+                  link: `/tickets?id=${t.id}`,
+                  project_id: t.project_id,
+                });
+              }
+            } else if (rule.trigger_type === "ticket_sla_warning") {
+              const hours = Number(cfg["hours"] ?? 2);
+              const horizon = new Date(now.getTime() + hours * 3600_000).toISOString();
+              const { data: tickets } = await sb
+                .from("support_tickets")
+                .select("id, ticket_number, title, assigned_to, project_id, sla_resolve_due_at, resolved_at")
+                .is("resolved_at", null)
+                .gte("sla_resolve_due_at", now.toISOString())
+                .lte("sla_resolve_due_at", horizon)
+                .in("status", ["open", "in_progress", "waiting_client"])
+                .limit(200);
+
+              for (const t of (tickets ?? []) as {
+                id: string;
+                ticket_number: string;
+                title: string;
+                assigned_to: string | null;
+                project_id: string | null;
+                sla_resolve_due_at: string;
+              }[]) {
+                await push(t.id, t.assigned_to, {
+                  type: "sla_warning",
+                  title: `تحذير اقتراب خرق SLA (${t.ticket_number})`,
+                  body: `يتبقى أقل من ${hours} ساعة على انتهاء مهلة حل التذكرة "${t.title}"`,
+                  link: `/tickets?id=${t.id}`,
+                  project_id: t.project_id,
+                });
+              }
+            } else if (rule.trigger_type === "daily_journal_missing") {
+              const todayStr = now.toISOString().slice(0, 10);
+              const startOfDay = `${todayStr}T00:00:00.000Z`;
+              const endOfDay = `${todayStr}T23:59:59.999Z`;
+
+              const { data: activeTasks } = await sb
+                .from("tasks")
+                .select("user_id")
+                .gte("start_at", startOfDay)
+                .lte("start_at", endOfDay)
+                .limit(500);
+
+              const userIdsWithTasks = Array.from(
+                new Set(
+                  ((activeTasks ?? []) as { user_id: string }[])
+                    .map((t) => t.user_id)
+                    .filter(Boolean)
+                )
+              );
+
+              if (userIdsWithTasks.length > 0) {
+                const { data: existingSubmissions } = await sb
+                  .from("daily_journal_submissions")
+                  .select("user_id")
+                  .eq("journal_date", todayStr)
+                  .in("user_id", userIdsWithTasks);
+
+                const submittedUserIds = new Set(
+                  ((existingSubmissions ?? []) as { user_id: string }[]).map((s) => s.user_id)
+                );
+
+                for (const uid of userIdsWithTasks) {
+                  if (submittedUserIds.has(uid)) continue;
+                  await push(`journal-${todayStr}-${uid}`, uid, {
+                    type: "daily_journal",
+                    title: "تذكير: اعتماد يومية العمل",
+                    body: "لديك مهام عمل مسجلة اليوم، يُرجى إرسال يومية العمل للاعتماد من مديرك المباشر.",
+                    link: "/dashboard",
+                    project_id: null,
+                  });
+                }
+              }
             }
 
             if (queue.length > 0) {
@@ -252,6 +372,10 @@ async function resolveTargets(
     return mid ? [mid] : [];
   }
   if (action === "notify_admins") {
+    const { data } = await sb.from("user_roles").select("user_id").in("role", ["admin", "general_manager"]);
+    return ((data as { user_id: string }[] | null) ?? []).map((r) => r.user_id);
+  }
+  if (!ownerId && (action === "notify_user" || action === "notify_manager")) {
     const { data } = await sb.from("user_roles").select("user_id").in("role", ["admin", "general_manager"]);
     return ((data as { user_id: string }[] | null) ?? []).map((r) => r.user_id);
   }
