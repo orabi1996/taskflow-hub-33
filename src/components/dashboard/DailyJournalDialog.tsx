@@ -32,8 +32,10 @@ import {
   MessageSquare,
   FileText,
   RotateCcw,
+  Printer,
 } from "lucide-react";
 import { exportToExcel } from "@/lib/export-utils";
+import { printOfficialReport } from "@/lib/executive-report.utils";
 import { useAuth } from "@/lib/auth-context";
 import {
   getJournalSubmission,
@@ -237,6 +239,76 @@ export function DailyJournalView({
 
     exportToExcel(exportData, `يومية_عمل_${selectedDateStr}`);
     toast.success("تم تصدير اليومية إلى ملف Excel");
+  };
+
+  const handlePrintPdf = () => {
+    if (dayTasks.length === 0) {
+      toast.info("لا توجد مهام مسجلة للطباعة");
+      return;
+    }
+
+    const dateFormatted = format(selectedDate, "EEEE d MMMM yyyy", { locale: ar });
+
+    printOfficialReport({
+      title: "تقرير يومية العمل المعتمدة",
+      subtitle: "سجل توثيق إنجاز المهام وساعات العمل اليومية للموظف",
+      reportCode: `JRN-${selectedDateStr.replace(/-/g, "")}-${(effectiveUserId || "emp").slice(0, 4).toUpperCase()}`,
+      metadata: [
+        {
+          label: "اسم الموظف",
+          value: userName || dayTasks.find((t) => t.owner?.full_name)?.owner?.full_name || "موظف المنظومة",
+        },
+        { label: "تاريخ اليومية", value: dateFormatted },
+        {
+          label: "حالة الاعتماد",
+          value:
+            submission?.status === "approved"
+              ? "معتمدة رسمياً ✅"
+              : submission?.status === "submitted"
+              ? "مُرسلة للاعتماد ⏳"
+              : submission?.status === "revision_requested"
+              ? "مطلوب تعديل ⚠️"
+              : "مسودة غير مرسلة",
+        },
+        { label: "المشاريع المنفذة", value: stats.projectsList.join("، ") || "عام" },
+      ],
+      kpis: [
+        { label: "إجمالي المهام", value: stats.totalTasks },
+        { label: "المهام المنجزة", value: stats.completed, color: "#16a34a" },
+        { label: "ساعات العمل الموثقة", value: formatMinutes(stats.totalMinutes), color: "#2563eb" },
+        { label: "نسبة الإنجاز", value: `${stats.completionRate}%`, color: "#16a34a" },
+      ],
+      sections: [
+        {
+          title: "جدول المهام اليومية المنجزة",
+          headers: ["م", "عنوان المهمة", "المشروع", "وقت البدء", "وقت الانتهاء", "المدة", "الحالة", "التفاصيل"],
+          rows: dayTasks.map((t, idx) => [
+            idx + 1,
+            t.title,
+            t.project?.name || "عام",
+            format(new Date(t.start_at), "hh:mm a", { locale: ar }),
+            t.end_at ? format(new Date(t.end_at), "hh:mm a", { locale: ar }) : "مستمرة",
+            formatMinutes(calculateDurationMinutes(t.start_at, t.end_at)),
+            STATUS_LABELS[t.status]?.label || t.status,
+            t.details || "—",
+          ]),
+        },
+      ],
+      approvalStamp: {
+        statusText:
+          submission?.status === "approved"
+            ? "معتمدة رسمياً وموثقة من الإدارة"
+            : submission?.status === "submitted"
+            ? "بانتظار توقيع واعتماد الإدارة"
+            : "مسودة عمل يومية غير معتمدة",
+        isApproved: submission?.status === "approved",
+        reviewerName: submission?.reviewer_name || (submission?.status === "approved" ? "المدير المباشر" : null),
+        reviewedAt: submission?.reviewed_at
+          ? format(new Date(submission.reviewed_at), "yyyy/MM/dd - hh:mm a", { locale: ar })
+          : null,
+        notes: submission?.manager_notes,
+      },
+    });
   };
 
   const handleSubmitJournal = async () => {
@@ -672,6 +744,16 @@ export function DailyJournalView({
           >
             <Download className="h-3.5 w-3.5" />
             تصدير Excel
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground shadow-xs"
+            onClick={handlePrintPdf}
+          >
+            <Printer className="h-3.5 w-3.5" />
+            طباعة / تصدير PDF
           </Button>
         </div>
       </div>

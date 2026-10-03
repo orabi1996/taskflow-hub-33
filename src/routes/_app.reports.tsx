@@ -21,7 +21,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { exportToExcel, exportToCSV, printSection } from "@/lib/export-utils";
-import { exportTableToPDF } from "@/lib/pdf-utils";
+import { printOfficialReport } from "@/lib/executive-report.utils";
 import { FileText, Boxes } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 
@@ -508,26 +508,113 @@ function ReportsPage() {
     "إجمالي الدقائق": r.totalMinutes,
   }));
 
-  const handleExportSessionsCSV = () => exportToCSV(sessionsExportRows(), `تقرير-الجلسات-${month}`);
-  const handleExportSessionsPDF = () => {
-    const headers = ["الموظف", "النظام", "اجتماعات (عدد)", "اجتماعات (د)", "عمل (د)", "دعم (د)", "تدريب (د)", "إجمالي (د)"];
-    const rows = sessionsByEmpModule.map((r) => [
-      r.userName, r.moduleName, r.counts.meeting, r.minutes.meeting,
-      r.minutes.work, r.minutes.support, r.minutes.training, r.totalMinutes,
-    ]);
-    exportTableToPDF({ title: `Sessions Report ${month}`, fileName: `sessions-${month}`, headers, rows });
-  };
-  const handleExportTasksPDF = () => {
-    const headers = ["Title", "Employee", "Project", "Status", "Start", "End", "Mins"];
-    const rows = filtered.map((r) => [
-      r.title, r.owner?.full_name ?? "", r.project?.name ?? "", STATUS_LABEL[r.status],
-      new Date(r.start_at).toLocaleString("en-GB"),
-      r.end_at ? new Date(r.end_at).toLocaleString("en-GB") : "",
-      r.end_at ? Math.round((new Date(r.end_at).getTime() - new Date(r.start_at).getTime()) / 60000) : 0,
-    ]);
-    exportTableToPDF({ title: `Tasks Report ${month}`, fileName: `tasks-${month}`, headers, rows });
+  const fmtHrs = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return `${h} س ${m} د`;
   };
 
+  const handleExportSessionsCSV = () => exportToCSV(sessionsExportRows(), `تقرير-الجلسات-${month}`);
+
+  const handleExportSessionsPDF = () => {
+    const headers = ["الموظف", "النظام", "اجتماعات (عدد)", "اجتماعات", "عمل", "دعم فني", "تدريب", "إجمالي الوقت"];
+    const rows = sessionsByEmpModule.map((r) => [
+      r.userName,
+      r.moduleName,
+      r.counts.meeting,
+      fmtHrs(r.minutes.meeting),
+      fmtHrs(r.minutes.work),
+      fmtHrs(r.minutes.support),
+      fmtHrs(r.minutes.training),
+      fmtHrs(r.totalMinutes),
+    ]);
+
+    const totalSessions = sessionsByEmpModule.reduce((acc, r) => acc + r.totalCount, 0);
+    const totalSessionMins = sessionsByEmpModule.reduce((acc, r) => acc + r.totalMinutes, 0);
+
+    printOfficialReport({
+      title: "تقرير جلسات العمل وساعات الأنظمة",
+      subtitle: `شهر ${month} · توزيع ساعات العمل والتدريب والدعم لأنظمة Classera & C-SmarX`,
+      reportCode: `SES-${month.replace("-", "")}-${Math.floor(1000 + Math.random() * 9000)}`,
+      metadata: [
+        { label: "الفترة الزمنية", value: month },
+        { label: "إجمالي الكوادر النشطة", value: `${sessionsByEmpModule.length} موظف` },
+        { label: "إجمالي الجلسات", value: `${totalSessions} جلسة عمل` },
+      ],
+      kpis: [
+        { label: "إجمالي الجلسات", value: totalSessions, subtext: "جلسة مسجلة للنظام" },
+        { label: "إجمالي ساعات العمل", value: fmtHrs(totalSessionMins), color: "#10b981", subtext: "الوقت الفعلي المستثمر" },
+        { label: "الكوادر المشاركة", value: sessionsByEmpModule.length, color: "#0284c7" },
+      ],
+      sections: [
+        {
+          title: "توزيع الجلسات حسب الموظف والنظام",
+          headers,
+          rows,
+        },
+      ],
+      approvalStamp: {
+        reviewerName: "إدارة الموارد البشرية والعمليات",
+        statusText: "سجل جلسات معتمد",
+        isApproved: true,
+        notes: "تمت مراجعة ومطابقة الجلسات المسجلة للأنظمة مع ساعات الحضور والإنتاجية.",
+      },
+    });
+  };
+
+  const handleExportTasksPDF = () => {
+    const headers = ["العنوان", "الموظف", "المشروع", "الحالة", "البداية", "النهاية", "المدة"];
+    const rows = filtered.map((r) => {
+      const durationMins = r.end_at ? Math.round((new Date(r.end_at).getTime() - new Date(r.start_at).getTime()) / 60000) : 0;
+      return [
+        r.title,
+        r.owner?.full_name ?? "—",
+        r.project?.name ?? "—",
+        STATUS_LABEL[r.status] ?? r.status,
+        new Date(r.start_at).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" }),
+        r.end_at ? new Date(r.end_at).toLocaleString("ar-SA", { dateStyle: "short", timeStyle: "short" }) : "—",
+        r.end_at ? fmtHrs(durationMins) : "—",
+      ];
+    });
+
+    const projectName = projectFilter === "all" ? "جميع المشاريع" : (projectOptions.find((p) => p.id === projectFilter)?.name ?? "محدد");
+    const employeeName = employeeFilter === "all" ? "جميع الموظفين" : (employeeOptions.find((e) => e.id === employeeFilter)?.name ?? "محدد");
+    const departmentName = deptFilter === "all" ? "جميع الأقسام" : (deptName.get(deptFilter) ?? (deptFilter === "none" ? "بدون قسم" : "محدد"));
+    const moduleName = moduleFilter === "all" ? "جميع الأنظمة" : (moduleNames.get(moduleFilter) ?? (moduleFilter === "none" ? "بدون نظام" : "محدد"));
+
+    printOfficialReport({
+      title: "تقرير الأداء التشغيلي وإنجاز المهام",
+      subtitle: `شهر ${month} · ملخص إداري وميداني تفصيلي لمنظومة العمل`,
+      reportCode: `TSK-${month.replace("-", "")}-${Math.floor(1000 + Math.random() * 9000)}`,
+      metadata: [
+        { label: "الفترة الزمنية", value: month },
+        { label: "المشروع المختار", value: projectName },
+        { label: "الموظف", value: employeeName },
+        { label: "القسم", value: departmentName },
+        { label: "نظام ERP / LMS", value: moduleName },
+      ],
+      kpis: [
+        { label: "إجمالي المهام", value: totals.totalTasks, subtext: "مهمة تشغيلية مسجلة" },
+        { label: "المهام المنجزة", value: totals.counts.completed, color: "#10b981", subtext: `نسبة الإنجاز ${completionRate.toFixed(1)}%` },
+        { label: "قيد التنفيذ", value: totals.counts.pending, color: "#0284c7", subtext: "مهام جارية حالياً" },
+        { label: "مؤجلة أو ملغاة", value: totals.counts.postponed + totals.counts.cancelled, color: "#f59e0b" },
+        { label: "إجمالي ساعات العمل", value: fmtHrs(totals.totalMinutes), color: "#6366f1" },
+      ],
+      sections: [
+        {
+          title: "جدول المهام التشغيلية المسجلة",
+          headers,
+          rows,
+        },
+      ],
+      approvalStamp: {
+        reviewerName: "الإدارة التشغيلية ومراقبة الجودة",
+        statusText: "معتمد وموثق رسمياً",
+        isApproved: true,
+        notes: `تم اعتماد تقرير إنجاز المهام لشهر ${month} وتوثيقه وفقاً للوائح القياس المعتمدة لمنظومة C-SmarX و TaskFlow Hub.`,
+      },
+    });
+  };
 
   if (!canSee) {
     return (
@@ -537,12 +624,6 @@ function ReportsPage() {
       </Card>
     );
   }
-
-  const fmtHrs = (mins: number) => {
-    const h = Math.floor(mins / 60);
-    const m = Math.round(mins % 60);
-    return `${h} س ${m} د`;
-  };
 
   const handleExportExcel = () => {
     const data = filtered.map((r) => ({

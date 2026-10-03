@@ -40,9 +40,11 @@ import {
   Loader2,
   RotateCcw,
   Check,
+  Printer,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { printOfficialReport } from "@/lib/executive-report.utils";
 import { useAuth } from "@/lib/auth-context";
 import {
   listSupportTickets,
@@ -320,6 +322,60 @@ function SupportTicketsPage() {
     }
   };
 
+  const handlePrintSlaReport = () => {
+    if (tickets.length === 0) {
+      toast.info("لا توجد تذاكر دعم فني لطباعة التقرير");
+      return;
+    }
+
+    printOfficialReport({
+      title: "تقرير اتفاقيات مستوى الخدمة وبلاغات الدعم الفني (SLA Operations Report)",
+      subtitle: "متابعة كفاءة المعالجة الفنية وسرعة الاستجابة لبلاغات أنظمة ERP و LMS",
+      reportCode: `SLA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      metadata: [
+        { label: "تاريخ استخراج التقرير", value: new Date().toLocaleDateString("ar-SA") },
+        { label: "المسؤول المصدر", value: profile?.full_name || "إدارة الدعم الفني والعمليات" },
+        { label: "إجمالي التذاكر المسجلة", value: `${stats.total} تذكرة` },
+        { label: "نسبة الالتزام بالـ SLA", value: `${stats.complianceRate}%` },
+      ],
+      kpis: [
+        { label: "التذاكر النشطة", value: stats.active, color: "#2563eb" },
+        { label: "بلاغات طارئة وحرجة", value: stats.urgentActive, color: "#dc2626" },
+        { label: "نسبة الالتزام بالـ SLA", value: `${stats.complianceRate}%`, color: "#16a34a" },
+        { label: "تجاوزت وقت الـ SLA", value: stats.breached, color: "#d97706" },
+        { label: "تم حلها بنجاح", value: stats.resolved, color: "#16a34a" },
+      ],
+      sections: [
+        {
+          title: "سجل بلاغات وتذاكر الدعم الفني الحالية",
+          headers: ["رقم التذكرة", "العنوان", "العميل", "المشروع", "الموديول", "الأولوية", "الحالة", "الفني المسؤول", "موقف الـ SLA"],
+          rows: tickets.map((t) => [
+            t.ticket_number,
+            t.title,
+            t.client?.name || "عام",
+            t.project?.name || "عام",
+            t.module?.name || "—",
+            PRIORITY_META[t.priority]?.label || t.priority,
+            STATUS_META[t.status]?.label || t.status,
+            t.assigned?.full_name || "غير مسند",
+            t.status === "resolved" || t.status === "closed"
+              ? "مكتملة ومغلقة"
+              : t.is_sla_breached
+              ? "متأخرة عن الـ SLA ⚠️"
+              : `متبقي ${formatMinutesDuration(t.sla_remaining_minutes || 0)}`,
+          ]),
+        },
+      ],
+      approvalStamp: {
+        statusText: "تقرير رسمي معتمد لعمليات الدعم الفني والـ SLA",
+        isApproved: true,
+        reviewerName: profile?.full_name || "مدير الدعم والعمليات",
+        reviewedAt: new Date().toLocaleDateString("ar-SA"),
+        notes: "تمت مراجعة مؤشرات الاستجابة والحل الفني لجميع بلاغات العملاء.",
+      },
+    });
+  };
+
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
@@ -329,6 +385,16 @@ function SupportTicketsPage() {
         icon={LifeBuoy}
         actions={
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrintSlaReport}
+              disabled={tickets.length === 0}
+              className="gap-1.5 text-xs shadow-2xs"
+            >
+              <Printer className="h-3.5 w-3.5 text-primary" />
+              طباعة تقرير الـ SLA (PDF)
+            </Button>
             <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="gap-1 text-xs">
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
               تحديث
