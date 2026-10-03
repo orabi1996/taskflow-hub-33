@@ -352,6 +352,54 @@ export type Database = {
           },
         ]
       }
+      daily_journal_submissions: {
+        Row: {
+          completed_tasks: number
+          created_at: string
+          employee_notes: string | null
+          id: string
+          journal_date: string
+          manager_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          total_minutes: number
+          total_tasks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_tasks?: number
+          created_at?: string
+          employee_notes?: string | null
+          id?: string
+          journal_date: string
+          manager_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          total_minutes?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_tasks?: number
+          created_at?: string
+          employee_notes?: string | null
+          id?: string
+          journal_date?: string
+          manager_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          total_minutes?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           created_at: string
@@ -1481,6 +1529,94 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string
+          first_responded_at: string | null
+          id: string
+          module_id: string | null
+          priority: string
+          project_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          sla_hours: number
+          status: string
+          ticket_number: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string
+          first_responded_at?: string | null
+          id?: string
+          module_id?: string | null
+          priority?: string
+          project_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          sla_hours?: number
+          status?: string
+          ticket_number: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string
+          first_responded_at?: string | null
+          id?: string
+          module_id?: string | null
+          priority?: string
+          project_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          sla_hours?: number
+          status?: string
+          ticket_number?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "company_modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_attachments: {
         Row: {
           created_at: string
@@ -1736,6 +1872,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_internal_note: boolean
+          message: string
+          sender_id: string | null
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          message: string
+          sender_id?: string | null
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_internal_note?: boolean
+          message?: string
+          sender_id?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
             referencedColumns: ["id"]
           },
         ]

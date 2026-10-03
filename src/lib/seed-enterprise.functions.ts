@@ -301,7 +301,7 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
       for (const t of sampleTasks) {
         const { data: ex } = await supabaseAdmin.from("tasks").select("id").eq("title", t.title).maybeSingle();
         if (!ex) {
-          await supabaseAdmin.from("tasks").insert(t);
+          await supabaseAdmin.from("tasks").insert(t as never);
         }
       }
     }
@@ -349,7 +349,7 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
     for (const r of defaultRules) {
       const { data: ex } = await supabaseAdmin.from("automation_rules").select("id").eq("name", r.name).maybeSingle();
       if (!ex) {
-        await supabaseAdmin.from("automation_rules").insert(r);
+        await supabaseAdmin.from("automation_rules").insert(r as never);
       }
     }
 
