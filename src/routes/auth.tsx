@@ -23,9 +23,7 @@ import {
   ShieldCheck, Zap, BarChart3, Users2,
   AlertCircle, CheckCircle2, Info, ArrowLeft, KeyRound,
 } from "lucide-react";
-import brandLogoAsset from "@/assets/classera-smarx-logo.png.asset.json";
-
-const brandLogo = brandLogoAsset.url;
+import { CrmXLogo } from "@/components/brand/CrmXLogo";
 import heroPhoto from "@/assets/auth-hero-photo-overlay.jpg";
 
 export const Route = createFileRoute("/auth")({
@@ -400,8 +398,8 @@ function AuthPage() {
           <div className="auth-hero-photo p-10 lg:p-12 flex flex-col justify-between text-foreground order-1 min-h-[280px] lg:min-h-0">
             <div className="hero-content flex flex-col h-full justify-between gap-8">
               <div className="flex items-center gap-3">
-                <div className="bg-white rounded-2xl px-5 py-3 md-elev-1 ring-1 ring-border">
-                  <img src={brandLogo} alt="C-SmarX by Classera" className="h-12 w-auto" />
+                <div className="bg-white/95 dark:bg-card/95 rounded-2xl px-5 py-3 md-elev-1 ring-1 ring-border shadow-sm">
+                  <CrmXLogo variant="horizontal" iconSize={38} showTagline={true} />
                 </div>
               </div>
 

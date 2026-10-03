@@ -47,7 +47,7 @@ export function printOfficialReport(opts: OfficialReportOptions) {
     return;
   }
 
-  const orgName = opts.organizationName || "منظومة C-SmarX Enterprise / Classera LMS";
+  const orgName = opts.organizationName || "منظومة CRM-X Enterprise";
   const reportCode = opts.reportCode || `REP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
   const printedDate = new Date().toLocaleString("ar-SA", {
     year: "numeric",
@@ -137,7 +137,7 @@ export function printOfficialReport(opts: OfficialReportOptions) {
         <div class="stamp-seal">
           <div class="seal-inner">
             <span>معتمد إلكترونياً</span>
-            <small>C-SmarX QA</small>
+            <small>CRM-X QA</small>
           </div>
         </div>
       </div>
@@ -265,12 +265,12 @@ export function printOfficialReport(opts: OfficialReportOptions) {
           font-size: 12px;
         }
         .report-table th {
-          background: #1e3a8a;
+          background: #0F4C5C;
           color: #ffffff;
           padding: 8px 10px;
           text-align: right;
           font-weight: 700;
-          border: 1px solid #1e3a8a;
+          border: 1px solid #0F4C5C;
         }
         .report-table td {
           padding: 8px 10px;
@@ -377,7 +377,14 @@ export function printOfficialReport(opts: OfficialReportOptions) {
           <p>${opts.subtitle || orgName}</p>
         </div>
         <div class="header-org-block">
-          <strong>${orgName}</strong>
+          <div style="display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-bottom:4px;">
+            <svg width="24" height="24" viewBox="0 0 200 200" fill="none">
+              <line x1="52" y1="46" x2="148" y2="154" stroke="#0F4C5C" stroke-width="40" stroke-linecap="round" />
+              <line x1="52" y1="154" x2="148" y2="46" stroke="#00A6A6" stroke-width="40" stroke-linecap="round" />
+            </svg>
+            <strong style="font-size:16px; color:#0F4C5C; letter-spacing:-0.5px;">CRM-X</strong>
+          </div>
+          <div style="font-weight:600; color:#334155;">${orgName}</div>
           <div>الرقم المرجعي: ${reportCode}</div>
           <div>تاريخ الطباعة: ${printedDate}</div>
         </div>
@@ -389,7 +396,7 @@ export function printOfficialReport(opts: OfficialReportOptions) {
       ${stampHtml}
 
       <div class="footer-container">
-        <span>وثيقة رسمية صادرة إلكترونياً من منصة C-SmarX Enterprise — TaskFlow Hub</span>
+        <span>وثيقة رسمية صادرة إلكترونياً من منصة CRM-X Enterprise — People · Pipelines · Possibilities</span>
         <span>صفحة 1 من 1</span>
       </div>
 

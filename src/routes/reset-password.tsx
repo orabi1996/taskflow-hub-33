@@ -9,9 +9,7 @@ import { Card } from "@/components/ui/card";
 import {
   Loader2, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, ArrowRight,
 } from "lucide-react";
-import brandLogoAsset from "@/assets/classera-smarx-logo.png.asset.json";
-
-const brandLogo = brandLogoAsset.url;
+import { CrmXLogo } from "@/components/brand/CrmXLogo";
 
 export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
@@ -92,7 +90,7 @@ function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-background via-background to-primary/5">
       <Card className="w-full max-w-md p-8 shadow-xl">
         <div className="flex justify-center mb-6">
-          <img src={brandLogo} alt="Classera | C-SmarX" className="h-10" />
+          <CrmXLogo variant="horizontal" iconSize={36} showTagline={true} />
         </div>
         <h1 className="text-2xl font-bold text-center mb-2">إعادة تعيين كلمة المرور</h1>
         <p className="text-center text-sm text-muted-foreground mb-6">

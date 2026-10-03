@@ -18,10 +18,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AiAssistant } from "@/components/AiAssistant";
 import { useIdleLogout } from "@/hooks/use-idle-logout";
 import { toast } from "sonner";
-import brandEmblemAsset from "@/assets/classera-smarx-emblem.png.asset.json";
-
-
-const brandEmblem = brandEmblemAsset.url;
+import { CrmXLogo, CrmXAppIcon } from "@/components/brand/CrmXLogo";
 
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
@@ -122,10 +119,18 @@ function AppLayout() {
       <CommandPalette />
 
       <Sidebar side="right" collapsible="icon" variant="inset">
-        <SidebarHeader className="p-3">
-          <div className="text-xs font-medium text-muted-foreground group-data-[collapsible=icon]:hidden">
-            التنقّل
-          </div>
+        <SidebarHeader className="p-3 border-b border-sidebar-border/50">
+          <Link to="/dashboard" className="flex items-center gap-2.5 px-1 py-0.5">
+            <CrmXAppIcon size={32} rounded="rounded-xl" />
+            <div className="flex flex-col leading-none group-data-[collapsible=icon]:hidden">
+              <span className="font-black text-lg tracking-tight text-foreground font-sans">
+                CRM<span className="text-[#00A6A6]">-</span><span className="bg-gradient-to-r from-[#00A6A6] to-[#7AE7C7] bg-clip-text text-transparent">X</span>
+              </span>
+              <span className="text-[7.5px] font-bold text-[#00A6A6] tracking-wider uppercase mt-0.5">
+                People · Pipelines · Possibilities
+              </span>
+            </div>
+          </Link>
         </SidebarHeader>
 
         <SidebarContent>
@@ -186,9 +191,9 @@ function AppLayout() {
           <Link
             to="/dashboard"
             className="flex items-center shrink-0 ms-1 me-2"
-            title="C-SmarX — من Classera"
+            title="CRM-X — People · Pipelines · Possibilities"
           >
-            <img src={brandEmblem} alt="Classera | C-SmarX" className="h-8 w-auto" />
+            <CrmXLogo variant="horizontal" iconSize={26} showTagline={false} />
           </Link>
           <div className="flex-1 min-w-0">
             <Button
