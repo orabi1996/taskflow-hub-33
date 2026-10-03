@@ -243,7 +243,7 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
 
     // 6. Sample Daily Tasks Seeding (if adminId exists)
     if (adminId) {
-      const sampleTasks = [
+      const sampleTasks: Record<string, unknown>[] = [
         {
           title: "إعداد ربط الفوترة الإلكترونية المرحلة الثانية مع منصة الزكاة",
           details: "تم اختبار واجهات الربط API وتوليد شهادات التشفير CSID بنجاح، وربط نقاط البيع بالمقر الرئيسي.",
@@ -307,7 +307,7 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
     }
 
     // 8. Automation Rules Seeding
-    const defaultRules = [
+    const defaultRules: Record<string, unknown>[] = [
       {
         name: "خرق اتفاقية SLA للاستجابة",
         description: "تنبيه الإدارة عند تجاوز تذكرة الدعم الفني مهلة أول استجابة محددة بالاتفاقية",
