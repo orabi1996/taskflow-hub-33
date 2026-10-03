@@ -243,7 +243,7 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
 
     // 6. Sample Daily Tasks Seeding (if adminId exists)
     if (adminId) {
-      const sampleTasks: Record<string, unknown>[] = [
+      const sampleTasks = [
         {
           title: "إعداد ربط الفوترة الإلكترونية المرحلة الثانية مع منصة الزكاة",
           details: "تم اختبار واجهات الربط API وتوليد شهادات التشفير CSID بنجاح، وربط نقاط البيع بالمقر الرئيسي.",
@@ -301,13 +301,13 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
       for (const t of sampleTasks) {
         const { data: ex } = await supabaseAdmin.from("tasks").select("id").eq("title", t.title).maybeSingle();
         if (!ex) {
-          await supabaseAdmin.from("tasks").insert(t);
+          await supabaseAdmin.from("tasks").insert(t as never);
         }
       }
     }
 
     // 8. Automation Rules Seeding
-    const defaultRules: Record<string, unknown>[] = [
+    const defaultRules = [
       {
         name: "خرق اتفاقية SLA للاستجابة",
         description: "تنبيه الإدارة عند تجاوز تذكرة الدعم الفني مهلة أول استجابة محددة بالاتفاقية",
@@ -349,7 +349,7 @@ export const seedEnterpriseData = createServerFn({ method: "POST" }).handler(asy
     for (const r of defaultRules) {
       const { data: ex } = await supabaseAdmin.from("automation_rules").select("id").eq("name", r.name).maybeSingle();
       if (!ex) {
-        await supabaseAdmin.from("automation_rules").insert(r);
+        await supabaseAdmin.from("automation_rules").insert(r as never);
       }
     }
 
