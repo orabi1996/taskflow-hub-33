@@ -352,6 +352,54 @@ export type Database = {
           },
         ]
       }
+      daily_journal_submissions: {
+        Row: {
+          completed_tasks: number
+          created_at: string
+          employee_notes: string | null
+          id: string
+          journal_date: string
+          manager_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          total_minutes: number
+          total_tasks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_tasks?: number
+          created_at?: string
+          employee_notes?: string | null
+          id?: string
+          journal_date: string
+          manager_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          total_minutes?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_tasks?: number
+          created_at?: string
+          employee_notes?: string | null
+          id?: string
+          journal_date?: string
+          manager_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          total_minutes?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           created_at: string
