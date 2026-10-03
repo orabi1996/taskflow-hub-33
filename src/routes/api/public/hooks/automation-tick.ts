@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { validateWebhookOrCronSecret, verifyAdminOrSupportUser, recordSecurityAudit } from "@/lib/server-security";
 
 type Rule = {
@@ -337,8 +337,7 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
 
 /** Build a set of "userId|entityId" already notified by this rule inside the cooldown window. */
 async function recentlyNotified(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sb: any,
+  sb: SupabaseClient,
   ruleId: string,
   cooldownHours: number,
 ): Promise<Set<string>> {
@@ -359,8 +358,7 @@ async function recentlyNotified(
 }
 
 async function resolveTargets(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sb: any,
+  sb: SupabaseClient,
   rule: { action_type: string; action_config: unknown },
   ownerId: string | null
 ): Promise<string[]> {

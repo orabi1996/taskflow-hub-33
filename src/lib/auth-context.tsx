@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         supabase.from("user_roles").select("role").eq("user_id", uid),
       ]);
       setProfile(prof ?? null);
-      let assignedRoles = ((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role);
+      const assignedRoles = ((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role);
       const emailToCheck = (prof?.email || overrideEmail || user?.email || "").toLowerCase().trim();
       if (emailToCheck && SUPER_ADMIN_EMAILS.includes(emailToCheck)) {
         const topRoles: AppRole[] = ["admin", "general_manager", "manager"];

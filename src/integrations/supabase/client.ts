@@ -39,7 +39,9 @@ function resolveConfig() {
     try {
       storedUrl = window.localStorage.getItem('__sb_public_url__') || undefined;
       storedKey = window.localStorage.getItem('__sb_public_key__') || undefined;
-    } catch {}
+    } catch {
+      // Storage unavailable or blocked by browser settings
+    }
   }
 
   const SUPABASE_URL =
@@ -113,7 +115,9 @@ export function configureSupabaseClient(url?: string | null, key?: string | null
     try {
       window.localStorage.setItem('__sb_public_url__', url);
       window.localStorage.setItem('__sb_public_key__', key);
-    } catch {}
+    } catch {
+      // Storage unavailable or quota exceeded
+    }
   }
   _supabase = createSupabaseClient();
 }
