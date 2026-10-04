@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AppAlertsRouteImport } from './routes/_app.alerts'
+import { Route as AppClientsRouteImport } from './routes/_app.clients'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppPerformanceRouteImport } from './routes/_app.performance'
 import { Route as AppProfileRouteImport } from './routes/_app.profile'
@@ -45,6 +46,7 @@ import { Route as AppSettingsDevicesRouteImport } from './routes/_app.settings.d
 import { Route as AppSettingsEmployeesRouteImport } from './routes/_app.settings.employees'
 import { Route as AppSettingsModulesRouteImport } from './routes/_app.settings.modules'
 import { Route as AppSettingsNotificationsRouteImport } from './routes/_app.settings.notifications'
+import { Route as AppSettingsOrganizationRouteImport } from './routes/_app.settings.organization'
 import { Route as AppSettingsSecurityRouteImport } from './routes/_app.settings.security'
 import { Route as AppSettingsSmtpRouteImport } from './routes/_app.settings.smtp'
 import { Route as ApiAiAssistantRouteImport } from './routes/api/ai.assistant'
@@ -78,6 +80,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const AppAlertsRoute = AppAlertsRouteImport.update({
   id: '/alerts',
   path: '/alerts',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientsRoute = AppClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -238,6 +245,11 @@ const AppSettingsNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AppSettingsRoute,
   } as any)
+const AppSettingsOrganizationRoute = AppSettingsOrganizationRouteImport.update({
+  id: '/organization',
+  path: '/organization',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppSettingsSecurityRoute = AppSettingsSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -299,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/alerts': typeof AppAlertsRoute
+  '/clients': typeof AppClientsRoute
   '/dashboard': typeof AppDashboardRoute
   '/performance': typeof AppPerformanceRouteWithChildren
   '/profile': typeof AppProfileRoute
@@ -325,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/settings/organization': typeof AppSettingsOrganizationRoute
   '/settings/security': typeof AppSettingsSecurityRoute
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
@@ -346,6 +360,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/alerts': typeof AppAlertsRoute
+  '/clients': typeof AppClientsRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
   '/reports': typeof AppReportsRoute
@@ -370,6 +385,7 @@ export interface FileRoutesByTo {
   '/settings/employees': typeof AppSettingsEmployeesRoute
   '/settings/modules': typeof AppSettingsModulesRoute
   '/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/settings/organization': typeof AppSettingsOrganizationRoute
   '/settings/security': typeof AppSettingsSecurityRoute
   '/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
@@ -393,6 +409,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_app/alerts': typeof AppAlertsRoute
+  '/_app/clients': typeof AppClientsRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/performance': typeof AppPerformanceRouteWithChildren
   '/_app/profile': typeof AppProfileRoute
@@ -419,6 +436,7 @@ export interface FileRoutesById {
   '/_app/settings/employees': typeof AppSettingsEmployeesRoute
   '/_app/settings/modules': typeof AppSettingsModulesRoute
   '/_app/settings/notifications': typeof AppSettingsNotificationsRoute
+  '/_app/settings/organization': typeof AppSettingsOrganizationRoute
   '/_app/settings/security': typeof AppSettingsSecurityRoute
   '/_app/settings/smtp': typeof AppSettingsSmtpRoute
   '/api/ai/assistant': typeof ApiAiAssistantRoute
@@ -442,6 +460,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/alerts'
+    | '/clients'
     | '/dashboard'
     | '/performance'
     | '/profile'
@@ -468,6 +487,7 @@ export interface FileRouteTypes {
     | '/settings/employees'
     | '/settings/modules'
     | '/settings/notifications'
+    | '/settings/organization'
     | '/settings/security'
     | '/settings/smtp'
     | '/api/ai/assistant'
@@ -489,6 +509,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/alerts'
+    | '/clients'
     | '/dashboard'
     | '/profile'
     | '/reports'
@@ -513,6 +534,7 @@ export interface FileRouteTypes {
     | '/settings/employees'
     | '/settings/modules'
     | '/settings/notifications'
+    | '/settings/organization'
     | '/settings/security'
     | '/settings/smtp'
     | '/api/ai/assistant'
@@ -535,6 +557,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_app/alerts'
+    | '/_app/clients'
     | '/_app/dashboard'
     | '/_app/performance'
     | '/_app/profile'
@@ -561,6 +584,7 @@ export interface FileRouteTypes {
     | '/_app/settings/employees'
     | '/_app/settings/modules'
     | '/_app/settings/notifications'
+    | '/_app/settings/organization'
     | '/_app/settings/security'
     | '/_app/settings/smtp'
     | '/api/ai/assistant'
@@ -625,6 +649,13 @@ declare module '@tanstack/react-router' {
       path: '/alerts'
       fullPath: '/alerts'
       preLoaderRoute: typeof AppAlertsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/clients': {
+      id: '/_app/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AppClientsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -844,6 +875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsNotificationsRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/organization': {
+      id: '/_app/settings/organization'
+      path: '/organization'
+      fullPath: '/settings/organization'
+      preLoaderRoute: typeof AppSettingsOrganizationRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/settings/security': {
       id: '/_app/settings/security'
       path: '/security'
@@ -941,6 +979,7 @@ interface AppSettingsRouteChildren {
   AppSettingsEmployeesRoute: typeof AppSettingsEmployeesRoute
   AppSettingsModulesRoute: typeof AppSettingsModulesRoute
   AppSettingsNotificationsRoute: typeof AppSettingsNotificationsRoute
+  AppSettingsOrganizationRoute: typeof AppSettingsOrganizationRoute
   AppSettingsSecurityRoute: typeof AppSettingsSecurityRoute
   AppSettingsSmtpRoute: typeof AppSettingsSmtpRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
@@ -954,6 +993,7 @@ const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsEmployeesRoute: AppSettingsEmployeesRoute,
   AppSettingsModulesRoute: AppSettingsModulesRoute,
   AppSettingsNotificationsRoute: AppSettingsNotificationsRoute,
+  AppSettingsOrganizationRoute: AppSettingsOrganizationRoute,
   AppSettingsSecurityRoute: AppSettingsSecurityRoute,
   AppSettingsSmtpRoute: AppSettingsSmtpRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
@@ -965,6 +1005,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAlertsRoute: typeof AppAlertsRoute
+  AppClientsRoute: typeof AppClientsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppPerformanceRoute: typeof AppPerformanceRouteWithChildren
   AppProfileRoute: typeof AppProfileRoute
@@ -992,6 +1033,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAlertsRoute: AppAlertsRoute,
+  AppClientsRoute: AppClientsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppPerformanceRoute: AppPerformanceRouteWithChildren,
   AppProfileRoute: AppProfileRoute,

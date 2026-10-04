@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
-import { Laptop, ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users, Bell } from "lucide-react";
+import { Laptop, ServerCog, Settings as SettingsIcon, ShieldAlert, Bot, Boxes, ShieldCheck, Network, UserCog, Grid3X3, SearchCheck, Mail, Stethoscope, Users, Bell, Building2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/_app/settings")({
@@ -27,6 +27,7 @@ function SettingsLayout() {
 
   const tabs = [
     { to: "/settings", label: "نظرة عامة", icon: SettingsIcon, exact: true },
+    { to: "/settings/organization", label: "هوية المنشأة وWebhooks", icon: Building2, exact: false },
     { to: "/settings/employees", label: "الموظفون والصلاحيات", icon: Users, exact: false },
     { to: "/settings/modules", label: "أنظمة الشركة", icon: Boxes, exact: false },
     { to: "/settings/smtp", label: "SMTP", icon: ServerCog, exact: false },

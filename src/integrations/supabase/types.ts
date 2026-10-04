@@ -947,6 +947,60 @@ export type Database = {
           },
         ]
       }
+      organization_settings: {
+        Row: {
+          address: string | null
+          brand_tagline: string | null
+          commercial_registry: string | null
+          company_name: string
+          created_at: string
+          currency: string
+          id: string
+          official_seal_text: string | null
+          report_footer: string | null
+          support_email: string | null
+          support_phone: string | null
+          timezone: string
+          updated_at: string
+          webhooks: Json
+          working_hours: string | null
+        }
+        Insert: {
+          address?: string | null
+          brand_tagline?: string | null
+          commercial_registry?: string | null
+          company_name?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          official_seal_text?: string | null
+          report_footer?: string | null
+          support_email?: string | null
+          support_phone?: string | null
+          timezone?: string
+          updated_at?: string
+          webhooks?: Json
+          working_hours?: string | null
+        }
+        Update: {
+          address?: string | null
+          brand_tagline?: string | null
+          commercial_registry?: string | null
+          company_name?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          official_seal_text?: string | null
+          report_footer?: string | null
+          support_email?: string | null
+          support_phone?: string | null
+          timezone?: string
+          updated_at?: string
+          webhooks?: Json
+          working_hours?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

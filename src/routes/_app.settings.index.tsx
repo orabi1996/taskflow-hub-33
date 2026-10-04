@@ -18,7 +18,7 @@ import {
   Lock,
   ShieldAlert,
   Users,
-
+  Building2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_app/settings/")({
@@ -30,6 +30,13 @@ function SettingsIndex() {
   const isAdmin = roles.includes("admin");
 
   const items = [
+    {
+      to: "/settings/organization",
+      icon: Building2,
+      title: "ملف وهوية المنشأة وWebhooks",
+      desc: "اسم المؤسسة، الشعار والختم الرقمي، السجل والعملة، تذييل التقارير، وقنوات ربط الـ Webhooks (Slack/Discord/Teams).",
+      adminOnly: false,
+    },
     {
       to: "/settings/employees",
       icon: Users,
