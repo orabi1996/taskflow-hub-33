@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -15,7 +15,9 @@ import {
   Plus, ListChecks, Clock, CheckCircle2, PauseCircle, Paperclip, Search,
   AlertTriangle, FolderKanban, TrendingUp, KanbanSquare, CalendarDays, List, X,
   LayoutDashboard, Users2, UserCircle, Trash2, Download, RefreshCw, ClipboardList,
+  LifeBuoy, Sparkles, ArrowRight, Building2,
 } from "lucide-react";
+import { getSlaDashboardStats } from "@/lib/tickets.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { exportToExcel } from "@/lib/export-utils";
@@ -90,6 +92,13 @@ function Dashboard() {
   const [allTasks, setTasks] = useState<TaskRow[]>([]);
   const [projectsCount, setProjectsCount] = useState<number>(0);
   const [contractAlerts, setContractAlerts] = useState<number>(0);
+  const [slaStats, setSlaStats] = useState<{
+    total: number;
+    active: number;
+    urgentActive: number;
+    breached: number;
+    complianceRate: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<EditableTask | null>(null);
@@ -175,6 +184,16 @@ function Dashboard() {
       }).length;
       setContractAlerts(count);
     }
+
+    try {
+      const slaRes = await getSlaDashboardStats();
+      if (slaRes.ok && slaRes.stats) {
+        setSlaStats(slaRes.stats);
+      }
+    } catch {
+      // Non-blocking fallback
+    }
+
     setLoading(false);
   };
 
@@ -493,6 +512,71 @@ function Dashboard() {
         )}
       </div>
 
+      {/* Enterprise SLA & Customer Success Pulse Widget */}
+      {slaStats && (
+        <Card className="p-4 bg-gradient-to-r from-primary/10 via-card to-card border-primary/20 shadow-sm">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                <LifeBuoy className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="font-bold text-sm text-foreground flex items-center gap-2">
+                  <span>نبض اتفاقيات الخدمة (SLA Pulse) وبلاغات العملاء</span>
+                  <Badge variant="outline" className="text-[11px] bg-primary/10 text-primary border-primary/30">
+                    مباشر
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  تتبع فوري لأداء استجابة الدعم الفني، التذاكر العاجلة، ومؤشرات رضا الشركاء
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 self-stretch md:self-auto justify-between md:justify-end">
+              <div className="flex items-center gap-3 text-xs bg-background/80 px-3 py-1.5 rounded-lg border">
+                <div>
+                  <span className="text-muted-foreground">التذاكر النشطة: </span>
+                  <strong className="text-foreground">{slaStats.active}</strong>
+                </div>
+                <span className="text-muted-foreground/40">|</span>
+                <div>
+                  <span className="text-muted-foreground">بلاغات عاجلة: </span>
+                  <strong className={slaStats.urgentActive > 0 ? "text-destructive font-bold" : "text-foreground"}>
+                    {slaStats.urgentActive}
+                  </strong>
+                </div>
+                <span className="text-muted-foreground/40">|</span>
+                <div>
+                  <span className="text-muted-foreground">نسبة الامتثال: </span>
+                  <strong className="text-emerald-600 font-bold">{slaStats.complianceRate}%</strong>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button asChild size="sm" variant="outline" className="text-xs h-8 gap-1">
+                  <Link to="/tickets">
+                    <span>التذاكر</span>
+                    <ArrowRight className="h-3 w-3 rotate-180" />
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="text-xs h-8 gap-1">
+                  <Link to="/clients">
+                    <span>العملاء</span>
+                    <ArrowRight className="h-3 w-3 rotate-180" />
+                  </Link>
+                </Button>
+                <Button asChild size="sm" className="text-xs h-8 gap-1">
+                  <Link to="/portal">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>بوابة العميل</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
