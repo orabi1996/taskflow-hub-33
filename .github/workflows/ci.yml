@@ -55,3 +55,6 @@ jobs:
 
       - name: Dependency audit (non-blocking)
         run: npm audit --audit-level=critical || true
+
+      - name: Verify Docker Container Build
+        run: docker build -t crm-x-app:ci .
