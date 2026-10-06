@@ -1,0 +1,64 @@
+{
+  "name": "CRM-X Enterprise — People · Pipelines · Possibilities",
+  "short_name": "CRM-X",
+  "description": "المنظومة السحابية المتكاملة لإدارة علاقات العملاء، مشاريع الـ ERP والـ LMS، وتذاكر الدعم الفني.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#042f2e",
+  "theme_color": "#0d9488",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "لوحة التحكم",
+      "short_name": "الرئيسية",
+      "description": "استعراض مؤشرات الأداء والمهام",
+      "url": "/dashboard",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "تذاكر الدعم الفني",
+      "short_name": "التذاكر",
+      "description": "إدارة بلاغات الدعم والـ SLA",
+      "url": "/tickets",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "بوابة العميل",
+      "short_name": "البوابة",
+      "description": "الخدمة الذاتية وتراخيص الشركاء",
+      "url": "/portal",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "العقود والفواتير",
+      "short_name": "الفواتير",
+      "description": "المطالبات المالية والتحصيلات",
+      "url": "/billing",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"]
+}

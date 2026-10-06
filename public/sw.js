@@ -1,10 +1,39 @@
-/* Service worker for Pulse web push notifications */
+/* Service worker for CRM-X Enterprise — PWA & Web Push Notifications */
+const CACHE_NAME = "crm-x-v1";
+const STATIC_ASSETS = [
+  "/favicon.svg",
+  "/manifest.json",
+];
+
 self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => {})
+  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+
+  // Cache-first for manifest and static vector favicon
+  if (url.origin === self.location.origin && STATIC_ASSETS.includes(url.pathname)) {
+    event.respondWith(
+      caches.match(event.request).then((res) => res || fetch(event.request))
+    );
+  }
 });
 
 self.addEventListener("push", (event) => {
@@ -14,11 +43,11 @@ self.addEventListener("push", (event) => {
   } catch (e) {
     payload = { title: "إشعار جديد", body: event.data ? event.data.text() : "" };
   }
-  const title = payload.title || "إشعار جديد";
+  const title = payload.title || "إشعار جديد — CRM-X";
   const options = {
     body: payload.body || "",
-    icon: payload.icon || "/favicon.png",
-    badge: "/favicon.png",
+    icon: payload.icon || "/favicon.svg",
+    badge: "/favicon.svg",
     dir: "rtl",
     lang: "ar",
     tag: payload.tag || undefined,

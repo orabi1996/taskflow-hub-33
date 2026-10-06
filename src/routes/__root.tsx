@@ -38,11 +38,18 @@ export const Route = createRootRoute({
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "CRM-X | People · Pipelines · Possibilities" },
       { name: "twitter:description", content: "CRM-X — المنظومة المتكاملة لإدارة علاقات العملاء والعمليات وفرق العمل" },
+      { name: "theme-color", content: "#0d9488" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "CRM-X" },
+      { name: "application-name", content: "CRM-X Enterprise" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "alternate icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/favicon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -58,6 +65,9 @@ export const Route = createRootRoute({
     scripts: [
       {
         children: `(function(){try{var p=JSON.parse(localStorage.getItem('ui-prefs-v1')||'{}');var t=['aurora','mint','slate'].includes(p.theme)?p.theme:'aurora';var a=p.animations===false?'off':'on';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-anim',a);var c=navigator.connection;var low=c&&(c.saveData||['slow-2g','2g','3g'].includes(c.effectiveType));document.documentElement.setAttribute('data-perf',low?'low':'auto');}catch(e){}})();`,
+      },
+      {
+        children: `(function(){if(typeof window!=='undefined'&&'serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}})();`,
       },
     ],
   }),
@@ -84,6 +94,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { installServerFnAuth } from "@/lib/server-fn-auth";
 import { PreferencesProvider } from "@/lib/preferences";
+import { InstallAppPrompt } from "@/components/pwa/InstallAppPrompt";
 
 if (typeof window !== "undefined") {
   installServerFnAuth();
@@ -94,6 +105,7 @@ function RootComponent() {
     <PreferencesProvider>
       <AuthProvider>
         <Outlet />
+        <InstallAppPrompt />
         <Toaster richColors position="top-center" />
       </AuthProvider>
     </PreferencesProvider>
