@@ -193,6 +193,82 @@ function SupportTicketsPage() {
     void loadData();
   }, [statusFilter, priorityFilter, projectFilter, search]);
 
+  // Realtime WebSocket Subscription for Live Ticket Sync and Messages
+  useEffect(() => {
+    const channel = supabase
+      .channel("crm-x-tickets-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_tickets" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const newTkt = payload.new as any;
+            toast.info(`🔔 تذكرة دعم فني جديدة: #${newTkt.ticket_number || ""}`, {
+              description: newTkt.title,
+            });
+            void loadData();
+          } else if (payload.eventType === "UPDATE") {
+            const updatedTkt = payload.new as any;
+            setTickets((prev) =>
+              prev.map((t) => (t.id === updatedTkt.id ? { ...t, ...updatedTkt } : t))
+            );
+            if (selectedTicketId === updatedTkt.id) {
+              setTicketDetails((prev) => (prev ? { ...prev, ...updatedTkt } : null));
+            }
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ticket_messages" },
+        (payload) => {
+          const newMsg = payload.new as any;
+          if (selectedTicketId && newMsg.ticket_id === selectedTicketId) {
+            setTicketMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              const sender = staffList.find((s) => s.id === newMsg.sender_id);
+              const senderName = sender
+                ? sender.full_name
+                : newMsg.sender_id === user?.id
+                ? profile?.full_name || "أنت"
+                : "العميل / مستخدم المنظومة";
+
+              if (newMsg.sender_id !== user?.id) {
+                toast.info(`💬 رد جديد في المحادثة من ${senderName}`);
+              }
+
+              return [
+                ...prev,
+                {
+                  id: newMsg.id,
+                  ticket_id: newMsg.ticket_id,
+                  sender_id: newMsg.sender_id,
+                  message: newMsg.message,
+                  is_internal_note: newMsg.is_internal_note,
+                  created_at: newMsg.created_at,
+                  sender_name: senderName,
+                },
+              ];
+            });
+          }
+
+          // Increment messages count for this ticket in the table
+          setTickets((prev) =>
+            prev.map((t) =>
+              t.id === newMsg.ticket_id
+                ? { ...t, messages_count: (t.messages_count || 0) + 1 }
+                : t
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedTicketId, user?.id, profile?.full_name, staffList]);
+
   // Open Details Modal
   const openTicketDrawer = async (ticketId: string) => {
     setSelectedTicketId(ticketId);
@@ -385,6 +461,10 @@ function SupportTicketsPage() {
         icon={LifeBuoy}
         actions={
           <div className="flex items-center gap-2">
+            <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              مزامنة حية (Realtime)
+            </Badge>
             <Button
               variant="outline"
               size="sm"

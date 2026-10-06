@@ -363,6 +363,18 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
         is_internal_note: false,
       });
 
+      // Notify ticket creator or assignee if different from current updater
+      const notifyTarget = updated.created_by === context.userId ? updated.assigned_to : updated.created_by;
+      if (notifyTarget && notifyTarget !== context.userId) {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: notifyTarget,
+          type: "ticket_status_change",
+          title: `تحديث حالة التذكرة #${updated.ticket_number}`,
+          body: `أصبحت الحالة الآن: ${statusLabels[data.status] || data.status}${data.resolutionNotes ? ` (${data.resolutionNotes.slice(0, 80)})` : ""}`,
+          link: "/tickets",
+        });
+      }
+
       return {
         ok: true,
         message: "تم تحديث حالة التذكرة بنجاح",
@@ -416,6 +428,28 @@ export const addTicketMessage = createServerFn({ method: "POST" })
         })
         .eq("id", data.ticketId)
         .is("first_responded_at", null);
+
+      // Notify relevant parties if not an internal technical note
+      if (!data.isInternalNote) {
+        const { data: tkt } = await supabaseAdmin
+          .from("support_tickets")
+          .select("ticket_number, title, created_by, assigned_to")
+          .eq("id", data.ticketId)
+          .single();
+
+        if (tkt) {
+          const recipientId = tkt.assigned_to === senderId ? tkt.created_by : tkt.assigned_to;
+          if (recipientId && recipientId !== senderId) {
+            await supabaseAdmin.from("notifications").insert({
+              user_id: recipientId,
+              type: "ticket_message",
+              title: `رد جديد على التذكرة #${tkt.ticket_number}`,
+              body: data.message.length > 120 ? data.message.slice(0, 117) + "..." : data.message,
+              link: "/tickets",
+            });
+          }
+        }
+      }
 
       return {
         ok: true,

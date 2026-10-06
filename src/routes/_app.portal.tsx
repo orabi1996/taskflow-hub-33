@@ -201,6 +201,73 @@ function ClientPortalPage() {
     }
   }, [selectedClientId]);
 
+  // Realtime Live Sync for Client Tickets and Live Chat
+  useEffect(() => {
+    if (!selectedClientId) return;
+
+    const channel = supabase
+      .channel(`crm-x-portal-realtime-${selectedClientId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "support_tickets",
+        },
+        (payload) => {
+          const tkt = payload.new as any;
+          if (tkt.client_id === selectedClientId) {
+            if (payload.eventType === "UPDATE") {
+              setTickets((prev) =>
+                prev.map((t) => (t.id === tkt.id ? { ...t, ...tkt } : t))
+              );
+              if (selectedTicket && selectedTicket.id === tkt.id) {
+                setSelectedTicket((prev) => (prev ? { ...prev, ...tkt } : null));
+              }
+            } else if (payload.eventType === "INSERT") {
+              void fetchClientTickets(selectedClientId);
+            }
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "ticket_messages",
+        },
+        (payload) => {
+          const newMsg = payload.new as any;
+          if (drawerOpen && selectedTicket && newMsg.ticket_id === selectedTicket.id) {
+            if (!newMsg.is_internal_note) {
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === newMsg.id)) return prev;
+                toast.info("💬 تم استلام رد جديد من الفريق الفني");
+                return [
+                  ...prev,
+                  {
+                    id: newMsg.id,
+                    ticket_id: newMsg.ticket_id,
+                    sender_id: newMsg.sender_id,
+                    message: newMsg.message,
+                    is_internal_note: false,
+                    created_at: newMsg.created_at,
+                    sender_name: "الدعم الفني والعمليات",
+                  },
+                ];
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedClientId, drawerOpen, selectedTicket]);
+
   // Open Ticket Details Modal
   const openTicketModal = async (ticket: TicketRecord) => {
     setSelectedTicket(ticket);
@@ -663,9 +730,15 @@ function ClientPortalPage() {
                 <span className="font-mono text-primary font-bold">{selectedTicket?.ticket_number}</span>
                 <span>{selectedTicket?.title}</span>
               </div>
-              <Badge variant="outline" className="text-xs">
-                {selectedTicket?.status === "resolved" ? "تم الحل" : "قيد المتابعة"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  مباشر
+                </span>
+                <Badge variant="outline" className="text-xs">
+                  {selectedTicket?.status === "resolved" ? "تم الحل" : "قيد المتابعة"}
+                </Badge>
+              </div>
             </DialogTitle>
           </DialogHeader>
 
