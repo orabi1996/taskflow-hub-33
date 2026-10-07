@@ -22,57 +22,45 @@ export function CrmXEmblem({ size = 48, className = "", ...props }: CrmXLogoProp
       {...props}
     >
       <defs>
-        {/* Descending ribbon: Deep Teal -> Bright Teal */}
-        <linearGradient id={`crmx-teal-desc-${id}`} x1="30" y1="30" x2="170" y2="170" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0F4C5C" />
-          <stop offset="65%" stopColor="#00A6A6" />
-          <stop offset="100%" stopColor="#22C8B8" />
+        {/* Swirl Blade Gradient: Vivid Ocean Cyan to Deep Blue */}
+        <linearGradient id={`crmx-swirl-grad-${id}`} x1="30" y1="20" x2="170" y2="150" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#38BDF8" />
+          <stop offset="45%" stopColor="#0284C7" />
+          <stop offset="100%" stopColor="#0369A1" />
         </linearGradient>
 
-        {/* Ascending ribbon: Bright Teal -> Mint Accent -> Bright Teal */}
-        <linearGradient id={`crmx-teal-asc-${id}`} x1="30" y1="170" x2="170" y2="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#00A6A6" />
-          <stop offset="45%" stopColor="#7AE7C7" />
-          <stop offset="100%" stopColor="#00A6A6" />
-        </linearGradient>
-
-        {/* Overlapping intersection shadow/glow facet */}
-        <linearGradient id={`crmx-facet-${id}`} x1="80" y1="80" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0F4C5C" stopOpacity="0.4" />
-          <stop offset="50%" stopColor="#7AE7C7" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#00A6A6" stopOpacity="0.3" />
+        {/* Bottom Capsule Pill Gradient */}
+        <linearGradient id={`crmx-pill-grad-${id}`} x1="85" y1="150" x2="115" y2="165" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#E2E8F0" />
+          <stop offset="50%" stopColor="#CBD5E1" />
+          <stop offset="100%" stopColor="#94A3B8" />
         </linearGradient>
       </defs>
 
-      {/* Descending Arm (Top-Left to Bottom-Right) */}
-      <line
-        x1="52"
-        y1="46"
-        x2="148"
-        y2="154"
-        stroke={`url(#crmx-teal-desc-${id})`}
-        strokeWidth="38"
-        strokeLinecap="round"
-      />
+      {/* 3-Blade Vortex Swirl (Symmetric 120-degree Rotations) */}
+      <g transform="translate(0, -4)">
+        {/* Blade 1 (0 deg) */}
+        <path
+          d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z"
+          fill={`url(#crmx-swirl-grad-${id})`}
+          transform="rotate(0, 100, 82)"
+        />
+        {/* Blade 2 (120 deg) */}
+        <path
+          d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z"
+          fill={`url(#crmx-swirl-grad-${id})`}
+          transform="rotate(120, 100, 82)"
+        />
+        {/* Blade 3 (240 deg) */}
+        <path
+          d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z"
+          fill={`url(#crmx-swirl-grad-${id})`}
+          transform="rotate(240, 100, 82)"
+        />
+      </g>
 
-      {/* Ascending Arm (Bottom-Left to Top-Right) with 3D overlapping transparency */}
-      <line
-        x1="52"
-        y1="154"
-        x2="148"
-        y2="46"
-        stroke={`url(#crmx-teal-asc-${id})`}
-        strokeWidth="38"
-        strokeLinecap="round"
-      />
-
-      {/* Intersection Translucent Fold Highlight */}
-      <path
-        d="M 82 82 L 118 82 L 118 118 L 82 118 Z"
-        fill={`url(#crmx-facet-${id})`}
-        style={{ mixBlendMode: "screen" }}
-        opacity="0.75"
-      />
+      {/* Bottom Horizontal Capsule Accent */}
+      <rect x="86" y="156" width="28" height="9" rx="4.5" fill={`url(#crmx-pill-grad-${id})`} />
     </svg>
   );
 }

@@ -379,8 +379,12 @@ export function printOfficialReport(opts: OfficialReportOptions) {
         <div class="header-org-block">
           <div style="display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-bottom:4px;">
             <svg width="24" height="24" viewBox="0 0 200 200" fill="none">
-              <line x1="52" y1="46" x2="148" y2="154" stroke="#0F4C5C" stroke-width="40" stroke-linecap="round" />
-              <line x1="52" y1="154" x2="148" y2="46" stroke="#00A6A6" stroke-width="40" stroke-linecap="round" />
+              <g transform="translate(0, -4)">
+                <path d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z" fill="#0284C7" transform="rotate(0, 100, 82)" />
+                <path d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z" fill="#0284C7" transform="rotate(120, 100, 82)" />
+                <path d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z" fill="#0284C7" transform="rotate(240, 100, 82)" />
+              </g>
+              <rect x="86" y="156" width="28" height="9" rx="4.5" fill="#94A3B8" />
             </svg>
             <strong style="font-size:16px; color:#0F4C5C; letter-spacing:-0.5px;">CRM-X</strong>
           </div>
