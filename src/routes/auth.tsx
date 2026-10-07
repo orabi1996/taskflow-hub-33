@@ -28,6 +28,14 @@ import heroPhoto from "@/assets/auth-hero-photo-overlay.jpg";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  head: () => ({ meta: [
+    { title: "تسجيل الدخول | CRM-X" },
+    { name: "description", content: "تسجيل الدخول إلى CRM-X لإدارة المشاريع وفرق العمل." },
+    { property: "og:title", content: "تسجيل الدخول | CRM-X" },
+    { property: "og:description", content: "تسجيل الدخول إلى CRM-X لإدارة المشاريع وفرق العمل." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   beforeLoad: async () => {
     try {
       const session = await ensureAuthSessionFromCookies();

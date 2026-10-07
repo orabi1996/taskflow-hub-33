@@ -3,6 +3,14 @@ import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 
 export const Route = createFileRoute("/")({
   ssr: false,
+  head: () => ({ meta: [
+    { title: "CRM-X | إدارة المشاريع وفرق العمل" },
+    { name: "description", content: "منظومة CRM-X لمتابعة المشاريع والمهام وأداء الموظفين." },
+    { property: "og:title", content: "CRM-X | إدارة المشاريع وفرق العمل" },
+    { property: "og:description", content: "منظومة CRM-X لمتابعة المشاريع والمهام وأداء الموظفين." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   beforeLoad: async () => {
     try {
       const session = await ensureAuthSessionFromCookies();
