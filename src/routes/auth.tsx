@@ -24,6 +24,8 @@ import {
   AlertCircle, CheckCircle2, Info, ArrowLeft, KeyRound,
 } from "lucide-react";
 import { CrmXLogo } from "@/components/brand/CrmXLogo";
+import { AuthAiRobotMascot, type MascotFocusField } from "@/components/auth/AuthAiRobotMascot";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import heroPhoto from "@/assets/auth-hero-photo-overlay.jpg";
 
 export const Route = createFileRoute("/auth")({
@@ -97,6 +99,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<Mode>("signin");
+  const [focusedField, setFocusedField] = useState<MascotFocusField>(null);
   const [showPw, setShowPw] = useState(false);
   const [alert, setAlert] = useState<AuthAlert | null>(null);
   const [capsOn, setCapsOn] = useState(false);
@@ -379,6 +382,13 @@ function AuthPage() {
 
   return (
     <div ref={bgRef} className="min-h-screen auth-bg flex items-center justify-center px-4 py-8 relative overflow-hidden">
+      {/* Top Floating Controls */}
+      <div className="absolute top-4 start-4 z-20 flex items-center gap-2">
+        <div className="rounded-xl border border-white/20 bg-background/70 backdrop-blur-md p-1 shadow-sm">
+          <ThemeToggle />
+        </div>
+      </div>
+
       <img src={heroPhoto} alt="" className="auth-bg-image" aria-hidden="true" />
       <div className="auth-bg-mesh" aria-hidden="true" />
       <div className="auth-bg-veil" aria-hidden="true" />
@@ -467,7 +477,22 @@ function AuthPage() {
           </div>
 
           {/* FORM SIDE */}
-          <div className="auth-form-side p-8 sm:p-10 lg:p-12 flex flex-col justify-center order-2">
+          <div className="auth-form-side p-7 sm:p-9 lg:p-11 flex flex-col justify-center order-2 relative">
+            {/* Interactive AI Mascot Robot */}
+            <div className="flex justify-center mb-3">
+              <AuthAiRobotMascot
+                focusedField={focusedField}
+                emailLength={mode === "forgot" ? 0 : emailValue.length}
+                isEmailValid={emailValid}
+                showPassword={showPw}
+                capsLock={capsOn}
+                isLoading={loading}
+                isSuccess={alert?.kind === "success"}
+                isError={alert?.kind === "error"}
+                mode={mode}
+                greeting={greeting}
+              />
+            </div>
 
             <div key={mode} className="auth-form-fade">
               {isForgot ? (
@@ -525,7 +550,8 @@ function AuthPage() {
                         ref={emailRef}
                         value={emailValue}
                         onChange={(e) => setEmailValue(e.target.value)}
-                        onBlur={() => setEmailTouched(true)}
+                        onFocus={() => setFocusedField("email")}
+                        onBlur={() => { setEmailTouched(true); setFocusedField(null); }}
                         aria-invalid={emailTouched && !emailValid}
                         className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11"
                         placeholder="you@example.com"
@@ -572,7 +598,8 @@ function AuthPage() {
                         required dir="ltr" autoComplete="current-password"
                         value={pwValue}
                         onChange={(e) => setPwValue(e.target.value)}
-                        onBlur={() => setPwTouched(true)}
+                        onFocus={() => setFocusedField("password")}
+                        onBlur={() => { setPwTouched(true); setFocusedField(null); }}
                         onKeyDown={handleCaps} onKeyUp={handleCaps}
                         aria-invalid={pwTouched && !pwValid}
                         className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11"
@@ -644,6 +671,8 @@ function AuthPage() {
                   <Field id="fg-email" label="البريد الإلكتروني" icon={<Mail className="h-4 w-4 text-muted-foreground shrink-0" />}>
                     <Input id="fg-email" name="email" type="email" required dir="ltr" autoComplete="email"
                       defaultValue={rememberEmail}
+                      onFocus={() => setFocusedField("forgot")}
+                      onBlur={() => setFocusedField(null)}
                       className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11"
                       placeholder="you@example.com" />
                   </Field>
@@ -657,7 +686,7 @@ function AuthPage() {
             </div>
 
             <p className="text-center text-xs text-muted-foreground mt-8">
-              © {new Date().getFullYear()} Classera — جميع الحقوق محفوظة
+              © {new Date().getFullYear()} CRM-X · TaskFlow Hub — جميع الحقوق محفوظة
             </p>
           </div>
         </div>
