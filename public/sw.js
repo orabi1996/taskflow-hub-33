@@ -1,7 +1,7 @@
 /* Service worker for CRM-X Enterprise — PWA & Web Push Notifications */
-const CACHE_NAME = "crm-x-v2";
+const CACHE_NAME = "crm-x-v3";
 const STATIC_ASSETS = [
-  "/favicon.svg",
+  "/favicon.png",
   "/manifest.json",
 ];
 
@@ -46,8 +46,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "إشعار جديد — CRM-X";
   const options = {
     body: payload.body || "",
-    icon: payload.icon || "/favicon.svg",
-    badge: "/favicon.svg",
+    icon: payload.icon || "/favicon.png",
+    badge: "/favicon.png",
     dir: "rtl",
     lang: "ar",
     tag: payload.tag || undefined,
