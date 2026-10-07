@@ -73,11 +73,13 @@ export async function getOrganizationSettings(): Promise<OrganizationSettings> {
   // 1. Try reading from database if available
   try {
     const { data, error } = await supabase
-      .from("organization_settings")
+      // This optional table is not included in the generated database schema.
+      .from("organization_settings" as never)
       .select("*")
       .order("updated_at", { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .maybeSingle()
+      .overrideTypes<OrganizationSettings | null, { merge: false }>();
 
     if (!error && data && data.company_name) {
       return {
@@ -146,8 +148,8 @@ export async function saveOrganizationSettings(
   // Attempt database upsert
   try {
     const { error } = await supabase
-      .from("organization_settings")
-      .upsert(payload as any, { onConflict: "id" });
+      .from("organization_settings" as never)
+      .upsert(payload as never, { onConflict: "id" });
 
     if (error) {
       console.warn("[OrgSettings] Supabase save returned warning:", error.message);
