@@ -1,77 +1,35 @@
 import React from "react";
+import logoAsset from "@/assets/sysmarkx-logo.png.asset.json";
 
-interface CrmXLogoProps extends React.SVGProps<SVGSVGElement> {
+interface CrmXLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   size?: number | string;
   className?: string;
 }
 
 /**
- * CRM-X Iconic "X" Ribbon Emblem
- * Exact geometric reproduction of the Modern Teal Brand Exploration emblem.
+ * Sysmarkx Brand Emblem — the official uploaded logo mark.
  */
 export function CrmXEmblem({ size = 48, className = "", ...props }: CrmXLogoProps) {
-  const id = React.useId().replace(/:/g, "");
   return (
-    <svg
+    <img
+      src={logoAsset.url}
+      alt="Sysmarkx"
       width={size}
       height={size}
-      viewBox="0 0 200 200"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: size, height: size, objectFit: "contain" }}
       className={`shrink-0 ${className}`}
       {...props}
-    >
-      <defs>
-        {/* Swirl Blade Gradient: Vivid Ocean Cyan to Deep Blue */}
-        <linearGradient id={`crmx-swirl-grad-${id}`} x1="30" y1="20" x2="170" y2="150" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#38BDF8" />
-          <stop offset="45%" stopColor="#0284C7" />
-          <stop offset="100%" stopColor="#0369A1" />
-        </linearGradient>
-
-        {/* Bottom Capsule Pill Gradient */}
-        <linearGradient id={`crmx-pill-grad-${id}`} x1="85" y1="150" x2="115" y2="165" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#E2E8F0" />
-          <stop offset="50%" stopColor="#CBD5E1" />
-          <stop offset="100%" stopColor="#94A3B8" />
-        </linearGradient>
-      </defs>
-
-      {/* 3-Blade Vortex Swirl (Symmetric 120-degree Rotations) */}
-      <g transform="translate(0, -4)">
-        {/* Blade 1 (0 deg) */}
-        <path
-          d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z"
-          fill={`url(#crmx-swirl-grad-${id})`}
-          transform="rotate(0, 100, 82)"
-        />
-        {/* Blade 2 (120 deg) */}
-        <path
-          d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z"
-          fill={`url(#crmx-swirl-grad-${id})`}
-          transform="rotate(120, 100, 82)"
-        />
-        {/* Blade 3 (240 deg) */}
-        <path
-          d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z"
-          fill={`url(#crmx-swirl-grad-${id})`}
-          transform="rotate(240, 100, 82)"
-        />
-      </g>
-
-      {/* Bottom Horizontal Capsule Accent */}
-      <rect x="86" y="156" width="28" height="9" rx="4.5" fill={`url(#crmx-pill-grad-${id})`} />
-    </svg>
+    />
   );
 }
 
 /**
- * CRM-X App Icon (Squircle / Rounded Square with Deep Teal background and Glowing X)
+ * Sysmarkx App Icon (Rounded Square with the official emblem)
  */
 export function CrmXAppIcon({ size = 48, className = "", rounded = "rounded-2xl" }: { size?: number | string; className?: string; rounded?: string }) {
   return (
     <div
-      style={{ width: size, height: size, backgroundColor: "#0F4C5C" }}
+      style={{ width: size, height: size, backgroundColor: "#1A1A1A" }}
       className={`inline-flex items-center justify-center shadow-md p-1.5 transition-transform hover:scale-105 ${rounded} ${className}`}
     >
       <CrmXEmblem size="82%" className="drop-shadow-sm" />
@@ -89,7 +47,7 @@ interface CrmXFullLogoProps {
 }
 
 /**
- * Full CRM-X Corporate Brand Logo Component
+ * Full Sysmarkx Corporate Brand Logo Component
  * Supports Horizontal Lockup, Stacked Logo, and Taglines.
  */
 export function CrmXLogo({
