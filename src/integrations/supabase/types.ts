@@ -352,6 +352,85 @@ export type Database = {
           },
         ]
       }
+      contract_invoices: {
+        Row: {
+          amount: number
+          client_id: string | null
+          contract_id: string
+          created_at: string
+          currency: string
+          due_date: string
+          id: string
+          invoice_number: string
+          milestone_title: string
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          project_id: string
+          status: string
+          tax_amount: number
+          total_with_tax: number
+        }
+        Insert: {
+          amount?: number
+          client_id?: string | null
+          contract_id: string
+          created_at?: string
+          currency?: string
+          due_date: string
+          id?: string
+          invoice_number: string
+          milestone_title: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          project_id: string
+          status?: string
+          tax_amount?: number
+          total_with_tax?: number
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          contract_id?: string
+          created_at?: string
+          currency?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          milestone_title?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          project_id?: string
+          status?: string
+          tax_amount?: number
+          total_with_tax?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_journal_submissions: {
         Row: {
           completed_tasks: number
@@ -1159,6 +1238,69 @@ export type Database = {
           },
           {
             foreignKeyName: "project_comments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_contracts: {
+        Row: {
+          client_id: string | null
+          contract_number: string
+          created_at: string
+          currency: string
+          end_date: string | null
+          id: string
+          project_id: string
+          start_date: string | null
+          status: string
+          terms: string | null
+          title: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          contract_number: string
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          project_id: string
+          start_date?: string | null
+          status?: string
+          terms?: string | null
+          title: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          contract_number?: string
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          project_id?: string
+          start_date?: string | null
+          status?: string
+          terms?: string | null
+          title?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
