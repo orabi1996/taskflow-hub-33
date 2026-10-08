@@ -379,14 +379,28 @@ export function printOfficialReport(opts: OfficialReportOptions) {
         <div class="header-org-block">
           <div style="display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-bottom:4px;">
             <svg width="24" height="24" viewBox="0 0 200 200" fill="none">
-              <g transform="translate(0, -4)">
-                <path d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z" fill="#0284C7" transform="rotate(0, 100, 82)" />
-                <path d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z" fill="#0284C7" transform="rotate(120, 100, 82)" />
-                <path d="M 100 24 C 128 24 152 44 150 72 C 148 94 132 110 114 112 C 125 101 130 86 126 70 C 121 54 111 40 100 34 Z" fill="#0284C7" transform="rotate(240, 100, 82)" />
-              </g>
-              <rect x="86" y="156" width="28" height="9" rx="4.5" fill="#94A3B8" />
+              <defs>
+                <linearGradient id="rep-desc" x1="30" y1="30" x2="170" y2="170" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#0F4C5C" />
+                  <stop offset="65%" stop-color="#00A6A6" />
+                  <stop offset="100%" stop-color="#22C8B8" />
+                </linearGradient>
+                <linearGradient id="rep-asc" x1="30" y1="170" x2="170" y2="30" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#00A6A6" />
+                  <stop offset="45%" stop-color="#7AE7C7" />
+                  <stop offset="100%" stop-color="#00A6A6" />
+                </linearGradient>
+                <linearGradient id="rep-facet" x1="80" y1="80" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#0F4C5C" stop-opacity="0.4" />
+                  <stop offset="50%" stop-color="#7AE7C7" stop-opacity="0.8" />
+                  <stop offset="100%" stop-color="#00A6A6" stop-opacity="0.3" />
+                </linearGradient>
+              </defs>
+              <line x1="52" y1="46" x2="148" y2="154" stroke="url(#rep-desc)" stroke-width="38" stroke-linecap="round" />
+              <line x1="52" y1="154" x2="148" y2="46" stroke="url(#rep-asc)" stroke-width="38" stroke-linecap="round" />
+              <path d="M 82 82 L 118 82 L 118 118 L 82 118 Z" fill="url(#rep-facet)" opacity="0.75" />
             </svg>
-            <strong style="font-size:16px; color:#0F4C5C; letter-spacing:-0.5px;">CRM-X</strong>
+            <strong style="font-size:16px; color:#0F4C5C; letter-spacing:-0.5px;" dir="ltr">CRM-X</strong>
           </div>
           <div style="font-weight:600; color:#334155;">${orgName}</div>
           <div>الرقم المرجعي: ${reportCode}</div>

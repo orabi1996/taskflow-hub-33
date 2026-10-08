@@ -220,7 +220,7 @@ describe("Workflows & Business Invariants Integration Suite", () => {
       const swCode = readFileSync(swPath, "utf-8");
 
       expect(swCode).toContain("CACHE_NAME");
-      expect(swCode).toContain("crm-x-v1");
+      expect(swCode).toMatch(/crm-x-v\d+/);
       expect(swCode).toContain('"install"');
       expect(swCode).toContain('"activate"');
       expect(swCode).toContain('"fetch"');

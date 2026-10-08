@@ -125,9 +125,9 @@ function AppLayout() {
       <Sidebar side="right" collapsible="icon" variant="inset">
         <SidebarHeader className="p-3 border-b border-sidebar-border/50">
           <Link to="/dashboard" className="flex items-center gap-2.5 px-1 py-0.5">
-            <CrmXAppIcon size={32} rounded="rounded-xl" />
+            <CrmXAppIcon size={32} rounded="rounded-full" />
             <div className="flex flex-col leading-none group-data-[collapsible=icon]:hidden">
-              <span className="font-black text-lg tracking-tight text-foreground font-sans">
+              <span dir="ltr" className="font-black text-lg tracking-tight text-foreground font-sans inline-flex items-center">
                 CRM<span className="text-[#00A6A6]">-</span><span className="bg-gradient-to-r from-[#00A6A6] to-[#7AE7C7] bg-clip-text text-transparent">X</span>
               </span>
               <span className="text-[7.5px] font-bold text-[#00A6A6] tracking-wider uppercase mt-0.5">
