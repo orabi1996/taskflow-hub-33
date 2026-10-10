@@ -37,7 +37,6 @@ export function logError(err: unknown, opts: LogErrorOptions): string {
   const friendly = formatErrorMessage(err, opts.fallback ?? "فشلت العملية");
   const kind = classify(err);
 
-  // eslint-disable-next-line no-console
   console.groupCollapsed(
     `%c[${opts.scope}]%c ${kind} — ${friendly} %c(${traceId})`,
     "color:#fff;background:#dc2626;padding:2px 6px;border-radius:4px;font-weight:bold",

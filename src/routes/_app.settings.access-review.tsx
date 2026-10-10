@@ -86,7 +86,6 @@ function AccessReviewPage() {
   useEffect(() => {
     if (isAdmin) void load();
     else setLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   const filtered = useMemo(() => {
