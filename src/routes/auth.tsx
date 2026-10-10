@@ -26,7 +26,8 @@ import {
 import { CrmXLogo } from "@/components/brand/CrmXLogo";
 import { AuthAiRobotMascot, type MascotFocusField } from "@/components/auth/AuthAiRobotMascot";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import heroPhoto from "@/assets/auth-hero-photo-overlay.jpg";
+import { AuthSkylineSwitcher, useAuthWallpaper, resolveSkylineImage } from "@/components/auth/AuthSkylineSwitcher";
+import { usePreferences } from "@/lib/preferences";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -116,6 +117,25 @@ function AuthPage() {
   const [slideIndex, setSlideIndex] = useState(0);
   const bgRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+
+  // Dynamic Skyline Wallpaper state & responsive theme detection
+  const { mode: themeMode } = usePreferences();
+  const { scene: wallpaperScene, setScene: setWallpaperScene } = useAuthWallpaper();
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, [themeMode]);
+
+  const activeWallpaper = useMemo(() => {
+    return resolveSkylineImage(wallpaperScene, isDark);
+  }, [wallpaperScene, isDark]);
 
   // Restore remembered email
   useEffect(() => {
@@ -387,9 +407,19 @@ function AuthPage() {
         <div className="rounded-xl border border-white/20 bg-background/70 backdrop-blur-md p-1 shadow-sm">
           <ThemeToggle />
         </div>
+        <AuthSkylineSwitcher
+          currentScene={wallpaperScene}
+          onSceneChange={setWallpaperScene}
+        />
       </div>
 
-      <img src={heroPhoto} alt="" className="auth-bg-image" aria-hidden="true" />
+      <img
+        key={activeWallpaper}
+        src={activeWallpaper}
+        alt="Skyline Panorama"
+        className="auth-bg-image transition-opacity duration-700 ease-in-out"
+        aria-hidden="true"
+      />
       <div className="auth-bg-mesh" aria-hidden="true" />
       <div className="auth-bg-veil" aria-hidden="true" />
       <div className="auth-particles" aria-hidden="true">
