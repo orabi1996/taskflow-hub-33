@@ -1,6 +1,7 @@
 /* Service worker for CRM-X Enterprise — PWA & Web Push Notifications */
-const CACHE_NAME = "crm-x-v3";
+const CACHE_NAME = "crm-x-v4";
 const STATIC_ASSETS = [
+  "/favicon.svg",
   "/favicon.png",
   "/manifest.json",
 ];

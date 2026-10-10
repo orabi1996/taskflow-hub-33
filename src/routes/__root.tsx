@@ -47,8 +47,9 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.json" },
-      { rel: "icon", type: "image/png", href: "/favicon.png?v=sysmarkx-2" },
-      { rel: "apple-touch-icon", href: "/icon-192.png?v=sysmarkx-2" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=sysmarkx-3" },
+      { rel: "icon", type: "image/png", href: "/favicon.png?v=sysmarkx-3" },
+      { rel: "apple-touch-icon", href: "/icon-192.png?v=sysmarkx-3" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
