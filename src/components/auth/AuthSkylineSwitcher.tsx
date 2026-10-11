@@ -22,6 +22,12 @@ import skylineSunset1 from "@/assets/hero/skyline-sunset-1.jpg";
 import skylineSunset2 from "@/assets/hero/skyline-sunset-2.jpg";
 import skylineSunset3 from "@/assets/hero/skyline-sunset-3.jpg";
 
+import skylineDayMobile from "@/assets/hero/skyline-day-mobile.webp";
+import skylineNightMobile from "@/assets/hero/skyline-night-mobile.webp";
+import skylineSunset1Mobile from "@/assets/hero/skyline-sunset-1-mobile.webp";
+import skylineSunset2Mobile from "@/assets/hero/skyline-sunset-2-mobile.webp";
+import skylineSunset3Mobile from "@/assets/hero/skyline-sunset-3-mobile.webp";
+
 export type SkylineSceneId = "auto" | "day" | "night" | "sunset-1" | "sunset-2" | "sunset-3";
 
 export interface SkylineSceneItem {
@@ -30,6 +36,7 @@ export interface SkylineSceneItem {
   badge: string;
   subtitle: string;
   src: string;
+  mobileSrc: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
@@ -40,6 +47,7 @@ export const SKYLINE_SCENES: SkylineSceneItem[] = [
     badge: "مشرق",
     subtitle: "بانوراما نهارية لمعالم الشرق الأوسط المتألقة",
     src: skylineDay,
+    mobileSrc: skylineDayMobile,
     icon: Sun,
   },
   {
@@ -48,6 +56,7 @@ export const SKYLINE_SCENES: SkylineSceneItem[] = [
     badge: "متلألئ",
     subtitle: "أضواء ساحرة لأبراج دبي والخليج مع قلاع مسقط",
     src: skylineNight,
+    mobileSrc: skylineNightMobile,
     icon: Moon,
   },
   {
@@ -56,6 +65,7 @@ export const SKYLINE_SCENES: SkylineSceneItem[] = [
     badge: "أصيل",
     subtitle: "شفق ذهبي دافئ يعانق الأهرامات وناطحات السحاب",
     src: skylineSunset1,
+    mobileSrc: skylineSunset1Mobile,
     icon: Sunset,
   },
   {
@@ -64,6 +74,7 @@ export const SKYLINE_SCENES: SkylineSceneItem[] = [
     badge: "تراثي",
     subtitle: "مركب شراعي أصيل في قلب الواجهة البحرية",
     src: skylineSunset2,
+    mobileSrc: skylineSunset2Mobile,
     icon: Compass,
   },
   {
@@ -72,6 +83,7 @@ export const SKYLINE_SCENES: SkylineSceneItem[] = [
     badge: "طبيعي",
     subtitle: "بانوراما واسعة تجمع القلاع والبحر وأشجار النخيل",
     src: skylineSunset3,
+    mobileSrc: skylineSunset3Mobile,
     icon: Palmtree,
   },
 ];
@@ -84,6 +96,14 @@ export function resolveSkylineImage(sceneId: SkylineSceneId, isDarkTheme: boolea
   }
   const found = SKYLINE_SCENES.find((s) => s.id === sceneId);
   return found ? found.src : skylineDay;
+}
+
+export function resolveSkylineMobileImage(sceneId: SkylineSceneId, isDarkTheme: boolean): string {
+  if (sceneId === "auto") {
+    return isDarkTheme ? skylineNightMobile : skylineDayMobile;
+  }
+  const found = SKYLINE_SCENES.find((s) => s.id === sceneId);
+  return found ? found.mobileSrc : skylineDayMobile;
 }
 
 interface AuthSkylineSwitcherProps {

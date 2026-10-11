@@ -533,23 +533,106 @@
   border-inline-start: 1px solid oklch(1 0 0 / 0.35);
 }
 
-/* Mobile: stack vertically + lighten heavy effects for performance */
+/* Mobile & Tablet optimizations for Cinematic Auth Experience */
 @media (max-width: 1023px) {
-  .auth-form-side {
-    border-inline-start: none;
-    border-top: 1px solid oklch(1 0 0 / 0.35);
+  .auth-bg {
+    min-height: 100dvh;
+    min-height: 100svh;
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
-  .auth-hero-photo {
-    min-height: 220px;
+
+  .auth-bg-picture,
+  .auth-bg > .auth-bg-image,
+  .auth-bg-image {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Smart Cropping: Anchor major landmarks (Burj Khalifa, towers, water) */
+    object-position: 72% 50%;
+    transform: scale(1.04);
+    animation: mobile-cinematic-pan 45s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+
+  @keyframes mobile-cinematic-pan {
+    0% {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+    50% {
+      transform: scale(1.06) translate3d(-6px, -3px, 0);
+    }
+    100% {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+  }
+
+  .auth-bg-veil {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.1) 0%, rgba(15, 76, 92, 0.3) 100%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(4, 47, 46, 0.4) 100%);
+  }
+
+  .dark .auth-bg-veil {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.15) 0%, rgba(3, 30, 29, 0.7) 100%),
+      linear-gradient(180deg, rgba(3, 30, 29, 0.5) 0%, rgba(2, 20, 20, 0.88) 100%);
+  }
+
+  /* Lightweight glass card on mobile: higher opacity, lighter blur (8px), simpler shadow */
+  .auth-card {
+    background: color-mix(in oklab, var(--card) 96%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 24px;
+    border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    min-height: auto;
+  }
+
+  .auth-form-side {
+    border: none;
+    padding: 1.5rem 1.25rem;
+  }
+
+  /* Disable heavy desktop effects on mobile */
+  .auth-bg-mesh { display: none !important; }
+  .auth-particles { display: none !important; }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .auth-bg-image,
+  .auth-bg > .auth-bg-image {
+    animation: none !important;
+    transform: scale(1.02) !important;
+    transition: none !important;
+  }
+}
+
+/* Mobile Landscape orientation handling */
+@media (max-width: 1023px) and (orientation: landscape) and (max-height: 540px) {
+  .auth-bg {
+    align-items: flex-start;
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
   .auth-card {
-    backdrop-filter: blur(16px) saturate(1.15);
-    -webkit-backdrop-filter: blur(16px) saturate(1.15);
-    border-radius: 24px;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
   }
-  .auth-bg-mesh { filter: blur(20px); animation: none; }
-  .auth-particles { display: none; }
-  .auth-bg > .auth-bg-image { animation: none; transform: scale(1.05); }
+  .auth-form-side {
+    padding: 1.25rem 1.5rem;
+  }
+  .auth-bg-image {
+    object-position: center 30%;
+  }
 }
 
 /* Prevent feature card grid from squeezing awkwardly between breakpoints */

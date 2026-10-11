@@ -195,6 +195,22 @@ async function generate() {
     .toFile(path.join(publicDir, "icon-512.png"));
   console.log("✓ Generated public/icon-512.png (512x512)");
 
+  // 5. Generate mobile-optimized WebP derivatives for hero scenes
+  const heroDir = path.join(cwd, "src/assets/hero");
+  const scenes = ["skyline-day", "skyline-night", "skyline-sunset-1", "skyline-sunset-2", "skyline-sunset-3"];
+  for (const scene of scenes) {
+    const srcFile = path.join(heroDir, `${scene}.jpg`);
+    const destFile = path.join(heroDir, `${scene}-mobile.webp`);
+    if (fs.existsSync(srcFile)) {
+      await sharp(srcFile)
+        .resize({ width: 1080, withoutEnlargement: true })
+        .webp({ quality: 80, effort: 4 })
+        .toFile(destFile);
+      const stat = fs.statSync(destFile);
+      console.log(`✓ Generated ${scene}-mobile.webp (${Math.round(stat.size / 1024)} KB)`);
+    }
+  }
+
   console.log("All brand assets successfully updated!");
 }
 

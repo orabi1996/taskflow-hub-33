@@ -26,7 +26,7 @@ import {
 import { CrmXLogo } from "@/components/brand/CrmXLogo";
 import { AuthAiRobotMascot, type MascotFocusField } from "@/components/auth/AuthAiRobotMascot";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AuthSkylineSwitcher, useAuthWallpaper, resolveSkylineImage } from "@/components/auth/AuthSkylineSwitcher";
+import { AuthSkylineSwitcher, useAuthWallpaper, resolveSkylineImage, resolveSkylineMobileImage } from "@/components/auth/AuthSkylineSwitcher";
 import { usePreferences } from "@/lib/preferences";
 
 export const Route = createFileRoute("/auth")({
@@ -137,6 +137,10 @@ function AuthPage() {
     return resolveSkylineImage(wallpaperScene, isDark);
   }, [wallpaperScene, isDark]);
 
+  const activeMobileWallpaper = useMemo(() => {
+    return resolveSkylineMobileImage(wallpaperScene, isDark);
+  }, [wallpaperScene, isDark]);
+
   // Restore remembered email
   useEffect(() => {
     const saved = getRememberedEmail();
@@ -163,10 +167,11 @@ function AuthPage() {
     [],
   );
 
-  // Parallax: track mouse → CSS vars on .auth-bg
+  // Parallax: track mouse → CSS vars on .auth-bg (desktop only, disabled on touch/mobile)
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches) return;
     let raf = 0;
     const onMove = (e: MouseEvent) => {
       cancelAnimationFrame(raf);
@@ -401,9 +406,9 @@ function AuthPage() {
   const isForgot = mode === "forgot";
 
   return (
-    <div ref={bgRef} className="min-h-screen auth-bg flex items-center justify-center px-4 py-8 relative overflow-hidden">
+    <div ref={bgRef} className="min-h-[100dvh] min-h-[100svh] auth-bg flex items-center justify-center px-3 sm:px-6 py-6 sm:py-8 relative overflow-x-hidden">
       {/* Top Floating Controls */}
-      <div className="absolute top-4 start-4 z-20 flex items-center gap-2">
+      <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] start-[max(0.75rem,env(safe-area-inset-left))] z-20 flex items-center gap-1.5 sm:gap-2">
         <div className="rounded-xl border border-white/20 bg-background/70 backdrop-blur-md p-1 shadow-sm">
           <ThemeToggle />
         </div>
@@ -413,13 +418,16 @@ function AuthPage() {
         />
       </div>
 
-      <img
-        key={activeWallpaper}
-        src={activeWallpaper}
-        alt="Skyline Panorama"
-        className="auth-bg-image transition-opacity duration-700 ease-in-out"
-        aria-hidden="true"
-      />
+      <picture className="auth-bg-picture">
+        <source media="(max-width: 1023px)" srcSet={activeMobileWallpaper} type="image/webp" />
+        <img
+          key={activeWallpaper}
+          src={activeWallpaper}
+          alt="Skyline Panorama"
+          className="auth-bg-image transition-opacity duration-700 ease-in-out"
+          aria-hidden="true"
+        />
+      </picture>
       <div className="auth-bg-mesh" aria-hidden="true" />
       <div className="auth-bg-veil" aria-hidden="true" />
       <div className="auth-particles" aria-hidden="true">
@@ -442,8 +450,8 @@ function AuthPage() {
 
       <div className="w-full max-w-6xl mx-auto relative z-10 animate-scale-in">
         <div className="auth-card grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[560px] lg:min-h-[640px]">
-          {/* HERO SIDE (towers are now in page background) */}
-          <div className="auth-hero-photo p-10 lg:p-12 flex flex-col justify-between text-foreground order-1 min-h-[280px] lg:min-h-0">
+          {/* HERO SIDE (desktop only - on mobile the form is the primary product) */}
+          <div className="auth-hero-photo p-10 lg:p-12 hidden lg:flex flex-col justify-between text-foreground min-h-[280px] lg:min-h-0">
             <div className="hero-content flex flex-col h-full justify-between gap-8">
               <div className="flex items-center gap-3">
                 <div className="bg-white/95 dark:bg-card/95 rounded-2xl px-5 py-3 md-elev-1 ring-1 ring-border shadow-sm">
@@ -507,9 +515,16 @@ function AuthPage() {
           </div>
 
           {/* FORM SIDE */}
-          <div className="auth-form-side p-7 sm:p-9 lg:p-11 flex flex-col justify-center order-2 relative">
+          <div className="auth-form-side p-5 sm:p-8 lg:p-11 flex flex-col justify-center relative">
+            {/* Mobile Brand Logo Header */}
+            <div className="flex justify-center mb-3 lg:hidden">
+              <div className="bg-white/95 dark:bg-card/95 rounded-2xl px-4 py-2 shadow-xs border border-border/60">
+                <CrmXLogo variant="horizontal" iconSize={30} showTagline={true} />
+              </div>
+            </div>
+
             {/* Interactive AI Mascot Robot */}
-            <div className="flex justify-center mb-3">
+            <div className="flex justify-center mb-2.5 sm:mb-3">
               <AuthAiRobotMascot
                 focusedField={focusedField}
                 emailLength={mode === "forgot" ? 0 : emailValue.length}
@@ -583,7 +598,7 @@ function AuthPage() {
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => { setEmailTouched(true); setFocusedField(null); }}
                         aria-invalid={emailTouched && !emailValid}
-                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11"
+                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11 text-base"
                         placeholder="you@example.com"
                       />
                       {emailValue && (
@@ -632,11 +647,11 @@ function AuthPage() {
                         onBlur={() => { setPwTouched(true); setFocusedField(null); }}
                         onKeyDown={handleCaps} onKeyUp={handleCaps}
                         aria-invalid={pwTouched && !pwValid}
-                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11"
+                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11 text-base"
                         placeholder="••••••••"
                       />
                       <button type="button" onClick={() => setShowPw((v) => !v)}
-                        className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                        className="text-muted-foreground hover:text-foreground transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0"
                         aria-label={showPw ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}>
                         {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -653,25 +668,25 @@ function AuthPage() {
                     )}
                   </div>
 
-                  <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <div className="rounded-xl border bg-muted/20 p-2.5 sm:p-3 space-y-2">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer min-h-[32px]">
                       <input
                         type="checkbox"
                         checked={remember}
                         onChange={(e) => setRemember(e.target.checked)}
-                        className="rounded accent-primary"
+                        className="rounded accent-primary h-4 w-4"
                       />
                       تذكرني على هذا الجهاز باستخدام cookies آمنة
                     </label>
                     {remember && (
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      <div className="flex flex-wrap sm:grid sm:grid-cols-5 gap-1.5 sm:gap-2">
                         {REMEMBER_OPTIONS.map((option) => (
                           <button
                             key={option.value}
                             type="button"
                             onClick={() => setRememberDuration(option.value)}
                             data-active={rememberDuration === option.value}
-                            className="rounded-lg border px-2 py-1.5 text-[11px] text-muted-foreground transition-colors data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                            className="flex-1 min-w-[62px] rounded-lg border px-2 py-2 sm:py-1.5 text-[11px] font-medium text-muted-foreground transition-colors data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary min-h-[38px] flex items-center justify-center text-center"
                           >
                             {option.label}
                           </button>
