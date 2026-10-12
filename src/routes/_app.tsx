@@ -234,10 +234,10 @@ function SidebarNavItem({ item }: { item: NavItem }) {
   const { icon: Icon, label, to } = item;
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={label}>
-        <Link to={to} activeProps={{ "data-active": "true" } as any}>
-          <Icon />
-          <span>{label}</span>
+      <SidebarMenuButton asChild tooltip={label} className="transition-all duration-200 group hover:translate-x-[-2px]">
+        <Link to={to} activeProps={{ "data-active": "true" } as any} className="flex items-center gap-3">
+          <Icon className="transition-transform duration-200 group-hover:scale-110 shrink-0" />
+          <span className="font-ui">{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

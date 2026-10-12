@@ -491,7 +491,7 @@ function Dashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 stagger">
         <KpiCard label="مهام اليوم" value={todayCount} icon={CalendarDays} accent="primary" />
         <KpiCard label="قيد التنفيذ" value={counts.pending} icon={Clock} accent="info" />
         <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" hint={`${completionRate}% نسبة الإنجاز`} />

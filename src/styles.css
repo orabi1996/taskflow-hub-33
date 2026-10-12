@@ -10,7 +10,10 @@
  */
 
 @theme inline {
-  --font-sans: "Cairo", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-ui);
+  --font-ui: var(--font-ui);
+  --font-display: var(--font-display);
+  --font-reading: var(--font-reading);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -56,7 +59,144 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ============================================================
+   Typography System — Thmanyah Arabic Hierarchy & Fallbacks
+   Official reference: https://font.thmanyah.com/
+   ============================================================ */
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: local("Thmanyah Sans"), local("thmanyah sans Regular"), url("/fonts/thmanyah-sans-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: local("Thmanyah Sans Light"), local("thmanyah sans Light"), url("/fonts/thmanyah-sans-light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: local("Thmanyah Sans Medium"), local("thmanyah sans Medium"), url("/fonts/thmanyah-sans-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: local("Thmanyah Sans Bold"), local("thmanyah sans Bold"), url("/fonts/thmanyah-sans-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Sans";
+  src: local("Thmanyah Sans Black"), local("thmanyah sans Black"), url("/fonts/thmanyah-sans-black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: local("Thmanyah Serif Display"), local("thmanyah serif display Regular"), url("/fonts/thmanyah-serif-display-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: local("Thmanyah Serif Display Light"), local("thmanyah serif display Light"), url("/fonts/thmanyah-serif-display-light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: local("Thmanyah Serif Display Medium"), local("thmanyah serif display Medium"), url("/fonts/thmanyah-serif-display-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: local("Thmanyah Serif Display Bold"), local("thmanyah serif display Bold"), url("/fonts/thmanyah-serif-display-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: local("Thmanyah Serif Display Black"), local("thmanyah serif display Black"), url("/fonts/thmanyah-serif-display-black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: local("Thmanyah Serif Text"), local("thmanyah serif text Regular"), url("/fonts/thmanyah-serif-text-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: local("Thmanyah Serif Text Light"), local("thmanyah serif text Light"), url("/fonts/thmanyah-serif-text-light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: local("Thmanyah Serif Text Medium"), local("thmanyah serif text Medium"), url("/fonts/thmanyah-serif-text-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: local("Thmanyah Serif Text Bold"), local("thmanyah serif text Bold"), url("/fonts/thmanyah-serif-text-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: local("Thmanyah Serif Text Black"), local("thmanyah serif text Black"), url("/fonts/thmanyah-serif-text-black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
+  /* ===== Typography Hierarchy Tokens ===== */
+  --font-ui: "Thmanyah Sans", "Cairo", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Thmanyah Serif Display", "Cairo", Georgia, serif;
+  --font-reading: "Thmanyah Serif Text", "Cairo", Georgia, serif;
+
+  /* Fluid Typography (clamp) */
+  --text-hero: clamp(2rem, 4.5vw + 1rem, 3.75rem);
+  --text-display: clamp(1.6rem, 2.8vw + 0.8rem, 2.5rem);
+  --text-section-title: clamp(1.25rem, 1.8vw + 0.6rem, 1.85rem);
+  --text-reading: clamp(0.95rem, 0.4vw + 0.85rem, 1.125rem);
+
+  /* ===== Motion Tokens ===== */
+  --motion-instant: 100ms;
+  --motion-fast: 200ms;        /* Level 1: Micro-interactions */
+  --motion-normal: 350ms;      /* Level 2: Component transitions */
+  --motion-deliberate: 550ms;  /* Level 3: Section reveals */
+  --motion-cinematic: 1200ms;  /* Level 4: Hero sequences */
+
+  /* Motion Easings */
+  --ease-standard: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --ease-enter: cubic-bezier(0.0, 0.0, 0.2, 1.0);
+  --ease-exit: cubic-bezier(0.4, 0.0, 1.0, 1.0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1.0);
+  --ease-cinematic: cubic-bezier(0.16, 1.0, 0.3, 1.0);
+
   --radius: 1rem; /* Material 3 shape: medium/large corners */
 
   /* ===== CRM-X Brand: Modern Teal ===== */
@@ -251,6 +391,89 @@
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-elegant);
+}
+
+/* ============================================================
+   Typography Semantic Utility Classes
+   ============================================================ */
+.font-ui { font-family: var(--font-ui); }
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: "ss01", "cv11", "kern";
+}
+.font-reading {
+  font-family: var(--font-reading);
+  font-feature-settings: "ss01", "cv11";
+  line-height: 1.78;
+}
+
+.text-display-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.text-display-title {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.text-editorial-body {
+  font-family: var(--font-reading);
+  font-size: var(--text-reading);
+  line-height: 1.8;
+  color: var(--foreground);
+}
+
+/* ============================================================
+   Motion Reveal Masks & Micro-effects
+   ============================================================ */
+@keyframes mask-reveal-up {
+  from {
+    opacity: 0;
+    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    transform: translateY(0);
+  }
+}
+
+.animate-mask-reveal {
+  animation: mask-reveal-up var(--motion-deliberate) var(--ease-cinematic) both;
+}
+
+.hover-glow {
+  transition: box-shadow var(--motion-normal) var(--ease-standard),
+              border-color var(--motion-normal) var(--ease-standard),
+              transform var(--motion-normal) var(--ease-spring);
+}
+.hover-glow:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--primary) 60%, transparent);
+  box-shadow: 0 12px 30px -8px color-mix(in oklab, var(--primary) 24%, transparent);
+}
+
+/* Accessibility & Reduced Motion Overrides */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-anim="off"] *, [data-anim="off"] ::before, [data-anim="off"] ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }
 
 .stagger > * { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }

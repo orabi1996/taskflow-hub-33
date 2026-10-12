@@ -21,25 +21,28 @@ import { Label } from "@/components/ui/label";
 import {
   Loader2, Mail, Lock, User, Briefcase, Eye, EyeOff,
   ShieldCheck, Zap, BarChart3, Users2,
-  AlertCircle, CheckCircle2, Info, ArrowLeft, KeyRound,
+  AlertCircle, CheckCircle2, Info, ArrowLeft, KeyRound, Sparkles,
 } from "lucide-react";
-import { CrmXLogo } from "@/components/brand/CrmXLogo";
+import { CrmXLogo, CrmXEmblem } from "@/components/brand/CrmXLogo";
 import { AuthAiRobotMascot, type MascotFocusField } from "@/components/auth/AuthAiRobotMascot";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AuthSkylineSwitcher, useAuthWallpaper } from "@/components/auth/AuthSkylineSwitcher";
-import { LivingSkylineScene } from "@/components/auth/LivingSkylineScene";
 import { usePreferences } from "@/lib/preferences";
+import { ArabicTextReveal, AnimatedCounter, Magnetic } from "@/lib/motion";
+import { ModernTechBackground } from "@/components/auth/ModernTechBackground";
+import { TechAtmosphereSwitcher, useTechAtmosphere } from "@/components/auth/TechAtmosphereSwitcher";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  head: () => ({ meta: [
-    { title: "تسجيل الدخول | CRM-X" },
-    { name: "description", content: "تسجيل الدخول إلى CRM-X لإدارة المشاريع وفرق العمل." },
-    { property: "og:title", content: "تسجيل الدخول | CRM-X" },
-    { property: "og:description", content: "تسجيل الدخول إلى CRM-X لإدارة المشاريع وفرق العمل." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "تسجيل الدخول | CRM-X" },
+      { name: "description", content: "بوابة الدخول الذكية إلى CRM-X لإدارة المشاريع وفرق العمل." },
+      { property: "og:title", content: "تسجيل الدخول | CRM-X" },
+      { property: "og:description", content: "بوابة الدخول الذكية إلى CRM-X لإدارة المشاريع وفرق العمل." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   beforeLoad: async () => {
     try {
       const session = await ensureAuthSessionFromCookies();
@@ -56,7 +59,6 @@ const signInSchema = z.object({
   email: z.string().trim().email({ message: "البريد الإلكتروني غير صالح" }).max(255),
   password: z.string().min(6, { message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" }).max(72),
 });
-
 
 const forgotSchema = z.object({
   email: z.string().trim().email({ message: "البريد الإلكتروني غير صالح" }).max(255),
@@ -96,6 +98,13 @@ const HERO_SLIDES: { title: string; highlight: string; desc: string }[] = [
   },
 ];
 
+function greetByHour(): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return "صباح الخير والبركة";
+  if (h >= 12 && h < 17) return "طاب يومكم بالمسرات";
+  if (h >= 17 && h < 22) return "مساء الخير والريادة";
+  return "أهلاً بك، طاب مساؤك";
+}
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -116,12 +125,10 @@ function AuthPage() {
   const [greeting, setGreeting] = useState<string>("أهلاً بك");
   const [stats, setStats] = useState<{ users: number; projects: number; tasks: number } | null>(null);
   const [slideIndex, setSlideIndex] = useState(0);
-  const bgRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
-  // Dynamic Skyline Wallpaper state & responsive theme detection
-  const { mode: themeMode } = usePreferences();
-  const { scene: wallpaperScene, setScene: setWallpaperScene } = useAuthWallpaper();
+  // Dynamic Living Tech Atmosphere state & responsive theme detection
+  const { mode: techMode, setMode: setTechMode } = useTechAtmosphere();
   const [isDark, setIsDark] = useState<boolean>(false);
 
   useEffect(() => {
@@ -132,41 +139,21 @@ function AuthPage() {
     const observer = new MutationObserver(checkDark);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
-  }, [themeMode]);
+  }, []);
 
-  // Restore remembered email
+  // Restore remembered email & auto-focus
   useEffect(() => {
     const saved = getRememberedEmail();
     setRememberEmail(saved);
     if (saved) setEmailValue(saved);
     purgeSupabaseAuthLocalStorage();
     setGreeting(greetByHour());
-    // Auto-focus first empty field
     setTimeout(() => {
       if (!saved) emailRef.current?.focus();
       else document.getElementById("si-pw")?.focus();
     }, 200);
   }, []);
 
-  // Parallax: track mouse → CSS vars on .auth-bg (desktop only, disabled on touch/mobile)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches) return;
-    let raf = 0;
-    const onMove = (e: MouseEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const el = bgRef.current; if (!el) return;
-        const x = (e.clientX / window.innerWidth) * 100;
-        const y = (e.clientY / window.innerHeight) * 100;
-        el.style.setProperty("--mx", `${x}%`);
-        el.style.setProperty("--my", `${y}%`);
-      });
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => { window.removeEventListener("mousemove", onMove); cancelAnimationFrame(raf); };
-  }, []);
 
   // Watch session: if user becomes authenticated, push to dashboard automatically
   useEffect(() => {
@@ -186,22 +173,18 @@ function AuthPage() {
     }
   }, [navigate]);
 
-  // Reset alert when switching modes
   useEffect(() => { setAlert(null); }, [mode]);
 
-  // Email typo detection (debounced)
   useEffect(() => {
     if (!emailValue || !emailValue.includes("@")) { setEmailSuggestion(null); return; }
     const t = setTimeout(() => setEmailSuggestion(suggestEmail(emailValue)), 350);
     return () => clearTimeout(t);
   }, [emailValue]);
 
-  // Fetch live hero stats once
   useEffect(() => {
     getAuthHeroStats().then(setStats).catch(() => {});
   }, []);
 
-  // Auto-rotate hero slides every 6s
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -215,7 +198,6 @@ function AuthPage() {
 
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue), [emailValue]);
   const pwValid = pwValue.length >= 6;
-
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -231,7 +213,6 @@ function AuthPage() {
     }
     setLoading(true);
 
-    // Canonical server-enforced lockout + sign-in (rate limit cannot be bypassed client-side)
     let guard: Awaited<ReturnType<typeof signInWithLock>>;
     try {
       guard = await signInWithLock({
@@ -242,7 +223,6 @@ function AuthPage() {
         },
       });
     } catch {
-      // Fail safely: NEVER bypass rate limiting by falling back to browser auth!
       setLoading(false);
       setAlert({
         kind: "error",
@@ -266,12 +246,10 @@ function AuthPage() {
       return;
     }
 
-    // Configure Supabase client dynamically if server provided public credentials
     if (guard.publicConfig?.supabaseUrl && guard.publicConfig?.supabaseAnonKey) {
       configureSupabaseClient(guard.publicConfig.supabaseUrl, guard.publicConfig.supabaseAnonKey);
     }
 
-    // Attempt to install in-memory session in Supabase client using server-verified tokens
     let session: Session | null = null;
     try {
       const res = await supabase.auth.setSession({
@@ -283,7 +261,6 @@ function AuthPage() {
       console.warn("[Auth] Client setSession fetch error, falling back to server session:", sessionErr);
     }
 
-    // Fallback: If client setSession encountered a fetch/network glitch, use the server-verified session
     if (!session && guard.session) {
       const fallbackUser = (guard.user as any) ?? {
         id: guard.userId ?? "auth-user",
@@ -314,7 +291,6 @@ function AuthPage() {
       return;
     }
 
-    // Centralized audit log entry (non-blocking)
     void recordAuditEvent({
       data: {
         actorId: session.user.id,
@@ -347,7 +323,6 @@ function AuthPage() {
 
     setAlert({ kind: "success", title: "تم تسجيل الدخول بنجاح", description: "جاري تحويلك إلى لوحة التحكم..." });
 
-    // Navigate immediately to dashboard with fallback to full reload
     navigate({ to: "/dashboard" }).catch(() => {
       window.location.href = "/dashboard";
     });
@@ -387,98 +362,143 @@ function AuthPage() {
   const isForgot = mode === "forgot";
 
   return (
-    <div ref={bgRef} className="min-h-[100dvh] min-h-[100svh] auth-bg flex items-center justify-center px-3 sm:px-6 py-6 sm:py-8 relative overflow-x-hidden">
-      {/* Top Floating Controls */}
-      <div className="absolute top-[max(0.75rem,env(safe-area-inset-top))] start-[max(0.75rem,env(safe-area-inset-left))] z-20 flex items-center gap-1.5 sm:gap-2">
-        <div className="rounded-xl border border-white/20 bg-background/70 backdrop-blur-md p-1 shadow-sm">
+    <div className="min-h-[100dvh] flex items-center justify-center px-4 sm:px-6 py-6 sm:py-10 relative overflow-hidden font-ui">
+      {/* ── 1. Modern Procedural Tech Atmosphere (Zero Static Landscape Photos) ── */}
+      <ModernTechBackground mode={techMode} isDarkTheme={isDark} />
+
+      {/* ── 2. Top Floating Glass Control Bar ── */}
+      <header className="absolute top-[max(1rem,env(safe-area-inset-top))] start-[max(1rem,env(safe-area-inset-left))] z-30 flex items-center gap-2">
+        <div className="rounded-2xl border border-white/15 bg-background/60 backdrop-blur-xl p-1 shadow-sm">
           <ThemeToggle />
         </div>
-        <AuthSkylineSwitcher
-          currentScene={wallpaperScene}
-          onSceneChange={setWallpaperScene}
-        />
-      </div>
+        <TechAtmosphereSwitcher currentMode={techMode} onModeChange={setTechMode} />
+      </header>
 
-      {/* Living Cinematic Layered Background */}
-      <LivingSkylineScene scene={wallpaperScene} isDarkTheme={isDark} />
-
-      <div className="w-full max-w-6xl mx-auto relative z-10 animate-scale-in">
-        <div className="auth-card grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[560px] lg:min-h-[640px]">
-          {/* HERO SIDE (desktop only - on mobile the form is the primary product) */}
-          <div className="auth-hero-photo p-10 lg:p-12 hidden lg:flex flex-col justify-between text-foreground min-h-[280px] lg:min-h-0">
-            <div className="hero-content flex flex-col h-full justify-between gap-8">
+      {/* ── 4. The Monolithic Glassmorphic Luxury Command Center ── */}
+      <main className="w-full max-w-5xl mx-auto relative z-10 animate-scale-in">
+        <div className="rounded-[28px] border border-white/20 dark:border-white/10 bg-card/85 dark:bg-card/75 backdrop-blur-2xl shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)] overflow-hidden grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] transition-all duration-500">
+          
+          {/* ── HERO SIDE (Desktop Architectural Monument) ── */}
+          <section aria-label="نبذة عن المنظومة" className="p-8 sm:p-10 lg:p-12 hidden lg:flex flex-col justify-between relative bg-gradient-to-br from-primary/10 via-transparent to-accent/10 border-e border-border/40">
+            <div className="flex flex-col h-full justify-between gap-8 relative z-10">
+              
+              {/* Brand Header */}
               <div className="flex items-center gap-3">
-                <div className="bg-white/95 dark:bg-card/95 rounded-2xl px-5 py-3 md-elev-1 ring-1 ring-border shadow-sm">
-                  <CrmXLogo variant="horizontal" iconSize={38} showTagline={true} />
+                <div className="rounded-2xl px-4 py-2.5 bg-background/70 backdrop-blur-md border border-white/20 shadow-sm flex items-center gap-3">
+                  <CrmXEmblem size={34} />
+                  <div className="flex flex-col">
+                    <span dir="ltr" className="font-black text-lg tracking-tight text-foreground">
+                      CRM<span className="text-primary">-</span><span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">X</span>
+                    </span>
+                    <span className="text-[7.5px] font-bold text-primary tracking-widest uppercase">
+                      People · Pipelines · Possibilities
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-7 max-w-md">
-                <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-primary">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                    أهلاً وسهلاً بكم
-                  </div>
-                  <div key={slideIndex} className="auth-form-fade">
-                    <h1 className="text-3xl lg:text-[2.6rem] font-bold leading-[1.15] tracking-tight text-foreground">
-                      {HERO_SLIDES[slideIndex].title} <br />
-                      <span className="text-primary">
-                        {HERO_SLIDES[slideIndex].highlight}
-                      </span>
-                    </h1>
-                    <div className="gold-divider mt-3" />
-                    <p className="text-sm lg:text-[0.95rem] text-muted-foreground leading-relaxed font-light mt-3">
-                      {HERO_SLIDES[slideIndex].desc}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1" role="tablist" aria-label="شرائح الترحيب">
-                    {HERO_SLIDES.map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        role="tab"
-                        aria-selected={i === slideIndex}
-                        aria-label={`الشريحة ${i + 1}`}
-                        onClick={() => setSlideIndex(i)}
-                        className="h-1.5 rounded-full transition-all"
-                        style={{
-                          width: i === slideIndex ? "26px" : "8px",
-                          background: i === slideIndex ? "var(--primary)" : "color-mix(in oklab, var(--primary) 25%, transparent)",
-                        }}
-                      />
-                    ))}
-                  </div>
+              {/* Headline & Arabic Typography Reveal */}
+              <div className="space-y-6 max-w-lg">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/15 border border-primary/30 px-3.5 py-1 text-xs font-semibold text-primary shadow-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>المنظومة المتكاملة للمؤسسات والشركات</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                  <FeatureCard icon={<Zap className="h-4 w-4" />} title="أداء فائق" desc="تجربة سلسة وسريعة" delay={0.05} />
-                  <FeatureCard icon={<ShieldCheck className="h-4 w-4" />} title="حماية عالية" desc="بياناتك بأمان دائم" delay={0.15} />
-                  <FeatureCard icon={<BarChart3 className="h-4 w-4" />} title="تقارير لحظية" desc="تحليلات واضحة ومباشرة" delay={0.25} />
-                  <FeatureCard icon={<Users2 className="h-4 w-4" />} title="تعاون فوري" desc="تواصل أسرع داخل فريقك" delay={0.35} />
+                <div key={slideIndex} className="space-y-3">
+                  <h2 className="text-3xl lg:text-[2.6rem] font-bold font-display leading-[1.22] text-foreground tracking-tight">
+                    <ArabicTextReveal
+                      text={`${HERO_SLIDES[slideIndex].title} ${HERO_SLIDES[slideIndex].highlight}`}
+                      as="span"
+                      className="text-foreground"
+                    />
+                  </h2>
+                  <div className="w-20 h-1 bg-gradient-to-r from-primary to-primary-glow rounded-full mt-2" />
+                  <p className="text-sm lg:text-base text-muted-foreground font-reading leading-relaxed pt-2">
+                    {HERO_SLIDES[slideIndex].desc}
+                  </p>
+                </div>
+
+                {/* Slide Indicators */}
+                <div className="flex items-center gap-1.5 pt-1" role="tablist" aria-label="شرائح التعريف">
+                  {HERO_SLIDES.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      role="tab"
+                      aria-selected={i === slideIndex}
+                      aria-label={`الشريحة ${i + 1}`}
+                      onClick={() => setSlideIndex(i)}
+                      className="h-1.5 rounded-full transition-all duration-300"
+                      style={{
+                        width: i === slideIndex ? "28px" : "8px",
+                        background: i === slideIndex ? "var(--primary)" : "color-mix(in oklab, var(--primary) 25%, transparent)",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Feature Grid & Live KPI Counters */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="p-3 rounded-2xl border border-white/10 bg-background/50 backdrop-blur-sm flex items-center gap-2.5 transition-transform hover:scale-102">
+                    <div className="p-2 rounded-xl bg-primary/15 text-primary"><Zap className="w-4 h-4" /></div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground">أداء فائق</div>
+                      <div className="text-[11px] text-muted-foreground">سرعة واستجابة فورية</div>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-2xl border border-white/10 bg-background/50 backdrop-blur-sm flex items-center gap-2.5 transition-transform hover:scale-102">
+                    <div className="p-2 rounded-xl bg-primary/15 text-primary"><ShieldCheck className="w-4 h-4" /></div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground">حماية بنكية</div>
+                      <div className="text-[11px] text-muted-foreground">تشفير وأمان معتمد</div>
+                    </div>
+                  </div>
                 </div>
 
                 {stats && (
-                  <div className="grid grid-cols-3 gap-3 pt-2">
-                    <StatPill label="موظفون" value={stats.users} />
-                    <StatPill label="مشاريع" value={stats.projects} />
-                    <StatPill label="مهام" value={stats.tasks} />
+                  <div className="grid grid-cols-3 gap-2.5 p-3 rounded-2xl bg-primary/5 border border-primary/15 text-center">
+                    <div>
+                      <div className="text-xl font-bold font-display text-primary">
+                        <AnimatedCounter value={stats.users} />
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">موظف نشط</div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold font-display text-primary">
+                        <AnimatedCounter value={stats.projects} />
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">مشروع فعّال</div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold font-display text-primary">
+                        <AnimatedCounter value={stats.tasks} />
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">مهمة منجزة</div>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* FORM SIDE */}
-          <div className="auth-form-side p-5 sm:p-8 lg:p-11 flex flex-col justify-center relative">
-            {/* Mobile Brand Logo Header */}
-            <div className="flex justify-center mb-3 lg:hidden">
-              <div className="bg-white/95 dark:bg-card/95 rounded-2xl px-4 py-2 shadow-xs border border-border/60">
-                <CrmXLogo variant="horizontal" iconSize={30} showTagline={true} />
+            </div>
+          </section>
+
+          {/* ── FORM SIDE (The Interactive Gateway) ── */}
+          <section aria-label="نموذج تسجيل الدخول" className="p-6 sm:p-9 lg:p-11 flex flex-col justify-center relative bg-card/60 backdrop-blur-xl">
+            
+            {/* Mobile Brand Emblem Header */}
+            <div className="flex justify-center mb-4 lg:hidden">
+              <div className="rounded-2xl px-4 py-2 bg-background/80 backdrop-blur-md border border-white/15 shadow-xs flex items-center gap-2.5">
+                <CrmXEmblem size={28} />
+                <span dir="ltr" className="font-black text-base tracking-tight text-foreground">
+                  CRM<span className="text-primary">-</span><span className="text-primary-glow">X</span>
+                </span>
               </div>
             </div>
 
             {/* Interactive AI Mascot Robot */}
-            <div className="flex justify-center mb-2.5 sm:mb-3">
+            <div className="flex justify-center mb-3">
               <AuthAiRobotMascot
                 focusedField={focusedField}
                 emailLength={mode === "forgot" ? 0 : emailValue.length}
@@ -493,84 +513,86 @@ function AuthPage() {
               />
             </div>
 
-            <div key={mode} className="auth-form-fade">
+            <div key={mode} className="animate-fade-in space-y-4">
               {isForgot ? (
-                <>
+                <div>
                   <button
                     type="button"
                     onClick={() => setMode("signin")}
-                    className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-4"
+                    className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 mb-3 transition-colors"
                   >
-                    <ArrowLeft className="h-3 w-3" /> العودة لتسجيل الدخول
+                    <ArrowLeft className="h-3.5 w-3.5" /> العودة لتسجيل الدخول
                   </button>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
                       <KeyRound className="h-5 w-5" />
                     </div>
-                    <h2 className="text-2xl font-bold tracking-tight">استرداد كلمة المرور</h2>
+                    <h1 className="text-2xl font-bold font-display tracking-tight">استرداد كلمة المرور</h1>
                   </div>
-                  <p className="text-muted-foreground text-sm mb-5">
-                    أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.
+                  <p className="text-muted-foreground text-xs leading-relaxed font-reading">
+                    أدخل بريدك الإلكتروني المعتمد وسنرسل لك رابطًا لإعادة تعيين كلمة المرور فورًا.
                   </p>
-                </>
+                </div>
               ) : (
-                <>
-                  <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-[11px] font-semibold text-primary mb-3">
-                    <span className="text-primary">✦</span>
+                <div className="text-start space-y-1">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-0.5 text-[11px] font-semibold text-primary">
+                    <span>✦</span>
                     {greeting}
                   </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold mb-2 tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-foreground">
                     تفضّل بتسجيل الدخول
-                  </h2>
-                  <div className="gold-divider mb-4" />
-                  <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
-                    أدخل بياناتك للوصول إلى لوحة التحكم الخاصة بك.
+                  </h1>
+                  <p className="text-muted-foreground text-xs font-reading">
+                    أدخل بيانات الاعتماد للوصول إلى مساحة العمل الخاصة بك.
                   </p>
-                </>
+                </div>
               )}
 
               {alert && <AlertBox alert={alert} onClose={() => setAlert(null)} />}
 
-
               {isSignIn && (
                 <form onSubmit={handleSignIn} className="space-y-4" autoComplete="on">
+                  {/* Email Field */}
                   <div className="space-y-1.5">
-                    <Label htmlFor="si-email" className="text-xs font-semibold text-foreground/70">
-                      البريد الإلكتروني
+                    <Label htmlFor="si-email" className="text-xs font-medium text-foreground/80 flex items-center justify-between">
+                      <span>البريد الإلكتروني</span>
+                      {emailValue && emailValid && (
+                        <span className="text-[11px] text-emerald-500 font-semibold inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> تم التحقق
+                        </span>
+                      )}
                     </Label>
                     <div
-                      className="auth-input-soft rounded-xl flex items-center px-3"
+                      className="flex items-center px-3.5 h-12 rounded-2xl bg-muted/30 border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200"
                       data-invalid={emailTouched && !emailValid}
                     >
-                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0 ms-0.5" />
                       <Input
-                        id="si-email" name="email" type="email" required dir="ltr"
+                        id="si-email"
+                        name="email"
+                        type="email"
+                        required
+                        dir="ltr"
                         autoComplete="username email"
                         ref={emailRef}
                         value={emailValue}
                         onChange={(e) => setEmailValue(e.target.value)}
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => { setEmailTouched(true); setFocusedField(null); }}
-                        aria-invalid={emailTouched && !emailValid}
-                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11 text-base"
-                        placeholder="you@example.com"
+                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-full text-sm text-start"
+                        placeholder="you@company.com"
                       />
                       {emailValue && (
                         emailValid
-                          ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-label="صالح" />
-                          : emailTouched && <AlertCircle className="h-4 w-4 text-destructive shrink-0" aria-label="غير صالح" />
+                          ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          : emailTouched && <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
                       )}
                     </div>
-                    {emailTouched && !emailValid && emailValue && (
-                      <div className="text-[11px] text-destructive flex items-center gap-1">
-                        <Info className="h-3 w-3" /> صيغة البريد غير صحيحة
-                      </div>
-                    )}
                     {emailSuggestion && (
                       <button
                         type="button"
                         onClick={() => { setEmailValue(emailSuggestion); setEmailSuggestion(null); }}
-                        className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded-md px-2 py-1 inline-flex items-center gap-1 hover:bg-primary/15 transition"
+                        className="text-[11px] text-primary bg-primary/10 border border-primary/20 rounded-lg px-2.5 py-1 inline-flex items-center gap-1 hover:bg-primary/15 transition"
                       >
                         <Info className="h-3 w-3" />
                         هل تقصد <span dir="ltr" className="font-semibold">{emailSuggestion}</span>؟
@@ -578,179 +600,163 @@ function AuthPage() {
                     )}
                   </div>
 
+                  {/* Password Field */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="si-pw" className="text-xs font-semibold text-foreground/70">
-                        كلمة المرور
-                      </Label>
-                      <button type="button" onClick={() => setMode("forgot")} className="text-xs text-primary hover:underline font-medium">
+                      <Label htmlFor="si-pw" className="text-xs font-medium text-foreground/80">كلمة المرور</Label>
+                      <button
+                        type="button"
+                        onClick={() => setMode("forgot")}
+                        className="text-xs text-primary hover:underline transition-colors"
+                      >
                         نسيت كلمة المرور؟
                       </button>
                     </div>
-                    <div
-                      className="auth-input-soft rounded-xl flex items-center px-3"
-                      data-invalid={pwTouched && !pwValid}
-                    >
-                      <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex items-center px-3.5 h-12 rounded-2xl bg-muted/30 border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200">
+                      <Lock className="h-4 w-4 text-muted-foreground shrink-0 ms-0.5" />
                       <Input
-                        id="si-pw" name="password" type={showPw ? "text" : "password"}
-                        required dir="ltr" autoComplete="current-password"
+                        id="si-pw"
+                        name="password"
+                        type={showPw ? "text" : "password"}
+                        required
+                        dir="ltr"
+                        autoComplete="current-password"
                         value={pwValue}
                         onChange={(e) => setPwValue(e.target.value)}
+                        onKeyDown={handleCaps}
+                        onKeyUp={handleCaps}
                         onFocus={() => setFocusedField("password")}
                         onBlur={() => { setPwTouched(true); setFocusedField(null); }}
-                        onKeyDown={handleCaps} onKeyUp={handleCaps}
-                        aria-invalid={pwTouched && !pwValid}
-                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11 text-base"
+                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-full text-sm text-start"
                         placeholder="••••••••"
                       />
-                      <button type="button" onClick={() => setShowPw((v) => !v)}
-                        className="text-muted-foreground hover:text-foreground transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0"
-                        aria-label={showPw ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}>
+                      <button
+                        type="button"
+                        onClick={() => setShowPw((v) => !v)}
+                        className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        title={showPw ? "إخفاء" : "إظهار"}
+                      >
                         {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {pwTouched && !pwValid && (
-                      <div className="text-[11px] text-destructive flex items-center gap-1">
-                        <Info className="h-3 w-3" /> كلمة المرور يجب أن تكون 6 أحرف على الأقل
-                      </div>
-                    )}
                     {capsOn && (
-                      <div className="text-[11px] text-warning-foreground bg-warning/15 rounded-md px-2 py-1 inline-flex items-center gap-1">
-                        <Info className="h-3 w-3" /> Caps Lock مفعّل
+                      <div className="text-[11px] text-amber-500 flex items-center gap-1">
+                        <Info className="h-3 w-3" /> تنبيه: Caps Lock مفعّل
                       </div>
                     )}
                   </div>
 
-                  <div className="rounded-xl border bg-muted/20 p-2.5 sm:p-3 space-y-2">
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer min-h-[32px]">
+                  {/* Remember Me Selector */}
+                  <div className="rounded-2xl border border-white/10 bg-muted/20 p-3 space-y-2.5">
+                    <label className="flex items-center gap-2.5 text-xs text-muted-foreground cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={remember}
                         onChange={(e) => setRemember(e.target.checked)}
-                        className="rounded accent-primary h-4 w-4"
+                        className="rounded-md accent-primary h-4 w-4"
                       />
-                      تذكرني على هذا الجهاز باستخدام cookies آمنة
+                      <span>تذكرني على هذا الجهاز عبر ملفات تعريف آمنة</span>
                     </label>
                     {remember && (
-                      <div className="flex flex-wrap sm:grid sm:grid-cols-5 gap-1.5 sm:gap-2">
-                        {REMEMBER_OPTIONS.map((option) => (
+                      <div className="grid grid-cols-5 gap-1.5 pt-0.5">
+                        {REMEMBER_OPTIONS.map((opt) => (
                           <button
-                            key={option.value}
+                            key={opt.value}
                             type="button"
-                            onClick={() => setRememberDuration(option.value)}
-                            data-active={rememberDuration === option.value}
-                            className="flex-1 min-w-[62px] rounded-lg border px-2 py-2 sm:py-1.5 text-[11px] font-medium text-muted-foreground transition-colors data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary min-h-[38px] flex items-center justify-center text-center"
+                            onClick={() => setRememberDuration(opt.value)}
+                            data-active={rememberDuration === opt.value}
+                            className="py-1.5 px-1 rounded-xl border text-[10px] font-medium transition-all text-center data-[active=true]:border-primary data-[active=true]:bg-primary/15 data-[active=true]:text-primary text-muted-foreground hover:bg-muted/40"
                           >
-                            {option.label}
+                            {opt.label}
                           </button>
                         ))}
                       </div>
                     )}
                   </div>
 
-                  <Button type="submit" disabled={loading || !emailValid || !pwValid}
-                    className="auth-cta w-full h-12 rounded-xl font-semibold tracking-wide mt-2">
-                    {loading && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
-                    {loading ? "جارٍ التحقق من بياناتك…" : "تسجيل الدخول"}
-                  </Button>
+                  {/* Submit CTA with Magnetic Hover */}
+                  <Magnetic strength={0.2} className="w-full pt-1">
+                    <Button
+                      type="submit"
+                      disabled={loading || !emailValid || !pwValid}
+                      className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary to-primary-glow text-primary-foreground font-semibold text-sm shadow-md hover:shadow-primary/30 transition-all duration-300 disabled:opacity-50"
+                    >
+                      {loading && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
+                      <span>{loading ? "جارٍ التحقق والتشفير…" : "تسجيل الدخول إلى المنظومة"}</span>
+                    </Button>
+                  </Magnetic>
 
-                  <div className="auth-trust">
-                    <span><ShieldCheck className="h-3.5 w-3.5" /> اتصال مشفّر TLS</span>
-                    <span><Lock className="h-3.5 w-3.5" /> حماية ضد المحاولات المتكررة</span>
+                  {/* Trust Badges */}
+                  <div className="pt-2 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> تشفير TLS</span>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-primary" /> حماية RLS السحابية</span>
                   </div>
                 </form>
               )}
 
-
-              {/* Sign-up disabled — accounts are created by administrators */}
-
               {isForgot && (
                 <form onSubmit={handleForgot} className="space-y-4">
-                  <Field id="fg-email" label="البريد الإلكتروني" icon={<Mail className="h-4 w-4 text-muted-foreground shrink-0" />}>
-                    <Input id="fg-email" name="email" type="email" required dir="ltr" autoComplete="email"
-                      defaultValue={rememberEmail}
-                      onFocus={() => setFocusedField("forgot")}
-                      onBlur={() => setFocusedField(null)}
-                      className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-11"
-                      placeholder="you@example.com" />
-                  </Field>
-                  <Button type="submit" disabled={loading}
-                    className="w-full h-11 rounded-xl font-semibold tracking-wide hover-lift mt-2 shadow-lg shadow-primary/20">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fo-email" className="text-xs font-medium text-foreground/80">البريد الإلكتروني</Label>
+                    <div className="flex items-center px-3.5 h-12 rounded-2xl bg-muted/30 border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200">
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0 ms-0.5" />
+                      <Input
+                        id="fo-email"
+                        name="email"
+                        type="email"
+                        required
+                        dir="ltr"
+                        value={emailValue}
+                        onChange={(e) => setEmailValue(e.target.value)}
+                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-full text-sm text-start"
+                        placeholder="you@company.com"
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" disabled={loading || !emailValid} className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-semibold">
                     {loading && <Loader2 className="h-4 w-4 animate-spin ms-2" />}
-                    إرسال رابط الاسترداد
+                    <span>إرسال رابط الاسترداد</span>
                   </Button>
                 </form>
               )}
             </div>
 
-            <p className="text-center text-xs text-muted-foreground mt-8">
+            {/* Copyright Footer */}
+            <footer className="mt-6 text-center text-[10px] text-muted-foreground/70">
               © {new Date().getFullYear()} CRM-X · TaskFlow Hub — جميع الحقوق محفوظة
-            </p>
-          </div>
+            </footer>
+
+          </section>
+
         </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Helpers ---------- */
-function greetByHour(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "صباح الخير";
-  if (h < 17) return "مساء الخير";
-  return "مساء النور";
-}
-
-function Field({
-  id, label, icon, children,
-}: { id: string; label: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs font-semibold text-foreground/70">{label}</Label>
-      <div className="auth-input-soft rounded-xl flex items-center px-3">
-        {icon}
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function FeatureCard({
-  icon, title, desc, delay = 0,
-}: { icon: React.ReactNode; title: string; desc: string; delay?: number }) {
-  return (
-    <div className="feature-card-light" style={{ animationDelay: `${delay}s` }}>
-      <div className="fc-icon">{icon}</div>
-      <div className="min-w-0">
-        <div className="fc-title">{title}</div>
-        <div className="fc-desc">{desc}</div>
-      </div>
+      </main>
     </div>
   );
 }
 
 function AlertBox({ alert, onClose }: { alert: AuthAlert; onClose: () => void }) {
-  const Icon = alert.kind === "error" ? AlertCircle : alert.kind === "success" ? CheckCircle2 : Info;
+  const isErr = alert.kind === "error";
+  const isSucc = alert.kind === "success";
   return (
-    <div className={`auth-alert auth-alert-${alert.kind} mb-4`} role="alert">
-      <Icon className="aa-icon h-4 w-4" />
-      <div className="flex-1 min-w-0">
-        <div className="aa-title">{alert.title}</div>
-        {alert.description && <div className="opacity-90">{alert.description}</div>}
+    <div
+      role="alert"
+      className={`p-3.5 rounded-2xl border text-xs flex items-start gap-3 transition-all ${
+        isErr
+          ? "bg-destructive/10 border-destructive/30 text-destructive"
+          : isSucc
+            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+            : "bg-primary/10 border-primary/30 text-primary"
+      }`}
+    >
+      {isErr && <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+      {isSucc && <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />}
+      {!isErr && !isSucc && <Info className="h-4 w-4 shrink-0 mt-0.5" />}
+      <div className="flex-1">
+        <div className="font-bold">{alert.title}</div>
+        {alert.description && <div className="mt-0.5 text-muted-foreground leading-relaxed">{alert.description}</div>}
       </div>
-      <button type="button" onClick={onClose} className="opacity-60 hover:opacity-100 text-xs px-1" aria-label="إغلاق">✕</button>
-    </div>
-  );
-}
-
-
-function StatPill({ label, value }: { label: string; value: number }) {
-  const display = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value.toLocaleString("ar-EG");
-  return (
-    <div className="rounded-2xl bg-primary/8 border border-border px-3 py-2 text-center">
-      <div className="text-lg font-bold text-foreground leading-tight tabular-nums">{display}</div>
-      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{label}</div>
+      <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
     </div>
   );
 }

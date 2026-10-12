@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import { resolveSkylineImage, resolveSkylineMobileImage, type SkylineSceneId } from "./AuthSkylineSwitcher";
+import { ThreeLivingAtmosphere } from "./ThreeLivingAtmosphere";
 
 interface LivingSkylineSceneProps {
   scene: SkylineSceneId;
@@ -689,6 +690,9 @@ export function LivingSkylineScene({ scene, isDarkTheme = false }: LivingSkyline
           transition: "background 0.8s ease",
         }}
       />
+
+      {/* ── Layer 2.5: Three.js Spatial WebGL Particles & Geometric Atmosphere ── */}
+      <ThreeLivingAtmosphere scene={scene} isDarkTheme={isDarkTheme} />
 
       {/* ── Layer 3: High-Resolution Living Canvas Engine ── */}
       <canvas
