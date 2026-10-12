@@ -26,7 +26,8 @@ import {
 import { CrmXLogo } from "@/components/brand/CrmXLogo";
 import { AuthAiRobotMascot, type MascotFocusField } from "@/components/auth/AuthAiRobotMascot";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AuthSkylineSwitcher, useAuthWallpaper, resolveSkylineImage, resolveSkylineMobileImage } from "@/components/auth/AuthSkylineSwitcher";
+import { AuthSkylineSwitcher, useAuthWallpaper } from "@/components/auth/AuthSkylineSwitcher";
+import { LivingSkylineScene } from "@/components/auth/LivingSkylineScene";
 import { usePreferences } from "@/lib/preferences";
 
 export const Route = createFileRoute("/auth")({
@@ -133,14 +134,6 @@ function AuthPage() {
     return () => observer.disconnect();
   }, [themeMode]);
 
-  const activeWallpaper = useMemo(() => {
-    return resolveSkylineImage(wallpaperScene, isDark);
-  }, [wallpaperScene, isDark]);
-
-  const activeMobileWallpaper = useMemo(() => {
-    return resolveSkylineMobileImage(wallpaperScene, isDark);
-  }, [wallpaperScene, isDark]);
-
   // Restore remembered email
   useEffect(() => {
     const saved = getRememberedEmail();
@@ -154,18 +147,6 @@ function AuthPage() {
       else document.getElementById("si-pw")?.focus();
     }, 200);
   }, []);
-
-  // Floating particles (generated once)
-  const particles = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => ({
-      left: `${(i * 73) % 100}%`,
-      size: 4 + ((i * 7) % 6),
-      delay: (i * 1.3) % 8,
-      duration: 14 + ((i * 5) % 10),
-      opacity: 0.4 + ((i * 3) % 5) / 10,
-    })),
-    [],
-  );
 
   // Parallax: track mouse → CSS vars on .auth-bg (desktop only, disabled on touch/mobile)
   useEffect(() => {
@@ -418,35 +399,8 @@ function AuthPage() {
         />
       </div>
 
-      <picture className="auth-bg-picture">
-        <source media="(max-width: 1023px)" srcSet={activeMobileWallpaper} type="image/webp" />
-        <img
-          key={activeWallpaper}
-          src={activeWallpaper}
-          alt="Skyline Panorama"
-          className="auth-bg-image transition-opacity duration-700 ease-in-out"
-          aria-hidden="true"
-        />
-      </picture>
-      <div className="auth-bg-mesh" aria-hidden="true" />
-      <div className="auth-bg-veil" aria-hidden="true" />
-      <div className="auth-particles" aria-hidden="true">
-        {particles.map((p, i) => (
-          <span
-            key={i}
-            style={{
-              left: p.left,
-              width: `${p.size}px`,
-              height: `${p.size}px`,
-              animationDelay: `${p.delay}s`,
-              animationDuration: `${p.duration}s`,
-              opacity: p.opacity,
-            }}
-          />
-        ))}
-      </div>
-      <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/8 blur-3xl pointer-events-none z-[2]" />
-      <div className="absolute -bottom-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-accent/8 blur-3xl pointer-events-none z-[2]" />
+      {/* Living Cinematic Layered Background */}
+      <LivingSkylineScene scene={wallpaperScene} isDarkTheme={isDark} />
 
       <div className="w-full max-w-6xl mx-auto relative z-10 animate-scale-in">
         <div className="auth-card grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] min-h-[560px] lg:min-h-[640px]">
