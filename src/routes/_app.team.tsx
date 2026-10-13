@@ -503,7 +503,7 @@ function TeamPage() {
             <span className="text-xs text-muted-foreground">ضمن الفترة المحددة</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {employeeMetrics.map((emp) => {
               const rate = emp.totalTasks ? Math.round((emp.completed / emp.totalTasks) * 100) : 0;
               return (
@@ -536,7 +536,7 @@ function TeamPage() {
                 </div>
               );
             })}
-          </div>
+          </StaggerGroup>
         </Card>
       )}
 

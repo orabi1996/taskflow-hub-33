@@ -580,7 +580,7 @@ function Dashboard() {
       )}
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <StaggerGroup className="grid grid-cols-1 lg:grid-cols-3 gap-4" delay={0.08}>
         <Card className="p-4 lg:col-span-2">
           <div className="font-semibold mb-3">آخر 7 أيام</div>
           <div className="h-[220px]">
@@ -614,7 +614,7 @@ function Dashboard() {
             )}
           </div>
         </Card>
-      </div>
+      </StaggerGroup>
 
       {/* Overdue spotlight */}
       {overdueTasks.length > 0 && (

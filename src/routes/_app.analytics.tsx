@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
-import { StaggerGroup } from "@/motion";
+import { StaggerGroup, AnimatedCounter, LightTrackingCard } from "@/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -305,72 +305,92 @@ function ExecutiveAnalyticsPage() {
 
       {/* Top 5 KPI Metrics */}
       <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-        <Card className="p-4 bg-gradient-to-br from-teal-500/10 via-card to-card border-teal-500/20 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium">الالتزام بالـ SLA</span>
-            <div className="h-7 w-7 rounded-lg bg-teal-500/15 flex items-center justify-center">
-              <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+        <LightTrackingCard className="rounded-2xl h-full">
+          <Card className="h-full p-4 bg-gradient-to-br from-teal-500/10 via-card to-card border-teal-500/20 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-ui font-medium">الالتزام بالـ SLA</span>
+              <div className="h-7 w-7 rounded-lg bg-teal-500/15 flex items-center justify-center">
+                <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-bold text-foreground mt-2">{k.complianceRate}%</div>
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1">
-            <span className="text-emerald-600 font-semibold">{k.resolved} محلولة</span>
-            <span>·</span>
-            <span className={k.breached > 0 ? "text-destructive font-semibold" : ""}>{k.breached} متجاوزة</span>
-          </div>
-        </Card>
+            <div className="text-2xl font-bold font-display text-foreground mt-2">
+              <AnimatedCounter value={k.complianceRate} suffix="%" />
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1 font-ui">
+              <span className="text-emerald-600 font-semibold">{k.resolved} محلولة</span>
+              <span>·</span>
+              <span className={k.breached > 0 ? "text-destructive font-semibold" : ""}>{k.breached} متجاوزة</span>
+            </div>
+          </Card>
+        </LightTrackingCard>
 
-        <Card className="p-4 bg-gradient-to-br from-emerald-500/10 via-card to-card border-emerald-500/20 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium">مؤشر رضا العملاء (CSAT)</span>
-            <div className="h-7 w-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-              <Smile className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <LightTrackingCard className="rounded-2xl h-full">
+          <Card className="h-full p-4 bg-gradient-to-br from-emerald-500/10 via-card to-card border-emerald-500/20 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-ui font-medium">مؤشر رضا العملاء (CSAT)</span>
+              <div className="h-7 w-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                <Smile className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">{k.csatScore}%</div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            تقييم ممتاز وفق مقاييس الجودة
-          </div>
-        </Card>
+            <div className="text-2xl font-bold font-display text-emerald-600 dark:text-emerald-400 mt-2">
+              <AnimatedCounter value={k.csatScore} decimals={1} suffix="%" />
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1 font-ui">
+              تقييم ممتاز وفق مقاييس الجودة
+            </div>
+          </Card>
+        </LightTrackingCard>
 
-        <Card className="p-4 bg-gradient-to-br from-blue-500/10 via-card to-card border-blue-500/20 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium">معدل وقت الحل (MTTR)</span>
-            <div className="h-7 w-7 rounded-lg bg-blue-500/15 flex items-center justify-center">
-              <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <LightTrackingCard className="rounded-2xl h-full">
+          <Card className="h-full p-4 bg-gradient-to-br from-blue-500/10 via-card to-card border-blue-500/20 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-ui font-medium">معدل وقت الحل (MTTR)</span>
+              <div className="h-7 w-7 rounded-lg bg-blue-500/15 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-bold text-foreground mt-2">{k.mttrHours} <span className="text-xs font-normal text-muted-foreground">ساعة</span></div>
-          <div className="text-[11px] text-emerald-600 font-medium mt-1">
-            أسرع من السقف المحدد بـ 20 ساعة
-          </div>
-        </Card>
+            <div className="text-2xl font-bold font-display text-foreground mt-2">
+              <AnimatedCounter value={k.mttrHours} decimals={1} suffix=" س" />
+            </div>
+            <div className="text-[11px] text-emerald-600 font-medium mt-1 font-ui">
+              أسرع من السقف المحدد بـ 20 ساعة
+            </div>
+          </Card>
+        </LightTrackingCard>
 
-        <Card className="p-4 bg-gradient-to-br from-purple-500/10 via-card to-card border-purple-500/20 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium">زمن أول استجابة (MTTA)</span>
-            <div className="h-7 w-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
-              <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+        <LightTrackingCard className="rounded-2xl h-full">
+          <Card className="h-full p-4 bg-gradient-to-br from-purple-500/10 via-card to-card border-purple-500/20 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-ui font-medium">زمن أول استجابة (MTTA)</span>
+              <div className="h-7 w-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-bold text-foreground mt-2">{k.mttaMinutes} <span className="text-xs font-normal text-muted-foreground">دقيقة</span></div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            استجابة فورية خلال دقائق
-          </div>
-        </Card>
+            <div className="text-2xl font-bold font-display text-foreground mt-2">
+              <AnimatedCounter value={k.mttaMinutes} suffix=" د" />
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1 font-ui">
+              استجابة فورية خلال دقائق
+            </div>
+          </Card>
+        </LightTrackingCard>
 
-        <Card className="p-4 bg-gradient-to-br from-rose-500/10 via-card to-card border-rose-500/20 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium">البلاغات الطارئة والحرجة</span>
-            <div className="h-7 w-7 rounded-lg bg-rose-500/15 flex items-center justify-center">
-              <Flame className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+        <LightTrackingCard className="rounded-2xl h-full">
+          <Card className="h-full p-4 bg-gradient-to-br from-rose-500/10 via-card to-card border-rose-500/20 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-ui font-medium">البلاغات الطارئة والحرجة</span>
+              <div className="h-7 w-7 rounded-lg bg-rose-500/15 flex items-center justify-center">
+                <Flame className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+              </div>
             </div>
-          </div>
-          <div className="text-2xl font-bold text-foreground mt-2">{k.urgent}</div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            <span className="text-rose-600 font-semibold">{k.active}</span> تذكرة قيد المعالجة الآن
-          </div>
-        </Card>
+            <div className="text-2xl font-bold font-display text-foreground mt-2">
+              <AnimatedCounter value={k.urgent} />
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1 font-ui">
+              <span className="text-rose-600 font-semibold">{k.active}</span> تذكرة قيد المعالجة الآن
+            </div>
+          </Card>
+        </LightTrackingCard>
       </StaggerGroup>
 
       {/* Row 1: Charts */}

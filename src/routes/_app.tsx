@@ -19,7 +19,7 @@ import { AiAssistant } from "@/components/AiAssistant";
 import { useIdleLogout } from "@/hooks/use-idle-logout";
 import { toast } from "sonner";
 import { CrmXLogo, CrmXAppIcon } from "@/components/brand/CrmXLogo";
-import { PageEntrance, getRouteMotionLevel } from "@/motion";
+import { PageEntrance, getRouteMotionLevel, AmbientBackground3D } from "@/motion";
 
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
@@ -193,7 +193,10 @@ function AppLayout() {
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset className="app-ambient min-h-screen">
+      <SidebarInset className="app-ambient min-h-screen relative overflow-hidden">
+        {/* Three.js Ambient Constellation Layer */}
+        <AmbientBackground3D opacity={0.75} />
+
         <header className="sticky top-0 z-30 h-14 flex items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5 transition-colors duration-200">
           <SidebarTrigger className="shrink-0" />
           <Link
