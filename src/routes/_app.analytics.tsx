@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
+import { StaggerGroup } from "@/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -303,7 +304,7 @@ function ExecutiveAnalyticsPage() {
       />
 
       {/* Top 5 KPI Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         <Card className="p-4 bg-gradient-to-br from-teal-500/10 via-card to-card border-teal-500/20 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground font-medium">الالتزام بالـ SLA</span>
@@ -370,7 +371,7 @@ function ExecutiveAnalyticsPage() {
             <span className="text-rose-600 font-semibold">{k.active}</span> تذكرة قيد المعالجة الآن
           </div>
         </Card>
-      </div>
+      </StaggerGroup>
 
       {/* Row 1: Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

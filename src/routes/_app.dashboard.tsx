@@ -28,6 +28,7 @@ import { ListSkeleton } from "@/components/common/ListSkeleton";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { EditTaskDialog, type EditableTask } from "@/components/tasks/EditTaskDialog";
 import { KpiCard } from "@/components/dashboard/KpiCards";
+import { StaggerGroup } from "@/motion";
 import { KanbanBoard, type KanbanTask, type TaskStatus } from "@/components/dashboard/KanbanBoard";
 import { CalendarView } from "@/components/dashboard/CalendarView";
 import { DailyJournalDialog, DailyJournalView } from "@/components/dashboard/DailyJournalDialog";
@@ -491,7 +492,7 @@ function Dashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 stagger">
+      <StaggerGroup className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <KpiCard label="مهام اليوم" value={todayCount} icon={CalendarDays} accent="primary" />
         <KpiCard label="قيد التنفيذ" value={counts.pending} icon={Clock} accent="info" />
         <KpiCard label="منتهية" value={counts.completed} icon={CheckCircle2} accent="success" hint={`${completionRate}% نسبة الإنجاز`} />
@@ -510,7 +511,7 @@ function Dashboard() {
             <KpiCard label="ساعات العمل" value={totalHoursLabel} icon={TrendingUp} accent="info" />
           </>
         )}
-      </div>
+      </StaggerGroup>
 
       {/* Enterprise SLA & Customer Success Pulse Widget */}
       {slaStats && (
