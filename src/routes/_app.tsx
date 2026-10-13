@@ -19,6 +19,7 @@ import { AiAssistant } from "@/components/AiAssistant";
 import { useIdleLogout } from "@/hooks/use-idle-logout";
 import { toast } from "sonner";
 import { CrmXLogo, CrmXAppIcon } from "@/components/brand/CrmXLogo";
+import { PageEntrance } from "@/motion";
 
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
@@ -222,8 +223,10 @@ function AppLayout() {
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 sm:py-8 relative z-10 animate-fade-in">
-          <Outlet />
+        <main className="px-4 py-6 sm:px-6 sm:py-8 relative z-10">
+          <PageEntrance>
+            <Outlet />
+          </PageEntrance>
         </main>
       </SidebarInset>
     </SidebarProvider>
@@ -234,8 +237,16 @@ function SidebarNavItem({ item }: { item: NavItem }) {
   const { icon: Icon, label, to } = item;
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip={label} className="transition-all duration-200 group hover:translate-x-[-2px]">
-        <Link to={to} activeProps={{ "data-active": "true" } as any} className="flex items-center gap-3">
+      <SidebarMenuButton
+        asChild
+        tooltip={label}
+        className="relative transition-all duration-200 group motion-safe:hover:-translate-x-1"
+      >
+        <Link
+          to={to}
+          activeProps={{ "data-active": "true" } as any}
+          className="flex items-center gap-3 data-[active=true]:font-bold data-[active=true]:text-primary"
+        >
           <Icon className="transition-transform duration-200 group-hover:scale-110 shrink-0" />
           <span className="font-ui">{label}</span>
         </Link>

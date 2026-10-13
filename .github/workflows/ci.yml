@@ -33,7 +33,8 @@ jobs:
         run: npm ci
 
       - name: Formatting check (Prettier)
-        run: npm run format:check || echo "Notice: Code formatting issues detected. Run 'npm run format' to reformat."
+        run: |
+          npm run format:check || echo "Notice: Code formatting issues detected. Run 'npm run format' to reformat."
 
       - name: TypeScript typecheck
         run: npm run typecheck

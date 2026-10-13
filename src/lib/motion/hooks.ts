@@ -62,7 +62,7 @@ export function useCounterAnimation(
     const startVal = displayValue;
     const diff = targetValue - startVal;
 
-    let timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       const step = (timestamp: number) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
