@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
+import { StaggerGroup, AnimatedCounter } from "@/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -362,37 +363,45 @@ function TeamPage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <Card className="p-4 bg-card border">
-          <div className="text-xs text-muted-foreground">إجمالي مهام الفريق</div>
-          <div className="text-2xl font-bold mt-1">{teamTotals.total}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{employees.length} أعضاء مسجلين</div>
+      <StaggerGroup className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <Card className="p-4 bg-card border hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">إجمالي مهام الفريق</div>
+          <div className="text-2xl font-bold mt-1 font-display">
+            <AnimatedCounter value={teamTotals.total} />
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5 font-ui">{employees.length} أعضاء مسجلين</div>
         </Card>
 
-        <Card className="p-4 bg-card border">
-          <div className="text-xs text-muted-foreground">ساعات العمل المنجزة</div>
-          <div className="text-2xl font-bold mt-1 text-primary">{formatHoursAndMinutes(teamTotals.totalMinutes)}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">موثقة بالوقت</div>
+        <Card className="p-4 bg-card border hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">ساعات العمل المنجزة</div>
+          <div className="text-2xl font-bold mt-1 text-primary font-display">{formatHoursAndMinutes(teamTotals.totalMinutes)}</div>
+          <div className="text-xs text-muted-foreground mt-0.5 font-ui">موثقة بالوقت</div>
         </Card>
 
-        <Card className="p-4 bg-card border">
-          <div className="text-xs text-muted-foreground">المهام المنجزة</div>
-          <div className="text-2xl font-bold mt-1 text-success">{teamTotals.completed}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{teamTotals.rate}% نسبة الإنجاز</div>
+        <Card className="p-4 bg-card border hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">المهام المنجزة</div>
+          <div className="text-2xl font-bold mt-1 text-success font-display">
+            <AnimatedCounter value={teamTotals.completed} />
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5 font-ui">{teamTotals.rate}% نسبة الإنجاز</div>
         </Card>
 
-        <Card className="p-4 bg-card border">
-          <div className="text-xs text-muted-foreground">قيد التنفيذ</div>
-          <div className="text-2xl font-bold mt-1 text-info">{teamTotals.pending}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">جارٍ العمل عليها</div>
+        <Card className="p-4 bg-card border hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">قيد التنفيذ</div>
+          <div className="text-2xl font-bold mt-1 text-info font-display">
+            <AnimatedCounter value={teamTotals.pending} />
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5 font-ui">جارٍ العمل عليها</div>
         </Card>
 
-        <Card className="p-4 bg-card border">
-          <div className="text-xs text-muted-foreground">مؤجلة / ملغاة</div>
-          <div className="text-2xl font-bold mt-1 text-warning-foreground">{teamTotals.postponed}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">تحتاج مراجعة المدير</div>
+        <Card className="p-4 bg-card border hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">مؤجلة / ملغاة</div>
+          <div className="text-2xl font-bold mt-1 text-warning-foreground font-display">
+            <AnimatedCounter value={teamTotals.postponed} />
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5 font-ui">تحتاج مراجعة المدير</div>
         </Card>
-      </div>
+      </StaggerGroup>
 
       {/* Pending Daily Journal Approvals Queue */}
       {pendingJournals.filter((j) => j.status === "submitted").length > 0 && (

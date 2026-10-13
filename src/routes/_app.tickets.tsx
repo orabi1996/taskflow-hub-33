@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
+import { StaggerGroup, AnimatedCounter } from "@/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -629,46 +630,50 @@ function SupportTicketsPage() {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <Card className="p-4 bg-card border shadow-2xs">
-          <div className="text-xs text-muted-foreground">التذاكر النشطة</div>
-          <div className="text-2xl font-bold mt-1 text-primary">{stats.active}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">
+      <StaggerGroup className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <Card className="p-4 bg-card border shadow-2xs hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">التذاكر النشطة</div>
+          <div className="text-2xl font-bold mt-1 text-primary font-display">
+            <AnimatedCounter value={stats.active} />
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">
             {stats.open} مفتوحة • {stats.inProgress} قيد العمل
           </div>
         </Card>
 
-        <Card className="p-4 bg-card border shadow-2xs">
-          <div className="text-xs text-muted-foreground">بلاغات طارئة وحرجة</div>
-          <div className="text-2xl font-bold mt-1 text-destructive flex items-center gap-1.5">
-            {stats.urgentActive}
+        <Card className="p-4 bg-card border shadow-2xs hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">بلاغات طارئة وحرجة</div>
+          <div className="text-2xl font-bold mt-1 text-destructive flex items-center gap-1.5 font-display">
+            <AnimatedCounter value={stats.urgentActive} />
             {stats.urgentActive > 0 && <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">SLA أقل من 4 ساعات</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">SLA أقل من 4 ساعات</div>
         </Card>
 
-        <Card className="p-4 bg-card border shadow-2xs">
-          <div className="text-xs text-muted-foreground">نسبة الالتزام بالـ SLA</div>
-          <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
-            {stats.complianceRate}%
+        <Card className="p-4 bg-card border shadow-2xs hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">نسبة الالتزام بالـ SLA</div>
+          <div className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400 font-display">
+            <AnimatedCounter value={stats.complianceRate} suffix="%" />
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">مؤشر سرعة الاستجابة</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">مؤشر سرعة الاستجابة</div>
         </Card>
 
-        <Card className="p-4 bg-card border shadow-2xs">
-          <div className="text-xs text-muted-foreground">تجاوزت وقت الـ SLA</div>
-          <div className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
-            {stats.breached}
+        <Card className="p-4 bg-card border shadow-2xs hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">تجاوزت وقت الـ SLA</div>
+          <div className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400 font-display">
+            <AnimatedCounter value={stats.breached} />
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">تتطلب تسريع المعالجة</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">تتطلب تسريع المعالجة</div>
         </Card>
 
-        <Card className="p-4 bg-card border shadow-2xs">
-          <div className="text-xs text-muted-foreground">تم حلها وإغلاقها</div>
-          <div className="text-2xl font-bold mt-1 text-muted-foreground">{stats.resolved}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">حل مكتمل وموثق</div>
+        <Card className="p-4 bg-card border shadow-2xs hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">تم حلها وإغلاقها</div>
+          <div className="text-2xl font-bold mt-1 text-muted-foreground font-display">
+            <AnimatedCounter value={stats.resolved} />
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">حل مكتمل وموثق</div>
         </Card>
-      </div>
+      </StaggerGroup>
 
       {/* Filter Bar */}
       <Card className="p-3.5 bg-card border shadow-2xs flex flex-col md:flex-row items-center gap-3">
@@ -740,7 +745,7 @@ function SupportTicketsPage() {
           </p>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <StaggerGroup className="space-y-3" stagger={0.025}>
           {tickets.map((t) => {
             const pMeta = PRIORITY_META[t.priority] || PRIORITY_META.medium;
             const sMeta = STATUS_META[t.status] || STATUS_META.open;
@@ -866,7 +871,7 @@ function SupportTicketsPage() {
               </Card>
             );
           })}
-        </div>
+        </StaggerGroup>
       )}
 
       {/* Ticket Details & Discussion Modal */}

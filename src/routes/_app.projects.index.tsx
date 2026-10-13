@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { StaggerGroup } from "@/motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -458,7 +459,7 @@ function ProjectsPage() {
           <ProjectTimelineView projects={filteredProjects} />
         </Suspense>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" stagger={0.03}>
           {filteredProjects.map((p) => (
             <Card key={p.id} className="p-5 hover:shadow-[var(--shadow-elegant)] transition-[var(--transition-smooth)]">
               <div className="flex items-start justify-between">
@@ -506,7 +507,7 @@ function ProjectsPage() {
               </div>
             </Card>
           ))}
-        </div>
+        </StaggerGroup>
       )}
 
       {/* Edit Dialog */}

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Card } from "@/components/ui/card";
+import { StaggerGroup, AnimatedCounter } from "@/motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -334,35 +335,41 @@ function EnterpriseClientsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-        <Card className="p-4 bg-gradient-to-br from-primary/5 via-card to-card border-primary/20">
-          <div className="text-xs text-muted-foreground">إجمالي العملاء والشركاء</div>
-          <div className="text-2xl font-bold mt-1 text-primary">{stats.total}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">عبر جميع مشاريع المنظومة</div>
-        </Card>
-
-        <Card className="p-4 bg-gradient-to-br from-emerald-500/5 via-card to-card border-emerald-500/20">
-          <div className="text-xs text-muted-foreground">حسابات مستقرة (Green)</div>
-          <div className="text-2xl font-bold mt-1 text-emerald-600">{stats.greenCount}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">رضا وتجديد مضمون</div>
-        </Card>
-
-        <Card className="p-4 bg-gradient-to-br from-amber-500/5 via-card to-card border-amber-500/20">
-          <div className="text-xs text-muted-foreground">حسابات تحت الملاحظة (At-Risk)</div>
-          <div className="text-2xl font-bold mt-1 text-amber-600">{stats.atRiskCount}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">تتطلب تدخلاً استباقياً</div>
-        </Card>
-
-        <Card className="p-4 bg-gradient-to-br from-[#00A6A6]/5 via-card to-card border-[#00A6A6]/20">
-          <div className="text-xs text-muted-foreground">القيمة التعاقدية الإجمالية</div>
-          <div className="text-xl font-bold mt-1 text-[#00A6A6]">
-            {stats.totalValue.toLocaleString()} <span className="text-xs font-normal">SAR</span>
+      <StaggerGroup className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        <Card className="p-4 bg-gradient-to-br from-primary/5 via-card to-card border-primary/20 hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">إجمالي العملاء والشركاء</div>
+          <div className="text-2xl font-bold mt-1 text-primary font-display">
+            <AnimatedCounter value={stats.total} />
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">عبر جميع مشاريع المنظومة</div>
+        </Card>
+
+        <Card className="p-4 bg-gradient-to-br from-emerald-500/5 via-card to-card border-emerald-500/20 hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">حسابات مستقرة (Green)</div>
+          <div className="text-2xl font-bold mt-1 text-emerald-600 font-display">
+            <AnimatedCounter value={stats.greenCount} />
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">رضا وتجديد مضمون</div>
+        </Card>
+
+        <Card className="p-4 bg-gradient-to-br from-amber-500/5 via-card to-card border-amber-500/20 hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">حسابات تحت الملاحظة (At-Risk)</div>
+          <div className="text-2xl font-bold mt-1 text-amber-600 font-display">
+            <AnimatedCounter value={stats.atRiskCount} />
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">تتطلب تدخلاً استباقياً</div>
+        </Card>
+
+        <Card className="p-4 bg-gradient-to-br from-[#00A6A6]/5 via-card to-card border-[#00A6A6]/20 hover-lift transition-all duration-200">
+          <div className="text-xs text-muted-foreground font-ui">القيمة التعاقدية الإجمالية</div>
+          <div className="text-xl font-bold mt-1 text-[#00A6A6] font-display">
+            <AnimatedCounter value={stats.totalValue} suffix=" SAR" />
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5 font-ui">
             {stats.openTicketsTotal > 0 ? `${stats.openTicketsTotal} تذكرة دعم مفتوحة` : "لا توجد بلاغات حرجة"}
           </div>
         </Card>
-      </div>
+      </StaggerGroup>
 
       {/* Filter Bar */}
       <Card className="p-4">
@@ -431,7 +438,7 @@ function EnterpriseClientsPage() {
           <div className="text-xs mt-1">جرّب مسح الفلاتر أو أضف عميلاً جديداً بالضغط على زر الإضافة أعلاه.</div>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerGroup className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" stagger={0.03}>
           {filteredClients.map((client) => {
             const hConfig = HEALTH_CONFIG[client.health_status] || HEALTH_CONFIG.green;
             return (
@@ -530,7 +537,7 @@ function EnterpriseClientsPage() {
               </Card>
             );
           })}
-        </div>
+        </StaggerGroup>
       )}
 
       {/* New Client Dialog */}

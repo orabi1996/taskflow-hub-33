@@ -1,4 +1,4 @@
-import { Link, Outlet, createFileRoute, redirect, useNavigate, isRedirect } from "@tanstack/react-router";
+import { Link, Outlet, createFileRoute, redirect, useNavigate, isRedirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 import { useAuth } from "@/lib/auth-context";
@@ -19,7 +19,7 @@ import { AiAssistant } from "@/components/AiAssistant";
 import { useIdleLogout } from "@/hooks/use-idle-logout";
 import { toast } from "sonner";
 import { CrmXLogo, CrmXAppIcon } from "@/components/brand/CrmXLogo";
-import { PageEntrance } from "@/motion";
+import { PageEntrance, getRouteMotionLevel } from "@/motion";
 
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
@@ -51,6 +51,9 @@ type NavItem = { to: string; icon: typeof ListChecks; label: string };
 function AppLayout() {
   const { profile, roles, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const motionLevel = getRouteMotionLevel(pathname);
+
   const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
   const isAdmin = roles.includes("admin");
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
@@ -191,7 +194,7 @@ function AppLayout() {
       </Sidebar>
 
       <SidebarInset className="app-ambient min-h-screen">
-        <header className="sticky top-0 z-30 h-14 flex items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5">
+        <header className="sticky top-0 z-30 h-14 flex items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5 transition-colors duration-200">
           <SidebarTrigger className="shrink-0" />
           <Link
             to="/dashboard"
@@ -204,13 +207,13 @@ function AppLayout() {
             <Button
               variant="outline"
               size="sm"
-              className="hidden w-full max-w-sm justify-start gap-2 text-muted-foreground sm:inline-flex"
+              className="hidden w-full max-w-sm justify-start gap-2 text-muted-foreground sm:inline-flex transition-all duration-200 hover:border-primary/40 hover:bg-muted/50"
               onClick={triggerCmdK}
               title="بحث (Ctrl/Cmd + K)"
             >
               <Search className="h-3.5 w-3.5" />
               <span>بحث سريع...</span>
-              <kbd className="ms-auto rounded bg-muted px-1.5 py-0.5 text-[10px]">⌘K</kbd>
+              <kbd className="ms-auto rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono">⌘K</kbd>
             </Button>
           </div>
           <div className="flex items-center gap-1 shrink-0">
@@ -223,8 +226,8 @@ function AppLayout() {
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 sm:py-8 relative z-10">
-          <PageEntrance>
+        <main className="px-4 py-6 sm:px-6 sm:py-8 relative z-10" data-motion-level={motionLevel}>
+          <PageEntrance level={motionLevel} key={pathname}>
             <Outlet />
           </PageEntrance>
         </main>
@@ -245,8 +248,13 @@ function SidebarNavItem({ item }: { item: NavItem }) {
         <Link
           to={to}
           activeProps={{ "data-active": "true" } as any}
-          className="flex items-center gap-3 data-[active=true]:font-bold data-[active=true]:text-primary"
+          className="relative flex items-center gap-3 data-[active=true]:font-bold data-[active=true]:text-primary data-[active=true]:bg-primary/10 rounded-xl"
         >
+          {/* Active indicator bar on leading edge */}
+          <span
+            className="absolute start-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-primary opacity-0 transition-all duration-200 group-data-[active=true]:opacity-100 group-data-[active=true]:h-6"
+            aria-hidden="true"
+          />
           <Icon className="transition-transform duration-200 group-hover:scale-110 shrink-0" />
           <span className="font-ui">{label}</span>
         </Link>
@@ -254,4 +262,5 @@ function SidebarNavItem({ item }: { item: NavItem }) {
     </SidebarMenuItem>
   );
 }
+
 

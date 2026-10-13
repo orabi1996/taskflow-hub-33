@@ -82,3 +82,38 @@ export function hasHoverCapability(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return true;
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
+
+/**
+ * Maps logical directions (start, end) to physical directions (left, right)
+ * depending on document RTL state (STEP 36).
+ */
+export function getLogicalPlacement(
+  placement: "start" | "end" | "left" | "right",
+  isRtl: boolean = true
+): "left" | "right" {
+  if (placement === "start") return isRtl ? "right" : "left";
+  if (placement === "end") return isRtl ? "left" : "right";
+  return placement;
+}
+
+/**
+ * Intelligent Staggering Rules (STEP 45)
+ * Prevents animation delays from growing linearly and blocking UX.
+ */
+export const STAGGER_RULES = {
+  smallGroup: 0.04,   // 40ms: 3-8 items (KPI cards)
+  mediumGroup: 0.025, // 25ms: 9-20 items (lists, tabs)
+  largeList: 0.01,    // 10ms: 20+ items (capped)
+  maxItems: 24,       // Hard cap to avoid cascading lag
+} as const;
+
+/**
+ * Calculates adaptive stagger duration based on item count.
+ */
+export function getAdaptiveStagger(count: number): number {
+  if (count <= 1) return 0;
+  if (count <= 6) return STAGGER_RULES.smallGroup;
+  if (count <= 16) return STAGGER_RULES.mediumGroup;
+  return STAGGER_RULES.largeList;
+}
+

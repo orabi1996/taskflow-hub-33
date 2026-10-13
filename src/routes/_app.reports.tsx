@@ -655,7 +655,7 @@ function ReportsPage() {
   const radarColors = ["var(--primary)", "var(--info)", "var(--success)", "var(--warning)", "var(--destructive)", "var(--primary-glow)"];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-motion-level="0">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 no-print">
         <PageHeader
           icon={BarChart3}
