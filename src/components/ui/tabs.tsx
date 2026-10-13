@@ -74,7 +74,8 @@ const TabsList = React.forwardRef<
             transform: `translate3d(${indicatorStyle.x}px, ${indicatorStyle.y}px, 0)`,
             width: `${indicatorStyle.width}px`,
             height: `${indicatorStyle.height}px`,
-            insetInlineStart: 0,
+            insetInlineStart: "auto",
+            left: 0,
             top: 0,
           }}
           aria-hidden="true"
