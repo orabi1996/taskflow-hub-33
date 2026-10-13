@@ -65,35 +65,35 @@
    ============================================================ */
 @font-face {
   font-family: "Thmanyah Sans";
-  src: local("Thmanyah Sans"), local("thmanyah sans Regular");
+  src: local("Thmanyah Sans"), local("thmanyah sans Regular"), url("/fonts/thmanyah-sans-regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Sans";
-  src: local("Thmanyah Sans Light"), local("thmanyah sans Light");
+  src: local("Thmanyah Sans Light"), local("thmanyah sans Light"), url("/fonts/thmanyah-sans-light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Sans";
-  src: local("Thmanyah Sans Medium"), local("thmanyah sans Medium");
+  src: local("Thmanyah Sans Medium"), local("thmanyah sans Medium"), url("/fonts/thmanyah-sans-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Sans";
-  src: local("Thmanyah Sans Bold"), local("thmanyah sans Bold");
+  src: local("Thmanyah Sans Bold"), local("thmanyah sans Bold"), url("/fonts/thmanyah-sans-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Sans";
-  src: local("Thmanyah Sans Black"), local("thmanyah sans Black");
+  src: local("Thmanyah Sans Black"), local("thmanyah sans Black"), url("/fonts/thmanyah-sans-black.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -101,35 +101,35 @@
 
 @font-face {
   font-family: "Thmanyah Serif Display";
-  src: local("Thmanyah Serif Display"), local("thmanyah serif display Regular");
+  src: local("Thmanyah Serif Display"), local("thmanyah serif display Regular"), url("/fonts/thmanyah-serif-display-regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Display";
-  src: local("Thmanyah Serif Display Light"), local("thmanyah serif display Light");
+  src: local("Thmanyah Serif Display Light"), local("thmanyah serif display Light"), url("/fonts/thmanyah-serif-display-light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Display";
-  src: local("Thmanyah Serif Display Medium"), local("thmanyah serif display Medium");
+  src: local("Thmanyah Serif Display Medium"), local("thmanyah serif display Medium"), url("/fonts/thmanyah-serif-display-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Display";
-  src: local("Thmanyah Serif Display Bold"), local("thmanyah serif display Bold");
+  src: local("Thmanyah Serif Display Bold"), local("thmanyah serif display Bold"), url("/fonts/thmanyah-serif-display-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Display";
-  src: local("Thmanyah Serif Display Black"), local("thmanyah serif display Black");
+  src: local("Thmanyah Serif Display Black"), local("thmanyah serif display Black"), url("/fonts/thmanyah-serif-display-black.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -137,35 +137,35 @@
 
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: local("Thmanyah Serif Text"), local("thmanyah serif text Regular");
+  src: local("Thmanyah Serif Text"), local("thmanyah serif text Regular"), url("/fonts/thmanyah-serif-text-regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: local("Thmanyah Serif Text Light"), local("thmanyah serif text Light");
+  src: local("Thmanyah Serif Text Light"), local("thmanyah serif text Light"), url("/fonts/thmanyah-serif-text-light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: local("Thmanyah Serif Text Medium"), local("thmanyah serif text Medium");
+  src: local("Thmanyah Serif Text Medium"), local("thmanyah serif text Medium"), url("/fonts/thmanyah-serif-text-medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: local("Thmanyah Serif Text Bold"), local("thmanyah serif text Bold");
+  src: local("Thmanyah Serif Text Bold"), local("thmanyah serif text Bold"), url("/fonts/thmanyah-serif-text-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: local("Thmanyah Serif Text Black"), local("thmanyah serif text Black");
+  src: local("Thmanyah Serif Text Black"), local("thmanyah serif text Black"), url("/fonts/thmanyah-serif-text-black.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;

@@ -1,9 +1,13 @@
 /* Service worker for CRM-X Enterprise — PWA & Web Push Notifications */
-const CACHE_NAME = "crm-x-v4";
+const CACHE_NAME = "crm-x-v5";
 const STATIC_ASSETS = [
   "/favicon.svg",
   "/favicon.png",
   "/manifest.json",
+  "/fonts/thmanyah-sans-regular.woff2",
+  "/fonts/thmanyah-sans-bold.woff2",
+  "/fonts/thmanyah-serif-display-regular.woff2",
+  "/fonts/thmanyah-serif-display-bold.woff2",
 ];
 
 self.addEventListener("install", (event) => {
@@ -29,10 +33,19 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
 
-  // Cache-first for manifest and static vector favicon
-  if (url.origin === self.location.origin && STATIC_ASSETS.includes(url.pathname)) {
+  // Cache-first for fonts, manifest, and static vector favicon
+  if (url.origin === self.location.origin && (STATIC_ASSETS.includes(url.pathname) || url.pathname.startsWith("/fonts/"))) {
     event.respondWith(
-      caches.match(event.request).then((res) => res || fetch(event.request))
+      caches.match(event.request).then((res) => {
+        if (res) return res;
+        return fetch(event.request).then((networkRes) => {
+          if (networkRes.status === 200) {
+            const clone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkRes;
+        });
+      })
     );
   }
 });
