@@ -92,3 +92,30 @@ export const listAuditEvents = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { rows: rows ?? [], count: count ?? null };
   });
+
+export const getAuditStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdminOrGM(context.userId);
+    const now = new Date();
+    const past24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+
+    const [
+      { count: totalCount },
+      { count: criticalCount },
+      { count: warnCount },
+      { count: last24hCount },
+    ] = await Promise.all([
+      supabaseAdmin.from("audit_logs").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("audit_logs").select("*", { count: "exact", head: true }).eq("severity", "critical"),
+      supabaseAdmin.from("audit_logs").select("*", { count: "exact", head: true }).eq("severity", "warn"),
+      supabaseAdmin.from("audit_logs").select("*", { count: "exact", head: true }).gte("created_at", past24h),
+    ]);
+
+    return {
+      total: totalCount ?? 0,
+      critical: criticalCount ?? 0,
+      warn: warnCount ?? 0,
+      last24h: last24hCount ?? 0,
+    };
+  });
