@@ -3,31 +3,52 @@ import * as THREE from "three";
 import { useReducedMotion, usePointerCapability } from "@/motion";
 
 /**
+ * Checks whether WebGL is safely available in the current browser environment.
+ */
+function isWebGLAvailable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(
+      window.WebGLRenderingContext &&
+        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Creates a circular glowing particle texture with soft radial falloff
  */
-function createParticleTexture(): THREE.CanvasTexture {
-  const size = 64;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (ctx) {
-    const gradient = ctx.createRadialGradient(
-      size / 2, size / 2, 0,
-      size / 2, size / 2, size / 2
-    );
-    gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-    gradient.addColorStop(0.25, "rgba(255, 255, 255, 0.85)");
-    gradient.addColorStop(0.6, "rgba(255, 255, 255, 0.2)");
-    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+function createParticleTexture(): THREE.CanvasTexture | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const size = 64;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      const gradient = ctx.createRadialGradient(
+        size / 2, size / 2, 0,
+        size / 2, size / 2, size / 2
+      );
+      gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+      gradient.addColorStop(0.25, "rgba(255, 255, 255, 0.85)");
+      gradient.addColorStop(0.6, "rgba(255, 255, 255, 0.2)");
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  } catch {
+    return null;
   }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
 }
 
 export interface AmbientBackground3DProps {
@@ -44,6 +65,7 @@ export interface AmbientBackground3DProps {
  * - Theme-reactive (dark / light adjustments).
  * - Zero CPU waste: auto-pauses when tab is hidden or reduced motion is preferred.
  * - Full memory lifecycle cleanup (geometry, material, texture, WebGL context).
+ * - Rock-solid safeguards: silently gracefully no-ops if WebGL is unavailable.
  */
 export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBackground3DProps) {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -73,29 +95,42 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
   }, []);
 
   useEffect(() => {
-    if (isReduced || !mountRef.current) return;
+    if (isReduced || !mountRef.current || !isWebGLAvailable()) return;
 
     const container = mountRef.current;
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
-    // Three.js Scene, Camera, Renderer
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-    camera.position.z = 45;
+    let renderer: THREE.WebGLRenderer | null = null;
+    let animationFrameId: number | undefined;
+    let particleGeometry: THREE.BufferGeometry | null = null;
+    let particleMaterial: THREE.PointsMaterial | null = null;
+    let particleTexture: THREE.CanvasTexture | null = null;
+    let lineGeometry: THREE.BufferGeometry | null = null;
+    let lineMaterial: THREE.LineBasicMaterial | null = null;
 
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: true,
-      powerPreference: "low-power",
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    renderer.setSize(width, height);
-    renderer.setClearColor(0x000000, 0); // fully transparent
-    container.appendChild(renderer.domElement);
+    let handlePointerMove: ((e: MouseEvent) => void) | undefined;
+    let handleResize: (() => void) | undefined;
+    let handleVisibilityChange: (() => void) | undefined;
+
+    try {
+      // Three.js Scene, Camera, Renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+      camera.position.z = 45;
+
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: "low-power",
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setSize(width, height);
+      renderer.setClearColor(0x000000, 0); // fully transparent
+      container.appendChild(renderer.domElement);
 
     // Particle Texture
-    const particleTexture = createParticleTexture();
+    particleTexture = createParticleTexture();
 
     // Node count: balanced for smooth 60fps even on laptops
     const PARTICLE_COUNT = 55;
@@ -129,13 +164,13 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
       colors[i3 + 2] = chosenColor.b;
     }
 
-    const particleGeometry = new THREE.BufferGeometry();
+    particleGeometry = new THREE.BufferGeometry();
     particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-    const particleMaterial = new THREE.PointsMaterial({
+    particleMaterial = new THREE.PointsMaterial({
       size: isDark ? 1.6 : 1.2,
-      map: particleTexture,
+      map: particleTexture ?? undefined,
       transparent: true,
       opacity: isDark ? 0.65 : 0.25,
       vertexColors: true,
@@ -151,7 +186,7 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
     const linePositions = new Float32Array(MAX_LINES * 2 * 3);
     const lineColors = new Float32Array(MAX_LINES * 2 * 3);
 
-    const lineGeometry = new THREE.BufferGeometry();
+    lineGeometry = new THREE.BufferGeometry();
     lineGeometry.setAttribute(
       "position",
       new THREE.BufferAttribute(linePositions, 3).setUsage(THREE.DynamicDrawUsage)
@@ -161,7 +196,7 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
       new THREE.BufferAttribute(lineColors, 3).setUsage(THREE.DynamicDrawUsage)
     );
 
-    const lineMaterial = new THREE.LineBasicMaterial({
+    lineMaterial = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
       opacity: isDark ? 0.18 : 0.08,
@@ -293,28 +328,35 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
     };
 
     animationFrameId = requestAnimationFrame(animate);
+    } catch (err) {
+      console.warn("[AmbientBackground3D] Three.js scene initialization error (safely bypassed):", err);
+    }
 
     // Comprehensive Cleanup on Unmount
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("mousemove", handlePointerMove);
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      try {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (handlePointerMove) window.removeEventListener("mousemove", handlePointerMove);
+        if (handleResize) window.removeEventListener("resize", handleResize);
+        if (handleVisibilityChange) document.removeEventListener("visibilitychange", handleVisibilityChange);
 
-      if (renderer.domElement && container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+        if (renderer?.domElement && container.contains(renderer.domElement)) {
+          container.removeChild(renderer.domElement);
+        }
+
+        particleGeometry?.dispose();
+        particleMaterial?.dispose();
+        particleTexture?.dispose();
+        lineGeometry?.dispose();
+        lineMaterial?.dispose();
+        renderer?.dispose();
+      } catch (cleanErr) {
+        // Silently ignore cleanup errors
       }
-
-      particleGeometry.dispose();
-      particleMaterial.dispose();
-      particleTexture.dispose();
-      lineGeometry.dispose();
-      lineMaterial.dispose();
-      renderer.dispose();
     };
   }, [isReduced, hasHover, isDark]);
 
-  if (isReduced) {
+  if (isReduced || !isWebGLAvailable()) {
     return null;
   }
 

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { ArabicTextReveal } from "@/motion";
 
 interface PageHeaderProps {
   title: string;
@@ -21,7 +20,7 @@ export function PageHeader({ title, description, icon: Icon, actions }: PageHead
         )}
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-display tracking-tight text-foreground truncate">
-            <ArabicTextReveal as="span">{title}</ArabicTextReveal>
+            {title}
           </h1>
           {description && (
             <p className="text-muted-foreground mt-1 text-sm font-reading leading-relaxed">

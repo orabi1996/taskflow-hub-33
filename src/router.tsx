@@ -82,8 +82,6 @@ export const getRouter = () => {
     // Preload routes on hover/focus for snappier navigation
     defaultPreload: "intent",
     defaultPreloadDelay: 50,
-    // Enable progressive View Transition API for smooth cross-route transitions
-    defaultViewTransition: true,
     // Cache loader results for 30s to avoid refetch on quick back/forward
     defaultPreloadStaleTime: 30_000,
     defaultStaleTime: 30_000,

@@ -1,4 +1,5 @@
-import { Link, Outlet, createFileRoute, redirect, useNavigate, isRedirect, useRouterState } from "@tanstack/react-router";
+import React from "react";
+import { Link, Outlet, createFileRoute, redirect, useNavigate, isRedirect, useRouterState, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureAuthSessionFromCookies } from "@/lib/auth-session";
 import { useAuth } from "@/lib/auth-context";
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LogOut, ListChecks, FolderKanban, Users2, BarChart3, ShieldCheck,
-  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Clock, LayoutDashboard, TrendingUp, Activity, LifeBuoy, Building2, Sparkles, LineChart, Receipt,
+  UserCircle, FolderHeart, Settings as SettingsIcon, Search, Clock, LayoutDashboard, TrendingUp, Activity, LifeBuoy, Building2, Sparkles, LineChart, Receipt, RefreshCw,
 } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -21,9 +22,65 @@ import { toast } from "sonner";
 import { CrmXLogo, CrmXAppIcon } from "@/components/brand/CrmXLogo";
 import { PageEntrance, getRouteMotionLevel, AmbientBackground3D } from "@/motion";
 
+/** Safe Error Boundary around ambient Three.js canvas to ensure it can never crash the layout */
+class SafeAmbient3D extends React.Component<{ opacity?: number }, { hasError: boolean }> {
+  constructor(props: { opacity?: number }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown) {
+    console.warn("[SafeAmbient3D] Bypassed ambient 3D error:", error);
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return <AmbientBackground3D opacity={this.props.opacity} />;
+  }
+}
+
+function AppErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
+  const router = useRouter();
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : "حدث خطأ غير متوقع في معالجة هذه الصفحة";
+
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center p-6 text-center">
+      <div className="max-w-md space-y-4">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+          <LifeBuoy className="h-7 w-7" />
+        </div>
+        <h2 className="text-xl font-bold font-display text-foreground">تعذّر تحميل الصفحة</h2>
+        <p className="text-sm text-muted-foreground font-ui">{errorMessage}</p>
+        <div className="flex justify-center gap-3 pt-2 font-ui">
+          <Button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            إعادة المحاولة
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/dashboard">العودة للرئيسية</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/_app")({
   // Session lives in browser storage/cookies, so the gate must run client-side only.
   ssr: false,
+  errorComponent: AppErrorComponent,
   beforeLoad: async () => {
     const session = await ensureAuthSessionFromCookies();
     if (!session) throw redirect({ to: "/auth" });
@@ -195,7 +252,7 @@ function AppLayout() {
 
       <SidebarInset className="app-ambient min-h-screen relative overflow-hidden">
         {/* Three.js Ambient Constellation Layer */}
-        <AmbientBackground3D opacity={0.75} />
+        <SafeAmbient3D opacity={0.75} />
 
         <header className="sticky top-0 z-30 h-14 flex items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-md sm:px-5 transition-colors duration-200">
           <SidebarTrigger className="shrink-0" />

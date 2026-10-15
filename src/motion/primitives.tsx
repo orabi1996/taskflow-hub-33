@@ -176,12 +176,13 @@ export function AnimatedCounter({
 }: AnimatedCounterProps) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const isReduced = useReducedMotion();
+  const safeValue = typeof value === "number" && !isNaN(value) ? value : 0;
 
   useEffect(() => {
     if (!spanRef.current) return;
 
     if (isReduced) {
-      const formatted = value.toLocaleString("ar-SA", {
+      const formatted = safeValue.toLocaleString("ar-SA", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       });
@@ -189,7 +190,7 @@ export function AnimatedCounter({
       return;
     }
 
-    const tween = animateCounter(spanRef.current, value, {
+    const tween = animateCounter(spanRef.current, safeValue, {
       duration,
       decimals,
       prefix,
@@ -200,7 +201,7 @@ export function AnimatedCounter({
     return () => {
       tween?.kill();
     };
-  }, [value, duration, decimals, prefix, suffix, isReduced, formatter]);
+  }, [safeValue, duration, decimals, prefix, suffix, isReduced, formatter]);
 
   return (
     <span
@@ -209,7 +210,7 @@ export function AnimatedCounter({
       dir="ltr"
     >
       {prefix}
-      {value}
+      {safeValue}
       {suffix}
     </span>
   );
@@ -310,26 +311,30 @@ export function ArabicTextReveal({
     // Wait for fonts to load before calculating text metrics
     const startAnimation = () => {
       if (!textRef.current) return;
-      gsap.fromTo(
-        textRef.current,
-        {
-          opacity: 0,
-          y: 8,
-          filter: "blur(2px)",
-        },
-        {
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration,
-          delay,
-          ease: GSAP_EASES.standard,
-        }
-      );
+      try {
+        gsap.fromTo(
+          textRef.current,
+          {
+            opacity: 0,
+            y: 8,
+            filter: "blur(2px)",
+          },
+          {
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration,
+            delay,
+            ease: GSAP_EASES.standard,
+          }
+        );
+      } catch {
+        // graceful fallback
+      }
     };
 
     if (typeof document !== "undefined" && document.fonts) {
-      document.fonts.ready.then(startAnimation);
+      document.fonts.ready.then(startAnimation).catch(startAnimation);
     } else {
       startAnimation();
     }
