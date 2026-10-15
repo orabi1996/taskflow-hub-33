@@ -62,8 +62,9 @@ export const Route = createFileRoute("/api/public/hooks/contract-alerts")({
           end.setHours(0, 0, 0, 0);
           const days = Math.ceil((end.getTime() - today.getTime()) / 86400000);
           const threshold = p.alert_days_before ?? 30;
-          let level: "expired" | "soon" | null = null;
+          let level: "expired" | "imminent" | "soon" | null = null;
           if (days < 0) level = "expired";
+          else if (days <= 7) level = "imminent";
           else if (days <= threshold) level = "soon";
           if (!level) continue;
 
@@ -83,14 +84,16 @@ export const Route = createFileRoute("/api/public/hooks/contract-alerts")({
               .map((d: any) => d.user_id)
           );
 
-          const title =
-            level === "expired"
-              ? `عقد المشروع "${p.name}" منتهٍ`
-              : `عقد المشروع "${p.name}" قارب الانتهاء`;
-          const body =
-            level === "expired"
-              ? `انتهى منذ ${Math.abs(days)} يوم.`
-              : `يتبقى ${days} يوم على انتهاء العقد.`;
+          let title = `عقد المشروع "${p.name}" قارب الانتهاء`;
+          let body = `يتبقى ${days} يوم على انتهاء العقد.`;
+
+          if (level === "expired") {
+            title = `عقد المشروع "${p.name}" منتهٍ`;
+            body = `انتهى العقد منذ ${Math.abs(days)} يوم، يرجى اتخاذ إجراء التجديد أو الأرشفة.`;
+          } else if (level === "imminent") {
+            title = `⚠️ تنبيه حرج: عقد المشروع "${p.name}" ينتهي خلال أيام`;
+            body = `يتبقى ${days} ${days === 1 ? "يوم واحد فقط" : days === 2 ? "يومان" : "أيام"} على انتهاء العقد.`;
+          }
 
           for (const uid of recipients) {
             if (dismissedSet.has(uid)) continue;
@@ -114,9 +117,24 @@ export const Route = createFileRoute("/api/public/hooks/contract-alerts")({
               body,
               link: "/alerts",
               project_id: p.id,
-              metadata: { days, end_date: p.contract_end_date },
+              metadata: { days, end_date: p.contract_end_date, level },
             });
             if (!insErr) created++;
+          }
+
+          // Record security/system audit event for expired contracts (once per project per day)
+          if (level === "expired" || level === "imminent") {
+            try {
+              await admin.from("audit_logs").insert({
+                event_type: `contract.status.${level}`,
+                severity: level === "expired" ? "warn" : "info",
+                resource_type: "project.contract",
+                resource_id: p.id,
+                metadata: { project_name: p.name, days, contract_end_date: p.contract_end_date },
+              });
+            } catch {
+              // Non-blocking audit log insert
+            }
           }
         }
 
