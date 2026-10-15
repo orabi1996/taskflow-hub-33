@@ -117,7 +117,7 @@ export interface StaggerGroupProps extends React.HTMLAttributes<HTMLDivElement> 
 
 export function StaggerGroup({
   children,
-  selector = "> *",
+  selector = ":scope > *",
   stagger = 0.04,
   duration = MOTION_DURATIONS.fast,
   delay = 0.05,
