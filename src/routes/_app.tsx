@@ -201,10 +201,11 @@ function AppLayout() {
           <SidebarTrigger className="shrink-0" />
           <Link
             to="/dashboard"
-            className="flex items-center shrink-0 ms-1 me-2"
+            className="flex items-center shrink-0 ms-1 me-1 sm:me-2"
             title="CRM-X — People · Pipelines · Possibilities"
           >
-            <CrmXLogo variant="horizontal" iconSize={26} showTagline={false} />
+            <span className="sm:hidden"><CrmXAppIcon size={26} rounded="rounded-full" /></span>
+            <span className="hidden sm:flex"><CrmXLogo variant="horizontal" iconSize={26} showTagline={false} /></span>
           </Link>
           <div className="flex-1 min-w-0">
             <Button
@@ -229,7 +230,7 @@ function AppLayout() {
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 sm:py-8 relative z-10" data-motion-level={motionLevel}>
+        <main className="px-3 py-4 sm:px-6 sm:py-8 relative z-10" data-motion-level={motionLevel}>
           <PageEntrance level={motionLevel} key={pathname}>
             <Outlet />
           </PageEntrance>

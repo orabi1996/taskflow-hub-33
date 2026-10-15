@@ -20,7 +20,7 @@ export function PageHeader({ title, description, icon: Icon, actions }: PageHead
           </span>
         )}
         <div className="min-w-0">
-          <h1 className="text-2xl lg:text-3xl font-bold font-display tracking-tight text-foreground truncate">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-display tracking-tight text-foreground truncate">
             <ArabicTextReveal as="span">{title}</ArabicTextReveal>
           </h1>
           {description && (
@@ -30,7 +30,7 @@ export function PageHeader({ title, description, icon: Icon, actions }: PageHead
           )}
         </div>
       </div>
-      {actions && <div className="flex items-center gap-2 flex-wrap font-ui">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 flex-wrap font-ui w-full sm:w-auto [&>button]:flex-1 sm:[&>button]:flex-none">{actions}</div>}
     </div>
   );
 }
