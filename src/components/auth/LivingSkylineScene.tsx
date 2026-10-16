@@ -372,7 +372,7 @@ export function LivingSkylineScene({ scene, isDarkTheme = false }: LivingSkyline
 
         const rayGrad = ctx.createLinearGradient(sunScreenX, sunScreenY, endX, endY);
         rayGrad.addColorStop(0, pal.rayColor);
-        rayGrad.addColorStop(0.35, pal.rayColor.replace(/[\d\.]+\)$/, `${(rayAlpha * 2).toFixed(3)})`));
+        rayGrad.addColorStop(0.35, pal.rayColor.replace(/[\d.]+\)$/, `${(rayAlpha * 2).toFixed(3)})`));
         rayGrad.addColorStop(1, "rgba(0,0,0,0)");
 
         const rayWidth = isMobile ? 16 + r * 3 : 26 + r * 6;
@@ -401,7 +401,7 @@ export function LivingSkylineScene({ scene, isDarkTheme = false }: LivingSkyline
       );
       sunCorona.addColorStop(0, pal.sunColor);
       sunCorona.addColorStop(0.2, pal.sunHalo);
-      sunCorona.addColorStop(0.6, pal.sunHalo.replace(/[\d\.]+\)$/, "0.08)"));
+      sunCorona.addColorStop(0.6, pal.sunHalo.replace(/[\d.]+\)$/, "0.08)"));
       sunCorona.addColorStop(1, "rgba(0,0,0,0)");
 
       ctx.beginPath();
@@ -432,9 +432,9 @@ export function LivingSkylineScene({ scene, isDarkTheme = false }: LivingSkyline
 
         const waveGrad = ctx.createLinearGradient(0, waveY, W, waveY);
         waveGrad.addColorStop(0, "rgba(0,0,0,0)");
-        waveGrad.addColorStop(0.25, pal.waterHighlight.replace(/[\d\.]+\)$/, `${(lineAlpha * 0.6).toFixed(3)})`));
-        waveGrad.addColorStop(0.5, pal.waterHighlight.replace(/[\d\.]+\)$/, `${lineAlpha.toFixed(3)})`));
-        waveGrad.addColorStop(0.75, pal.waterHighlight.replace(/[\d\.]+\)$/, `${(lineAlpha * 0.6).toFixed(3)})`));
+        waveGrad.addColorStop(0.25, pal.waterHighlight.replace(/[\d.]+\)$/, `${(lineAlpha * 0.6).toFixed(3)})`));
+        waveGrad.addColorStop(0.5, pal.waterHighlight.replace(/[\d.]+\)$/, `${lineAlpha.toFixed(3)})`));
+        waveGrad.addColorStop(0.75, pal.waterHighlight.replace(/[\d.]+\)$/, `${(lineAlpha * 0.6).toFixed(3)})`));
         waveGrad.addColorStop(1, "rgba(0,0,0,0)");
 
         ctx.beginPath();
@@ -594,7 +594,7 @@ export function LivingSkylineScene({ scene, isDarkTheme = false }: LivingSkyline
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < maxDist) {
               const lineAlpha = (1 - dist / maxDist) * 0.22;
-              ctx.strokeStyle = pal.particleGlow.replace(/[\d\.]+\)$/, `${lineAlpha.toFixed(3)})`);
+              ctx.strokeStyle = pal.particleGlow.replace(/[\d.]+\)$/, `${lineAlpha.toFixed(3)})`);
               ctx.beginPath();
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);
@@ -618,7 +618,7 @@ export function LivingSkylineScene({ scene, isDarkTheme = false }: LivingSkyline
           360,
         );
         spotlight.addColorStop(0, pal.cursorGlow);
-        spotlight.addColorStop(0.5, pal.cursorGlow.replace(/[\d\.]+\)$/, "0.04)"));
+        spotlight.addColorStop(0.5, pal.cursorGlow.replace(/[\d.]+\)$/, "0.04)"));
         spotlight.addColorStop(1, "rgba(0,0,0,0)");
 
         ctx.fillStyle = spotlight;

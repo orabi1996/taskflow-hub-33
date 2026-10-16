@@ -271,7 +271,7 @@ export function Masterpiece3DBackground({
     observer.observe(container);
 
     // 9. Render Loop
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
     const posAttr = waveGeo.attributes.position;
     const origPosArr = originalPositions.array as Float32Array;
     const curPosArr = posAttr.array as Float32Array;

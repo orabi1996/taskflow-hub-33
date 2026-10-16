@@ -199,7 +199,7 @@ export function ThreeLivingAtmosphere({ scene, isDarkTheme }: ThreeLivingAtmosph
     });
     intersectionObserver.observe(container);
 
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       if (!isVisible) return;
