@@ -476,9 +476,21 @@ function EnterpriseClientsPage() {
                     )}
 
                     {client.phone && (
-                      <div className="flex items-center gap-1.5">
-                        <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span dir="ltr">{client.phone}</span>
+                      <div className="flex items-center justify-between gap-1 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span dir="ltr">{client.phone}</span>
+                        </div>
+                        <a
+                          href={`https://wa.me/${client.phone.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+                          title="محادثة واتساب سريعة"
+                        >
+                          <span>واتساب</span>
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
                       </div>
                     )}
 

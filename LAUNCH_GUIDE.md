@@ -15,8 +15,14 @@
 
 ## 2. قائمة فحص الجاهزية للإنتاج (Production Launch Checklist)
 
-### الخطوة 1: ضبط متغيرات البيئة (`.env`)
-انسخ ملف `.env.example` إلى `.env` واضبط القيم الحقيقية لبيئة الإنتاج:
+### الخطوة 1: ضبط وتوليد متغيرات البيئة تلقائياً (`.env`)
+يمكنك تشغيل الأداة الآلية لتوليد ملف `.env` بمفاتيح تشفير عشوائية فائقة الأمان وفحص الجاهزية بضغطة واحدة:
+
+```bash
+npm run setup:env
+```
+
+أو انسخ ملف `.env.example` إلى `.env` واضبط القيم الحقيقية لبيئة الإنتاج:
 
 ```env
 # 1. إعدادات Supabase للعميل والمتصفح
@@ -40,13 +46,14 @@ LOVABLE_API_KEY=""
 ---
 
 ### الخطوة 2: تشغيل ترحيلات قاعدة البيانات (Database Migrations)
-تأكد من تطبيق كافة ملفات الترحيل الموجودة في المجلد `supabase/migrations/` على قاعدة بيانات Supabase الحية، وخاصة:
-1. `20261002150000_ensure_super_admin.sql` (تثبيت حساب المشرف الأعلى).
-2. `20261002160000_seed_enterprise_data.sql` (البيانات المؤسسية لقطاعات ERP و LMS).
-3. `20261002170000_daily_journal_submissions.sql` (سجل اليومية والاعتماد الإداري).
-4. `20261002180000_support_tickets_and_sla.sql` (محرك التذاكر ومصفوفة الـ SLA).
-5. `20261003180000_enterprise_automation_rules.sql` (قواعد الأتمتة والتنبيهات المجدولة).
-6. `20261004040000_organization_settings_and_webhooks.sql` (بيانات المنشأة وقنوات الـ Webhooks).
+تم تجهيز أداة تجميع آلية لإنشاء ملف SQL موحد وشامل لكافة الجداول والسياسات:
+
+```bash
+# توليد ملف SQL الموحد
+npm run export:schema
+```
+
+ينتج الملف الموحد: `supabase/full_production_schema.sql`. يمكنك نسخه بالكامل ولصقه داخل **Supabase SQL Editor** وتشغيله بضغطة زر واحدة لتجهيز كافة الجداول والمشرف والأمان.
 
 ---
 
@@ -121,6 +128,18 @@ npm run preview -- --host 0.0.0.0 --port 8080
 2. **قنوات الـ Webhooks الفورية**:
    * ادخل إلى: `/settings/organization` > تبويب **"قنوات الـ Webhooks"**.
    * أضف روابط قنوات Slack أو Discord أو Teams لتلقي التنبيهات الحساسة لحظياً مع إجراء اختبار اتصال (Test Ping).
+   * يمكنك تجربة إرسال تنبيه SLA تجريبي فوري عبر الأداة:
+     ```bash
+     node scripts/test-webhook-ping.mjs <YOUR_SLACK_OR_DISCORD_WEBHOOK_URL>
+     ```
+
+---
+
+### الخطوة 7: نماذج إدخال واستيراد البيانات التأسيسية (Onboarding Data Templates)
+تم تجهيز نماذج بيانات واقعية جاهزة للتعبئة والاستيراد داخل مجلد `docs/templates/`:
+* `docs/templates/clients_import_template.csv`: بيانات العملاء، ومستويات الـ SLA، وأرقام وقيم العقود، وتواريخ الانتهاء، وأرقام هواتف الواتساب.
+* `docs/templates/employees_import_template.csv`: هيكل الموظفين، والمسميات الوظيفية، والأقسام، والأدوار (Admin / Manager / Support).
+* **ميزة محادثة WhatsApp المباشرة**: تم تفعيل زر المحادثة الفورية في كروت العملاء للتواصل بنقرة واحدة عبر الواتساب.
 
 ---
 

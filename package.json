@@ -15,7 +15,9 @@
     "test": "vitest run --exclude 'tests/rls-modules.test.ts'",
     "test:unit": "vitest run --exclude 'tests/rls-modules.test.ts'",
     "test:db": "vitest run tests/rls-modules.test.ts",
-    "check": "npm run typecheck && npm run lint && npm run test:unit && npm run build"
+    "check": "npm run typecheck && npm run lint && npm run test:unit && npm run build",
+    "setup:env": "node scripts/setup-production-env.mjs",
+    "export:schema": "node scripts/export-all-migrations.mjs"
   },
   "dependencies": {
     "@block65/webcrypto-web-push": "^1.0.2",
