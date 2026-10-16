@@ -1,25 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { PageHeader } from "@/components/common/PageHeader";
+import { StaggerGroup } from "@/motion";
 import {
-  ServerCog,
+  Search,
+  Settings as SettingsIcon,
   ArrowLeft,
-  Bot,
-  Bell,
-  Boxes,
-  ShieldCheck,
-  Network,
-  UserCog,
-  Grid3X3,
-  SearchCheck,
-  Mail,
-  Stethoscope,
   Lock,
-  ShieldAlert,
-  Users,
-  Building2,
+  Sparkles,
+  ShieldCheck,
+  CheckCircle2,
+  X,
+  SlidersHorizontal,
 } from "lucide-react";
+import { SETTINGS_CATEGORIES, SettingCategory, SettingItem } from "@/lib/settings-config";
 
 export const Route = createFileRoute("/_app/settings/")({
   component: SettingsIndex,
@@ -28,164 +27,231 @@ export const Route = createFileRoute("/_app/settings/")({
 function SettingsIndex() {
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const items = [
-    {
-      to: "/settings/organization",
-      icon: Building2,
-      title: "ملف وهوية المنشأة وWebhooks",
-      desc: "اسم المؤسسة، الشعار والختم الرقمي، السجل والعملة، تذييل التقارير، وقنوات ربط الـ Webhooks (Slack/Discord/Teams).",
-      adminOnly: false,
-    },
-    {
-      to: "/settings/employees",
-      icon: Users,
-      title: "الموظفون والصلاحيات",
-      desc: "كل الموظفين في مكان واحد: القسم، المسمى الوظيفي، المدير المباشر، الأدوار، وتفعيل أو إيقاف صلاحية الدخول للنظام.",
-      adminOnly: true,
-    },
-    {
-      to: "/settings/modules",
-      icon: Boxes,
-      title: "أنظمة الشركة (Modules)",
-      desc: "خريطة الأنظمة الفرعية للشركة (ERP، المنصة التعليمية، Edumall، Cpay…) وإسناد الموظفين لكل نظام.",
-      adminOnly: false,
-    },
-    {
-      to: "/settings/smtp",
-      icon: ServerCog,
-      title: "إعدادات SMTP",
-      desc: "إعداد خادم البريد الصادر (Host, Port, Credentials) واختبار الإرسال.",
-      adminOnly: false,
-    },
-    {
-      to: "/settings/automation",
-      icon: Bot,
-      title: "محرك الأتمتة",
-      desc: "قواعد تلقائية لتنبيه الفريق على المهام المتأخرة، المواعيد القريبة، وانتهاء العقود.",
-      adminOnly: false,
-    },
-    {
-      to: "/settings/notifications",
-      icon: Bell,
-      title: "الإشعارات",
-      desc: "تفعيل إشعارات المتصفح على أجهزتك، قنوات البريد وداخل النظام، ساعات الهدوء، وكتم أنواع التنبيهات.",
-      adminOnly: false,
-    },
-    {
-      to: "/settings/audit",
-      icon: ShieldCheck,
-      title: "سجل التدقيق الأمني",
-      desc: "جميع الأحداث الحساسة في النظام: تسجيل الدخول، تغيير الصلاحيات، التعديلات الإدارية.",
-      adminOnly: false,
-    },
-    {
-      to: "/admin/hierarchy",
-      icon: Network,
-      title: "الهيكل التنظيمي",
-      desc: "الأقسام، المسميات الوظيفية، وشجرة التبعية الإدارية بين الموظفين.",
-      adminOnly: true,
-    },
-    {
-      to: "/admin/roles",
-      icon: UserCog,
-      title: "إدارة الأدوار",
-      desc: "منح وسحب أدوار المستخدمين (إداري، مدير عام، مدير، موظف، دعم فني).",
-      adminOnly: true,
-    },
-    {
-      to: "/admin/permissions",
-      icon: Grid3X3,
-      title: "مصفوفة الصلاحيات",
-      desc: "عرض تفصيلي لما يستطيع كل دور فعله داخل كل شاشة في النظام.",
-      adminOnly: true,
-    },
-    {
-      to: "/admin/permissions-check",
-      icon: SearchCheck,
-      title: "فحص الصلاحيات",
-      desc: "اختبار صلاحيات مستخدم محدد والتحقق من وصوله للبيانات الحساسة.",
-      adminOnly: true,
-    },
-    {
-      to: "/admin/permissions-diagnose",
-      icon: Stethoscope,
-      title: "تشخيص الصلاحيات",
-      desc: "لماذا تُحجب أي شاشة أو إعداد عن أي مستخدم — سبب الحجب لكل شاشة على حدة.",
-      adminOnly: true,
-    },
-    {
-      to: "/admin/email-provider",
-      icon: Mail,
-      title: "مزوّد البريد الإلكتروني",
-      desc: "إعداد مزوّد إرسال رسائل النظام (الدعوات، إعادة تعيين كلمة المرور، التنبيهات).",
-      adminOnly: true,
-    },
-    {
-      to: "/settings/security",
-      icon: ShieldAlert,
-      title: "أمان الجلسة",
-      desc: "مدة الخمول قبل تسجيل الخروج التلقائي وحماية الحساب عند ترك الجهاز.",
-      adminOnly: false,
-    },
-    {
-      to: "/settings/access-review",
-      icon: ShieldCheck,
-      title: "مراجعة الصلاحيات الدورية",
-      desc: "من يملك admin أو مدير عام أو مدير ومنذ متى، مع كشف الحسابات الخاملة أو الموقوفة وسحب الأدوار غير المبرّرة.",
-      adminOnly: true,
-    },
-    {
-      to: "/settings/devices",
-      icon: ShieldCheck,
-      title: "الأجهزة الموثوقة",
-      desc: "الأجهزة التي سجّلت الدخول منها مع آخر ظهور، وإزالة أي جهاز غير معروف (وللأدمن: كل أجهزة المستخدمين).",
-      adminOnly: false,
-    },
+  // Filter categories and items based on search and roles
+  const filteredCategories = useMemo(() => {
+    const q = search.trim().toLowerCase();
 
-  ].map((it) => ({ ...it, locked: it.adminOnly && !isAdmin }));
+    return SETTINGS_CATEGORIES.map((cat) => {
+      // Filter items within category
+      const matchingItems = cat.items.filter((it) => {
+        if (it.adminOnly && !isAdmin) return false;
+        if (!q) return true;
 
+        const matchTitle = it.label.toLowerCase().includes(q);
+        const matchDesc = it.desc.toLowerCase().includes(q);
+        const matchTags = it.tags.some((t) => t.toLowerCase().includes(q));
+
+        return matchTitle || matchDesc || matchTags;
+      });
+
+      return {
+        ...cat,
+        items: matchingItems,
+      };
+    }).filter((cat) => {
+      if (selectedCategory !== "all" && cat.id !== selectedCategory) return false;
+      return cat.items.length > 0;
+    });
+  }, [search, selectedCategory, isAdmin]);
+
+  const totalVisibleItems = useMemo(() => {
+    return filteredCategories.reduce((acc, cat) => acc + cat.items.length, 0);
+  }, [filteredCategories]);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {items.map((it) => {
-        const body = (
-          <Card
-            className={`p-5 h-full transition-all ${
-              it.locked ? "opacity-60" : "hover:shadow-md hover:border-primary/40"
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <it.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold mb-1 flex items-center gap-2">
-                  {it.title}
-                  {it.locked ? (
-                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                  ) : (
-                    <ArrowLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground">{it.desc}</div>
-                {it.locked && (
-                  <Badge variant="outline" className="mt-2 text-xs">
-                    محجوب: يتطلب دور admin
-                  </Badge>
-                )}
+    <div className="space-y-8 pb-12">
+      {/* Executive Header */}
+      <div className="relative rounded-2xl bg-gradient-to-l from-primary/10 via-background to-background border p-6 sm:p-8 overflow-hidden shadow-sm">
+        <div className="relative z-10 space-y-4 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold font-ui border border-primary/20">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>لوحة التحكم المؤسسية المتكاملة</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-foreground">
+            مركز الإعدادات والتحكم الموحد
+          </h1>
+
+          <p className="text-sm text-muted-foreground font-ui leading-relaxed">
+            إدارة شاملة لهوية المنشأة الرسمية، أنظمة الـ ERP والـ LMS، هيكل وصلاحيات فريق العمل،
+            قنوات الأتمتة والـ Webhooks، ومعايير الأمان والامتثال المؤسسي في مكان واحد منظم.
+          </p>
+
+          {/* Quick Stats / Highlights Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs font-ui">
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm p-2.5 rounded-xl border">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+              <div>
+                <span className="font-bold block text-foreground">المنشأة والأنظمة</span>
+                <span className="text-[11px] text-muted-foreground">ERP & LMS نشطة</span>
               </div>
             </div>
-          </Card>
-        );
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm p-2.5 rounded-xl border">
+              <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+              <div>
+                <span className="font-bold block text-foreground">الصلاحيات والأدوار</span>
+                <span className="text-[11px] text-muted-foreground">مصفوفة RBAC آمنة</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm p-2.5 rounded-xl border">
+              <CheckCircle2 className="h-4 w-4 text-amber-500 shrink-0" />
+              <div>
+                <span className="font-bold block text-foreground">محرك الأتمتة</span>
+                <span className="text-[11px] text-muted-foreground">تنبيهات الـ SLA</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm p-2.5 rounded-xl border">
+              <ShieldCheck className="h-4 w-4 text-purple-500 shrink-0" />
+              <div>
+                <span className="font-bold block text-foreground">الأمان والتدقيق</span>
+                <span className="text-[11px] text-muted-foreground">سجلات Audit مشفرة</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        return it.locked ? (
-          <div key={it.to} title="يتطلب دور admin">{body}</div>
-        ) : (
-          <Link key={it.to} to={it.to}>{body}</Link>
-        );
-      })}
+        {/* Ambient watermark icon */}
+        <SettingsIcon className="absolute -bottom-8 -left-8 h-64 w-64 text-primary/5 pointer-events-none rotate-12" />
+      </div>
+
+      {/* Search & Category Filter Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ابحث في كافة الإعدادات (مثال: بريد، صلاحيات، شعار، أتمتة، موظفين)..."
+            className="pr-9 pl-8 text-xs font-ui bg-background"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Category Pills Filter */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          <Button
+            variant={selectedCategory === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory("all")}
+            className="text-xs font-ui shrink-0 h-8"
+          >
+            الكل ({totalVisibleItems})
+          </Button>
+
+          {SETTINGS_CATEGORIES.map((cat) => {
+            const isCatSelected = selectedCategory === cat.id;
+            return (
+              <Button
+                key={cat.id}
+                variant={isCatSelected ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(cat.id)}
+                className="text-xs font-ui shrink-0 gap-1.5 h-8"
+              >
+                <cat.icon className="h-3.5 w-3.5" />
+                <span>{cat.title}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Categories & Cards Section */}
+      {filteredCategories.length === 0 ? (
+        <Card className="p-12 text-center max-w-md mx-auto space-y-3">
+          <SlidersHorizontal className="h-10 w-10 text-muted-foreground mx-auto" />
+          <h3 className="font-bold text-foreground font-display">لم يتم العثور على نتائج</h3>
+          <p className="text-xs text-muted-foreground font-ui">
+            لا توجد إعدادات تطابق كلمة البحث "{search}". حاول استخدام كلمات بحث عامة.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => { setSearch(""); setSelectedCategory("all"); }}>
+            إعادة تعيين الفلاتر
+          </Button>
+        </Card>
+      ) : (
+        <div className="space-y-8">
+          {filteredCategories.map((cat) => (
+            <div key={cat.id} className="space-y-3">
+              {/* Group Header */}
+              <div className="flex items-center justify-between pb-2 border-b">
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-xl bg-gradient-to-br ${cat.accentColor}`}>
+                    <cat.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold font-display text-foreground flex items-center gap-2">
+                      <span>{cat.title}</span>
+                      <Badge variant="outline" className={`text-[10px] py-0 ${cat.badgeBg}`}>
+                        {cat.items.length} خيارات
+                      </Badge>
+                    </h2>
+                    <p className="text-xs text-muted-foreground font-ui">{cat.desc}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cards Grid */}
+              <StaggerGroup className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {cat.items.map((it) => (
+                  <Link key={it.to} to={it.to} className="group block focus:outline-none">
+                    <Card className="p-4 h-full border border-border/60 bg-card/60 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-primary/50 hover:bg-card flex flex-col justify-between">
+                      <div className="space-y-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200 shrink-0">
+                            <it.icon className="h-4 w-4" />
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            {it.badge && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-primary/30 text-primary">
+                                {it.badge}
+                              </Badge>
+                            )}
+                            <div className="h-6 w-6 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground group-hover:bg-primary/15 group-hover:text-primary transition-colors">
+                              <ArrowLeft className="h-3 w-3" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="font-semibold text-sm font-display text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
+                            {it.label}
+                          </h3>
+                          <p className="text-xs text-muted-foreground font-ui line-clamp-2 mt-1 leading-relaxed">
+                            {it.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Tags Footer */}
+                      <div className="pt-3 mt-3 border-t border-border/40 flex flex-wrap gap-1">
+                        {it.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground font-ui"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
+              </StaggerGroup>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-

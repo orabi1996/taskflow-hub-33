@@ -161,8 +161,8 @@ function AppLayout() {
         ]
       : []),
     ...(isAdminOrGM ? [{ to: "/admin/overview", icon: Activity, label: "مركز القيادة" }] : []),
-    ...(isAdmin ? [{ to: "/admin", icon: ShieldCheck, label: "الموظفون" }] : []),
-    ...(canSettings ? [{ to: "/settings", icon: SettingsIcon, label: "الإعدادات" }] : []),
+    ...(isAdmin ? [{ to: "/admin", icon: ShieldCheck, label: "إدارة المستخدمين" }] : []),
+    ...(canSettings ? [{ to: "/settings", icon: SettingsIcon, label: "مركز الإعدادات" }] : []),
   ];
 
   const triggerCmdK = () => {
