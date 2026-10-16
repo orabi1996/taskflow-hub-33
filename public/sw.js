@@ -1,5 +1,5 @@
 /* Service worker for CRM-X Enterprise — PWA & Web Push Notifications */
-const CACHE_NAME = "crm-x-v5";
+const CACHE_NAME = "crm-x-v6";
 const STATIC_ASSETS = [
   "/favicon.svg",
   "/favicon.png",
@@ -8,6 +8,14 @@ const STATIC_ASSETS = [
   "/fonts/thmanyah-sans-bold.woff2",
   "/fonts/thmanyah-serif-display-regular.woff2",
   "/fonts/thmanyah-serif-display-bold.woff2",
+  "/fonts/ibm-plex-sans-arabic-400.woff2",
+  "/fonts/ibm-plex-sans-arabic-500.woff2",
+  "/fonts/ibm-plex-sans-arabic-600.woff2",
+  "/fonts/ibm-plex-sans-arabic-700.woff2",
+  "/fonts/ibm-plex-sans-400.woff2",
+  "/fonts/ibm-plex-sans-500.woff2",
+  "/fonts/ibm-plex-sans-600.woff2",
+  "/fonts/ibm-plex-sans-700.woff2",
 ];
 
 self.addEventListener("install", (event) => {

@@ -223,7 +223,7 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
 
     // Resize Handler
     const handleResize = () => {
-      if (!container) return;
+      if (!container || !renderer) return;
       width = container.clientWidth || window.innerWidth;
       height = container.clientHeight || window.innerHeight;
       camera.aspect = width / height;
@@ -249,7 +249,7 @@ export function AmbientBackground3D({ className = "", opacity = 1 }: AmbientBack
 
     const animate = (currentTime: number) => {
       animationFrameId = requestAnimationFrame(animate);
-      if (isPaused) return;
+      if (isPaused || !particleGeometry || !lineGeometry || !renderer) return;
 
       const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;

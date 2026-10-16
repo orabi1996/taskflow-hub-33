@@ -12,8 +12,11 @@
 @theme inline {
   --font-sans: var(--font-ui);
   --font-ui: var(--font-ui);
-  --font-display: var(--font-display);
+  --font-brand: var(--font-brand);
+  --font-display: var(--font-brand);
   --font-reading: var(--font-reading);
+  --font-arabic: var(--font-ui-ar);
+  --font-english: var(--font-ui-en);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -171,11 +174,102 @@
   font-display: swap;
 }
 
+/* ============================================================
+   Typography System — IBM Plex Sans Arabic (Secondary / UI Font)
+   ============================================================ */
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: local("IBM Plex Sans Arabic Regular"), local("IBMPlexSansArabic-Regular"), url("/fonts/ibm-plex-sans-arabic-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: local("IBM Plex Sans Arabic Medium"), local("IBMPlexSansArabic-Medium"), url("/fonts/ibm-plex-sans-arabic-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: local("IBM Plex Sans Arabic SemiBold"), local("IBMPlexSansArabic-SemiBold"), url("/fonts/ibm-plex-sans-arabic-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans Arabic";
+  src: local("IBM Plex Sans Arabic Bold"), local("IBMPlexSansArabic-Bold"), url("/fonts/ibm-plex-sans-arabic-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   Typography System — IBM Plex Sans (English / Latin UI Font)
+   ============================================================ */
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: local("IBM Plex Sans Regular"), local("IBMPlexSans-Regular"), url("/fonts/ibm-plex-sans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: local("IBM Plex Sans Medium"), local("IBMPlexSans-Medium"), url("/fonts/ibm-plex-sans-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: local("IBM Plex Sans SemiBold"), local("IBMPlexSans-SemiBold"), url("/fonts/ibm-plex-sans-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: local("IBM Plex Sans Bold"), local("IBMPlexSans-Bold"), url("/fonts/ibm-plex-sans-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* ===== Typography Hierarchy Tokens ===== */
-  --font-ui: "Thmanyah Sans", "Cairo", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Thmanyah Serif Display", "Cairo", Georgia, serif;
-  --font-reading: "Thmanyah Serif Text", "Cairo", Georgia, serif;
+  /* ===== Centralized Typography Architecture Tokens ===== */
+  /* 1. Primary / Brand Font: Thmanyah (Page Titles, Headings, Hero, Brand KPIs) */
+  --font-brand: "Thmanyah Sans", "Thmanyah Serif Display", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Thmanyah Serif Display", "Thmanyah Sans", system-ui, -apple-system, sans-serif;
+
+  /* 2. Secondary / Functional UI Font: IBM Plex Sans Arabic & IBM Plex Sans */
+  --font-ui-ar: "IBM Plex Sans Arabic", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-ui-en: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Default UI Font */
+  --font-ui: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-reading: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-ui);
+}
+
+/* Language & Direction dynamic font switching */
+html[lang="ar"],
+html[dir="rtl"],
+[dir="rtl"] {
+  --font-ui: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-reading: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html[lang="en"],
+html[dir="ltr"],
+[dir="ltr"] {
+  --font-ui: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-reading: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
 
   /* Semantic Text Scales with clamp() */
   --text-display-lg: clamp(2.25rem, 4vw + 1rem, 3.5rem);
@@ -345,32 +439,48 @@
   }
 
   html {
-    font-family: var(--font-sans);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-feature-settings: "ss01", "cv11";
+    font-family: var(--font-ui);
+    line-height: 1.55;
+    font-feature-settings: "cv11", "tnum";
   }
 
   /* Typography Hierarchy Normalization */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+  /* Main Headings: Primary / Brand Font (Thmanyah) */
+  h1, h2, h3 {
+    font-family: var(--font-brand);
     letter-spacing: normal !important; /* Critical for Arabic cursive integrity */
     line-height: 1.3;
   }
 
-  p, article {
-    font-family: var(--font-reading);
-    line-height: 1.65;
+  h4, h5, h6 {
+    font-family: var(--font-brand);
+    letter-spacing: normal !important;
+    line-height: 1.35;
   }
 
-  button, input, select, textarea, label, nav {
+  p, article {
+    font-family: var(--font-reading);
+    line-height: 1.6;
+  }
+
+  /* Functional UI Elements: IBM Plex Sans Arabic & Latin */
+  button, input, select, textarea, label, nav, table, th, td {
     font-family: var(--font-ui);
   }
 
   /* Utility font helper classes */
+  .font-brand {
+    font-family: var(--font-brand) !important;
+  }
   .font-ui {
     font-family: var(--font-ui) !important;
   }
@@ -380,6 +490,12 @@
   }
   .font-reading {
     font-family: var(--font-reading) !important;
+  }
+  .font-arabic {
+    font-family: var(--font-ui-ar) !important;
+  }
+  .font-english {
+    font-family: var(--font-ui-en) !important;
   }
   .tabular-nums {
     font-variant-numeric: tabular-nums;
@@ -499,39 +615,118 @@
 }
 
 /* ============================================================
-   Typography Semantic Utility Classes
+   Typography Centralized Hierarchy Utilities
    ============================================================ */
-.font-ui { font-family: var(--font-ui); }
+.font-brand { font-family: var(--font-brand) !important; }
+.font-ui { font-family: var(--font-ui) !important; }
+.font-arabic { font-family: var(--font-ui-ar) !important; }
+.font-english { font-family: var(--font-ui-en) !important; }
 .font-display {
-  font-family: var(--font-display);
-  font-feature-settings: "ss01", "cv11", "kern";
+  font-family: var(--font-display) !important;
+  letter-spacing: normal !important;
 }
 .font-reading {
-  font-family: var(--font-reading);
-  font-feature-settings: "ss01", "cv11";
-  line-height: 1.78;
+  font-family: var(--font-reading) !important;
+  line-height: 1.65;
 }
 
+/* 1. Brand Heading Scales (Thmanyah / Brand Font) */
+.text-display {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: clamp(1.875rem, 3.2vw + 1rem, 2.75rem);
+  line-height: 1.25;
+  letter-spacing: normal;
+}
+
+.text-h1 {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: clamp(1.625rem, 2.2vw + 0.8rem, 2.25rem);
+  line-height: 1.3;
+  letter-spacing: normal;
+}
+
+.text-h2 {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 1.6vw + 0.6rem, 1.75rem);
+  line-height: 1.35;
+  letter-spacing: normal;
+}
+
+.text-h3 {
+  font-family: var(--font-brand);
+  font-weight: 600;
+  font-size: clamp(1.2rem, 1.2vw + 0.5rem, 1.375rem);
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+
+.text-section,
+.text-h4 {
+  font-family: var(--font-brand);
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.45;
+  letter-spacing: normal;
+}
+
+/* 2. Functional UI Scales (IBM Plex Sans Arabic & Latin) */
+.text-subtitle {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.text-body-lg {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.text-body {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.text-label {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.text-caption {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+/* Backward compatibility aliases */
 .text-display-hero {
-  font-family: var(--font-display);
+  font-family: var(--font-brand);
   font-size: var(--text-hero);
   font-weight: 800;
   line-height: 1.2;
-  letter-spacing: -0.015em;
 }
 
 .text-display-title {
-  font-family: var(--font-display);
+  font-family: var(--font-brand);
   font-size: var(--text-display);
   font-weight: 700;
   line-height: 1.25;
-  letter-spacing: -0.01em;
 }
 
 .text-editorial-body {
-  font-family: var(--font-reading);
+  font-family: var(--font-ui);
   font-size: var(--text-reading);
-  line-height: 1.8;
+  line-height: 1.7;
   color: var(--foreground);
 }
 
