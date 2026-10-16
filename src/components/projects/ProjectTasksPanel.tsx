@@ -37,6 +37,7 @@ interface Row {
   priority: string | null;
   start_at: string;
   end_at: string | null;
+  tags?: string[] | null;
   user_id: string;
   owner: { full_name: string | null; job_title: string | null } | null;
 }
@@ -54,7 +55,7 @@ export function ProjectTasksPanel({ projectId }: { projectId: string }) {
     setLoading(true);
     supabase
       .from("tasks")
-      .select("id, title, status, priority, start_at, end_at, user_id, owner:profiles!tasks_user_id_fkey(full_name, job_title)")
+      .select("id, title, status, priority, start_at, end_at, tags, user_id, owner:profiles!tasks_user_id_fkey(full_name, job_title)")
       .eq("project_id", projectId)
       .order("start_at", { ascending: false })
       .then(({ data }) => {
@@ -123,14 +124,20 @@ export function ProjectTasksPanel({ projectId }: { projectId: string }) {
   }, [rows, statusFilter, search]);
 
   const kanbanTasks: KanbanTask[] = useMemo(() => {
-    return filteredRows.map((r) => ({
-      id: r.id,
-      title: r.title,
-      status: r.status as TaskStatus,
-      start_at: r.start_at,
-      end_at: r.end_at,
-      project: { name: r.owner?.full_name ? `المسؤول: ${r.owner.full_name}` : "" },
-    }));
+    return filteredRows.map((r) => {
+      const ticketTag = (r.tags || []).find((t) => t.startsWith("ticket:"));
+      const ticketNum = ticketTag ? ticketTag.replace("ticket:", "") : null;
+      const ownerLabel = r.owner?.full_name ? `المسؤول: ${r.owner.full_name}` : "";
+      const metaLabel = ticketNum ? `🎫 #${ticketNum} ${ownerLabel ? `• ${ownerLabel}` : ""}` : ownerLabel;
+      return {
+        id: r.id,
+        title: r.title,
+        status: r.status as TaskStatus,
+        start_at: r.start_at,
+        end_at: r.end_at,
+        project: metaLabel ? { name: metaLabel } : null,
+      };
+    });
   }, [filteredRows]);
 
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
@@ -327,11 +334,18 @@ export function ProjectTasksPanel({ projectId }: { projectId: string }) {
                 {filteredRows.map((r) => {
                   const meta = STATUS_LABEL[r.status];
                   const overdue = (r.status === "pending" || r.status === "postponed") && r.end_at && new Date(r.end_at) < new Date();
+                  const ticketTag = (r.tags || []).find((t) => t.startsWith("ticket:"));
+                  const ticketNum = ticketTag ? ticketTag.replace("ticket:", "") : null;
                   return (
                     <li key={r.id} className="px-4 py-3 flex flex-wrap items-center justify-between gap-3 hover:bg-muted/20 transition-colors">
                       <div className="flex-1 min-w-[220px]">
-                        <div className="font-medium text-sm flex items-center gap-2">
+                        <div className="font-medium text-sm flex items-center gap-2 flex-wrap">
                           <span>{r.title}</span>
+                          {ticketNum && (
+                            <Badge variant="outline" className="text-[10px] h-4.5 px-1.5 border-primary/40 text-primary bg-primary/10 gap-1 font-mono">
+                              🎫 تذكرة #{ticketNum}
+                            </Badge>
+                          )}
                           {r.priority === "high" || r.priority === "urgent" ? (
                             <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
                               عاجلة

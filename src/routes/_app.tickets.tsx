@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -42,6 +42,11 @@ import {
   RotateCcw,
   Check,
   Printer,
+  Zap,
+  ArrowUpRight,
+  ExternalLink,
+  Calendar,
+  Layers,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -54,8 +59,12 @@ import {
   updateTicketStatus,
   addTicketMessage,
   getSlaDashboardStats,
+  convertTicketToProjectTask,
+  escalateSupportTicket,
+  getLinkedTasksForTicket,
   type TicketRecord,
   type TicketMessageRecord,
+  type LinkedTaskRecord,
 } from "@/lib/tickets.functions";
 import { toast } from "sonner";
 
@@ -138,6 +147,30 @@ function SupportTicketsPage() {
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [ticketToResolve, setTicketToResolve] = useState<string | null>(null);
 
+  // Linked Tasks State
+  const [linkedTasks, setLinkedTasks] = useState<LinkedTaskRecord[]>([]);
+  const [loadingLinkedTasks, setLoadingLinkedTasks] = useState(false);
+
+  // Convert Ticket to Task State
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [convertProjectId, setConvertProjectId] = useState("");
+  const [convertMilestoneId, setConvertMilestoneId] = useState("");
+  const [convertAssigneeId, setConvertAssigneeId] = useState("");
+  const [convertTitle, setConvertTitle] = useState("");
+  const [convertDetails, setConvertDetails] = useState("");
+  const [convertPriority, setConvertPriority] = useState<"urgent" | "high" | "medium" | "low">("medium");
+  const [convertEndAt, setConvertEndAt] = useState("");
+  const [convertSubmitting, setConvertSubmitting] = useState(false);
+  const [projectMilestones, setProjectMilestones] = useState<{ id: string; title: string }[]>([]);
+
+  // Escalate Ticket State
+  const [escalateOpen, setEscalateOpen] = useState(false);
+  const [escalateTier, setEscalateTier] = useState<"l2_specialist" | "l3_director">("l2_specialist");
+  const [escalateAssigneeId, setEscalateAssigneeId] = useState("");
+  const [escalateReason, setEscalateReason] = useState("");
+  const [escalateElevatePriority, setEscalateElevatePriority] = useState(true);
+  const [escalateSubmitting, setEscalateSubmitting] = useState(false);
+
   // Load Auxiliary Data
   const loadDropdowns = async () => {
     try {
@@ -193,6 +226,28 @@ function SupportTicketsPage() {
   useEffect(() => {
     void loadData();
   }, [statusFilter, priorityFilter, projectFilter, search]);
+
+  // Load Project Milestones when project is selected in Convert Modal
+  useEffect(() => {
+    if (!convertProjectId) {
+      setProjectMilestones([]);
+      setConvertMilestoneId("");
+      return;
+    }
+    let active = true;
+    supabase
+      .from("project_milestones")
+      .select("id, title")
+      .eq("project_id", convertProjectId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (!active) return;
+        setProjectMilestones((data as any) || []);
+      });
+    return () => {
+      active = false;
+    };
+  }, [convertProjectId]);
 
   // Realtime WebSocket Subscription for Live Ticket Sync and Messages
   useEffect(() => {
@@ -274,18 +329,28 @@ function SupportTicketsPage() {
   const openTicketDrawer = async (ticketId: string) => {
     setSelectedTicketId(ticketId);
     setLoadingDetails(true);
+    setLoadingLinkedTasks(true);
     try {
-      const res = await getTicketDetails({ data: { ticketId } });
+      const [res, tasksRes] = await Promise.all([
+        getTicketDetails({ data: { ticketId } }),
+        getLinkedTasksForTicket({ data: { ticketId } }),
+      ]);
       if (res.ok && res.ticket) {
         setTicketDetails(res.ticket);
         setTicketMessages(res.messages || []);
       } else {
         toast.error(res.error || "تعذّر فتح تفاصيل التذكرة");
       }
+      if (tasksRes.ok && tasksRes.tasks) {
+        setLinkedTasks(tasksRes.tasks as LinkedTaskRecord[]);
+      } else {
+        setLinkedTasks([]);
+      }
     } catch (e) {
       toast.error("حدث خطأ أثناء تحميل التذكرة");
     } finally {
       setLoadingDetails(false);
+      setLoadingLinkedTasks(false);
     }
   };
 
@@ -396,6 +461,108 @@ function SupportTicketsPage() {
       toast.error(e?.message || "حدث خطأ");
     } finally {
       setIsSubmittingNew(false);
+    }
+  };
+
+  // Convert Ticket to Project Task Handlers
+  const openConvertModal = () => {
+    if (!ticketDetails) return;
+    setConvertProjectId(ticketDetails.project_id || (projectsList[0]?.id || ""));
+    setConvertMilestoneId("");
+    setConvertAssigneeId(ticketDetails.assigned_to || user?.id || "");
+    setConvertTitle(`[تذكرة #${ticketDetails.ticket_number}] ${ticketDetails.title}`);
+    setConvertDetails(ticketDetails.description || "");
+    setConvertPriority(ticketDetails.priority || "medium");
+    setConvertEndAt(ticketDetails.due_at ? ticketDetails.due_at.slice(0, 10) : "");
+    setConvertOpen(true);
+  };
+
+  const handleConvertSubmit = async () => {
+    if (!ticketDetails) return;
+    if (!convertProjectId) {
+      toast.error("يرجى اختيار المشروع المستهدف");
+      return;
+    }
+    if (!convertAssigneeId) {
+      toast.error("يرجى اختيار المهندس / المسؤول المكلف");
+      return;
+    }
+    if (!convertTitle.trim()) {
+      toast.error("يرجى إدخال عنوان المهمة التنفيذية");
+      return;
+    }
+
+    setConvertSubmitting(true);
+    try {
+      const res = await convertTicketToProjectTask({
+        data: {
+          ticketId: ticketDetails.id,
+          projectId: convertProjectId,
+          milestoneId: convertMilestoneId && convertMilestoneId !== "none" ? convertMilestoneId : undefined,
+          assignedTo: convertAssigneeId,
+          title: convertTitle.trim(),
+          details: convertDetails.trim() || undefined,
+          priority: convertPriority,
+          endAt: convertEndAt ? new Date(convertEndAt).toISOString() : undefined,
+        },
+      });
+
+      if (res.ok) {
+        toast.success(res.message || "تم تحويل التذكرة لمهمة عمل بنجاح 🚀");
+        setConvertOpen(false);
+        void openTicketDrawer(ticketDetails.id);
+        void loadData();
+      } else {
+        toast.error(res.error || "تعذّر تحويل التذكرة لمهمة عمل");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ أثناء تحويل التذكرة");
+    } finally {
+      setConvertSubmitting(false);
+    }
+  };
+
+  // Escalate Ticket Handlers
+  const openEscalateModal = () => {
+    if (!ticketDetails) return;
+    setEscalateTier("l2_specialist");
+    setEscalateAssigneeId("");
+    setEscalateReason("");
+    setEscalateElevatePriority(true);
+    setEscalateOpen(true);
+  };
+
+  const handleEscalateSubmit = async () => {
+    if (!ticketDetails) return;
+    if (escalateReason.trim().length < 5) {
+      toast.error("يرجى كتابة سبب وتفاصيل التصعيد (5 أحرف على الأقل)");
+      return;
+    }
+
+    setEscalateSubmitting(true);
+    try {
+      const res = await escalateSupportTicket({
+        data: {
+          ticketId: ticketDetails.id,
+          escalateToTier: escalateTier,
+          targetAssigneeId: escalateAssigneeId && escalateAssigneeId !== "none" ? escalateAssigneeId : undefined,
+          escalationReason: escalateReason.trim(),
+          elevatePriority: escalateElevatePriority,
+        },
+      });
+
+      if (res.ok) {
+        toast.success(res.message || "تم تصعيد التذكرة بنجاح ⚡");
+        setEscalateOpen(false);
+        void openTicketDrawer(ticketDetails.id);
+        void loadData();
+      } else {
+        toast.error(res.error || "تعذّر تصعيد التذكرة");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ أثناء تصعيد التذكرة");
+    } finally {
+      setEscalateSubmitting(false);
     }
   };
 
@@ -902,7 +1069,31 @@ function SupportTicketsPage() {
                     </Badge>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {ticketDetails.status !== "closed" && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs border-primary/40 text-primary hover:bg-primary/10 gap-1.5 font-medium"
+                          onClick={openConvertModal}
+                        >
+                          <FolderKanban className="h-3.5 w-3.5 text-primary" />
+                          تحويل لمهمة عمل بالمشروع 🚀
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 gap-1.5 font-medium"
+                          onClick={openEscalateModal}
+                        >
+                          <Zap className="h-3.5 w-3.5 text-amber-500" />
+                          تصعيد البلاغ ⚡
+                        </Button>
+                      </>
+                    )}
+
                     {ticketDetails.status !== "resolved" && ticketDetails.status !== "closed" && (
                       <Button
                         size="sm"
@@ -964,6 +1155,106 @@ function SupportTicketsPage() {
                   <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs leading-relaxed text-emerald-950 dark:text-emerald-100 mt-2">
                     <span className="font-semibold block mb-1">ملاحظات الحل المعتمد:</span>
                     {ticketDetails.resolution_notes}
+                  </div>
+                )}
+              </div>
+
+              {/* Linked Project Tasks Section */}
+              <div className="p-3.5 rounded-xl border bg-muted/20 space-y-2.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-md bg-primary/15 text-primary flex items-center justify-center">
+                      <FolderKanban className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="font-bold text-xs text-foreground">
+                      المهام التنفيذية والبرمجية المرتبطة بالمشاريع
+                    </span>
+                    <Badge variant="secondary" className="text-[10px] h-4.5 px-1.5 font-mono">
+                      {linkedTasks.length}
+                    </Badge>
+                  </div>
+
+                  {ticketDetails.status !== "closed" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-primary gap-1 hover:bg-primary/10"
+                      onClick={openConvertModal}
+                    >
+                      <Plus className="h-3 w-3" />
+                      تحويل لمهمة عمل جديدة
+                    </Button>
+                  )}
+                </div>
+
+                {loadingLinkedTasks ? (
+                  <div className="py-3 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    جاري فحص المهام المرتبطة...
+                  </div>
+                ) : linkedTasks.length === 0 ? (
+                  <div className="py-3 px-3 text-center text-xs text-muted-foreground border border-dashed rounded-lg bg-background/50">
+                    لم يتم تحويل هذا البلاغ إلى مهام تنفيذية حتى الآن. يمكنك إسناد مهمة برمجية للمشروع لمعالجة المشكلة تقنياً.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {linkedTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="p-2.5 rounded-lg border bg-card text-xs flex flex-wrap items-center justify-between gap-2 shadow-2xs hover:border-primary/40 transition-colors"
+                      >
+                        <div className="space-y-1 min-w-[200px] flex-1">
+                          <div className="font-semibold text-foreground flex items-center gap-2">
+                            <span>{task.title}</span>
+                            {task.priority === "urgent" || task.priority === "high" ? (
+                              <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
+                                {task.priority === "urgent" ? "عاجل" : "مرتفع"}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground flex items-center gap-2 flex-wrap">
+                            {task.project?.name && (
+                              <span className="flex items-center gap-1 font-medium text-foreground">
+                                <Building2 className="h-3 w-3 text-primary" />
+                                {task.project.name}
+                              </span>
+                            )}
+                            {task.owner?.full_name && (
+                              <span className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                المسؤول: {task.owner.full_name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] h-5 ${
+                              task.status === "completed"
+                                ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30"
+                                : task.status === "pending"
+                                ? "bg-blue-500/15 text-blue-600 border-blue-500/30"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {task.status === "completed" ? "منجزة ✅" : task.status === "pending" ? "قيد التنفيذ ⏳" : task.status}
+                          </Badge>
+
+                          {task.project_id && (
+                            <Link
+                              to="/projects/$projectId"
+                              params={{ projectId: task.project_id }}
+                              className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-medium"
+                            >
+                              عرض بالمشروع
+                              <ExternalLink className="h-3 w-3" />
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1094,6 +1385,264 @@ function SupportTicketsPage() {
               >
                 <Check className="h-3.5 w-3.5" />
                 تأكيد الحل وإغلاق البلاغ
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Convert Ticket to Project Task Dialog */}
+      <Dialog open={convertOpen} onOpenChange={setConvertOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-primary">
+              <FolderKanban className="h-5 w-5" />
+              تحويل التذكرة لمهمة عمل تنفيذية في المشروع
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3.5 pt-2">
+            <p className="text-xs text-muted-foreground">
+              سيتم إنشاء مهمة برمجية وتنفيذية جديدة داخل المشروع المحدد، وربطها بشكل مباشر بهذه التذكرة لمتابعة الإنجاز والمسؤوليات.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">المشروع المستهدف *</label>
+              <Select value={convertProjectId} onValueChange={setConvertProjectId}>
+                <SelectTrigger className="text-xs">
+                  <SelectValue placeholder="اختر المشروع..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectsList.map((p) => (
+                    <SelectItem key={p.id} value={p.id} className="text-xs">
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {projectMilestones.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">المرحلة المرتبطة بالمشروع (اختياري)</label>
+                <Select value={convertMilestoneId} onValueChange={setConvertMilestoneId}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue placeholder="اختر المرحلة..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none" className="text-xs">
+                      بدون مرحلة محددة (مهمة عامة)
+                    </SelectItem>
+                    {projectMilestones.map((m) => (
+                      <SelectItem key={m.id} value={m.id} className="text-xs">
+                        {m.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">المسؤول المكلف *</label>
+                <Select value={convertAssigneeId} onValueChange={setConvertAssigneeId}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue placeholder="اختر المهندس / الموظف..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffList.map((s) => (
+                      <SelectItem key={s.id} value={s.id} className="text-xs">
+                        {s.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold">أولوية المهمة</label>
+                <Select
+                  value={convertPriority}
+                  onValueChange={(v: "urgent" | "high" | "medium" | "low") => setConvertPriority(v)}
+                >
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="urgent" className="text-xs text-destructive font-bold">
+                      عاجلة وطارئة
+                    </SelectItem>
+                    <SelectItem value="high" className="text-xs text-amber-600 font-semibold">
+                      أولوية مرتفعة
+                    </SelectItem>
+                    <SelectItem value="medium" className="text-xs">
+                      أولوية متوسطة
+                    </SelectItem>
+                    <SelectItem value="low" className="text-xs text-muted-foreground">
+                      أولوية منخفضة
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">عنوان المهمة التنفيذية *</label>
+              <Input
+                value={convertTitle}
+                onChange={(e) => setConvertTitle(e.target.value)}
+                placeholder="عنوان المهمة..."
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">الموعد النهائي للتسليم (اختياري)</label>
+              <Input
+                type="date"
+                value={convertEndAt}
+                onChange={(e) => setConvertEndAt(e.target.value)}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">تفاصيل ونطاق العمل البرمجي</label>
+              <Textarea
+                value={convertDetails}
+                onChange={(e) => setConvertDetails(e.target.value)}
+                placeholder="تفاصيل التكليف، سيناريو المشكلة، وروابط الموديل أو الواجهات المتأثرة..."
+                className="text-xs h-20"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => setConvertOpen(false)}
+                disabled={convertSubmitting}
+              >
+                إلغاء
+              </Button>
+              <Button
+                size="sm"
+                className="bg-primary text-primary-foreground gap-1.5 text-xs font-medium"
+                onClick={handleConvertSubmit}
+                disabled={convertSubmitting || !convertTitle.trim() || !convertProjectId || !convertAssigneeId}
+              >
+                {convertSubmitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FolderKanban className="h-3.5 w-3.5" />
+                )}
+                إنشاء المهمة وربطها بالتذكرة 🚀
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Escalate Support Ticket Dialog */}
+      <Dialog open={escalateOpen} onOpenChange={setEscalateOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <Zap className="h-5 w-5" />
+              تصعيد بلاغ الدعم الفني لمستوى أعلى
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3.5 pt-2">
+            <p className="text-xs text-muted-foreground">
+              يُستخدم التصعيد الرسمي عند تعقيد المشكلة الفنية أو تجاوزها لصلاحيات المستوى الأول (L1)، لضمان التدخل السريع من كبار المهندسين والإدارة.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">مستوى التصعيد المستهدف *</label>
+              <Select
+                value={escalateTier}
+                onValueChange={(v: "l2_specialist" | "l3_director") => setEscalateTier(v)}
+              >
+                <SelectTrigger className="text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="l2_specialist" className="text-xs">
+                    المستوى الثاني (L2 — مهندس نظم أول / متخصص)
+                  </SelectItem>
+                  <SelectItem value="l3_director" className="text-xs font-semibold text-amber-600">
+                    المستوى الثالث (L3 — إدارة العمليات / الاستشاري التقني)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">إعادة الإسناد إلى مسؤول محدد (اختياري)</label>
+              <Select value={escalateAssigneeId} onValueChange={setEscalateAssigneeId}>
+                <SelectTrigger className="text-xs">
+                  <SelectValue placeholder="اختر المسؤول الجديد أو اتركه بدون تغيير..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none" className="text-xs text-muted-foreground">
+                    إبقاء المسؤول الحالي
+                  </SelectItem>
+                  {staffList.map((s) => (
+                    <SelectItem key={s.id} value={s.id} className="text-xs">
+                      {s.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">سبب ومبررات التصعيد الفني *</label>
+              <Textarea
+                value={escalateReason}
+                onChange={(e) => setEscalateReason(e.target.value)}
+                placeholder="اذكر بالتفصيل جذور المشكلة، ما تم تجربته من حلول، ولماذا تتطلب تدخل المستوى الأعلى..."
+                className="text-xs h-24"
+              />
+            </div>
+
+            <div className="p-2.5 rounded-lg border bg-amber-500/10 border-amber-500/20">
+              <label className="flex items-center gap-2 text-xs text-amber-950 dark:text-amber-100 cursor-pointer select-none font-medium">
+                <input
+                  type="checkbox"
+                  checked={escalateElevatePriority}
+                  onChange={(e) => setEscalateElevatePriority(e.target.checked)}
+                  className="rounded border-amber-400 text-amber-600 focus:ring-amber-500 h-4 w-4"
+                />
+                <span>رفع درجة الأولوية تلقائياً (Low ➔ Med ➔ High ➔ Urgent)</span>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => setEscalateOpen(false)}
+                disabled={escalateSubmitting}
+              >
+                إلغاء
+              </Button>
+              <Button
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white gap-1.5 text-xs font-medium"
+                onClick={handleEscalateSubmit}
+                disabled={escalateSubmitting || escalateReason.trim().length < 5}
+              >
+                {escalateSubmitting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Zap className="h-3.5 w-3.5" />
+                )}
+                تأكيد التصعيد وتوثيق السجل ⚡
               </Button>
             </div>
           </div>

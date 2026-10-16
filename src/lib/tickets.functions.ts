@@ -42,6 +42,18 @@ export interface TicketMessageRecord {
   sender_name?: string | null;
 }
 
+export interface LinkedTaskRecord {
+  id: string;
+  title: string;
+  status: string;
+  priority: string | null;
+  start_at: string;
+  end_at: string | null;
+  project_id: string | null;
+  project?: { name: string } | null;
+  owner?: { full_name: string | null; email: string | null } | null;
+}
+
 /**
  * List support tickets with client, project, and SLA calculations.
  */
@@ -756,4 +768,249 @@ export const getExecutiveAnalyticsData = createServerFn({ method: "POST" })
       return { ok: false, error: err?.message || "خطأ في استخراج التحليلات" };
     }
   });
+
+/**
+ * Convert a support ticket into a project engineering task.
+ */
+export const convertTicketToProjectTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        ticketId: z.string().uuid(),
+        projectId: z.string().uuid(),
+        milestoneId: z.string().uuid().optional().nullable(),
+        assignedTo: z.string().uuid(),
+        title: z.string().trim().min(3).max(255),
+        details: z.string().optional().nullable(),
+        priority: z.enum(["urgent", "high", "medium", "low"]).default("high"),
+        startAt: z.string().optional(),
+        endAt: z.string().optional().nullable(),
+      })
+      .parse(input)
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      // 1. Fetch ticket information
+      const { data: ticket, error: ticketErr } = await supabaseAdmin
+        .from("support_tickets")
+        .select("id, ticket_number, title, client_id, module_id, status")
+        .eq("id", data.ticketId)
+        .single();
+
+      if (ticketErr || !ticket) {
+        return { ok: false, error: "تعذّر العثور على تذكرة الدعم الفني" };
+      }
+
+      // 2. Insert task into tasks table
+      const taskStart = data.startAt || new Date().toISOString();
+      const tags = [
+        `ticket:${ticket.ticket_number}`,
+        `ticket_id:${ticket.id}`,
+        `sla:${data.priority}`,
+      ];
+
+      const { data: createdTask, error: taskErr } = await supabaseAdmin
+        .from("tasks")
+        .insert({
+          user_id: data.assignedTo,
+          project_id: data.projectId,
+          milestone_id: data.milestoneId || null,
+          client_id: ticket.client_id || null,
+          module_id: ticket.module_id || null,
+          title: data.title,
+          details: data.details || `مهمة برمجية تنفيذية منشأة لمعالجة تذكرة الدعم #${ticket.ticket_number}`,
+          priority: data.priority,
+          status: "pending",
+          session_type: "support",
+          start_at: taskStart,
+          end_at: data.endAt || null,
+          tags,
+        })
+        .select()
+        .single();
+
+      if (taskErr || !createdTask) {
+        console.error("[convertTicketToProjectTask] Task insert error:", taskErr);
+        return { ok: false, error: "فشل إنشاء المهمة في المشروع" };
+      }
+
+      // 3. Update ticket status to in_progress if currently open
+      if (ticket.status === "open") {
+        await supabaseAdmin
+          .from("support_tickets")
+          .update({
+            status: "in_progress",
+            first_responded_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", ticket.id);
+      }
+
+      // 4. Record internal technical message in the ticket thread
+      const { data: assigneeProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("full_name")
+        .eq("id", data.assignedTo)
+        .single();
+
+      const { data: projData } = await supabaseAdmin
+        .from("projects")
+        .select("name")
+        .eq("id", data.projectId)
+        .single();
+
+      const assigneeName = assigneeProfile?.full_name || "المهندس المختص";
+      const projectName = projData?.name || "المشروع";
+
+      await supabaseAdmin.from("ticket_messages").insert({
+        ticket_id: ticket.id,
+        sender_id: context.userId,
+        message: `🚀 تم تحويل التذكرة إلى مهمة عمل تنفيذية في مشروع [${projectName}] بعنوان: "${data.title}" ومسندة إلى المهندس [${assigneeName}].`,
+        is_internal_note: true,
+      });
+
+      // 5. Notify assigned engineer
+      await supabaseAdmin.from("notifications").insert({
+        user_id: data.assignedTo,
+        type: "ticket_converted_task",
+        title: `مهمة جديدة مرتبطة بتذكرة دعم #${ticket.ticket_number}`,
+        body: `تم إسناد المهمة "${data.title}" لك في مشروع ${projectName}.`,
+        link: `/projects/${data.projectId}`,
+      });
+
+      return {
+        ok: true,
+        taskId: createdTask.id,
+        message: `تم تحويل التذكرة إلى مهمة عمل بنجاح في مشروع (${projectName})`,
+      };
+    } catch (err: any) {
+      console.error("[convertTicketToProjectTask] Exception:", err);
+      return { ok: false, error: err?.message || "خطأ غير متوقع أثناء تحويل التذكرة" };
+    }
+  });
+
+/**
+ * Escalate support ticket to higher tier (L2 Specialist or L3 Lead/GM).
+ */
+export const escalateSupportTicket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        ticketId: z.string().uuid(),
+        escalateToTier: z.enum(["l2_specialist", "l3_director"]).default("l2_specialist"),
+        targetAssigneeId: z.string().uuid().optional().nullable(),
+        escalationReason: z.string().trim().min(5).max(1000),
+        elevatePriority: z.boolean().default(true),
+      })
+      .parse(input)
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const { data: ticket, error: ticketErr } = await supabaseAdmin
+        .from("support_tickets")
+        .select("id, ticket_number, title, priority, assigned_to")
+        .eq("id", data.ticketId)
+        .single();
+
+      if (ticketErr || !ticket) {
+        return { ok: false, error: "تعذّر العثور على التذكرة" };
+      }
+
+      // Elevate priority
+      const priorityEscalationMap: Record<string, string> = {
+        low: "medium",
+        medium: "high",
+        high: "urgent",
+        urgent: "urgent",
+      };
+      const newPriority = data.elevatePriority
+        ? priorityEscalationMap[ticket.priority] || "urgent"
+        : ticket.priority;
+
+      const updates: any = {
+        priority: newPriority,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (data.targetAssigneeId) {
+        updates.assigned_to = data.targetAssigneeId;
+      }
+
+      await supabaseAdmin
+        .from("support_tickets")
+        .update(updates)
+        .eq("id", ticket.id);
+
+      const tierLabels: Record<string, string> = {
+        l2_specialist: "المستوى الثاني (L2 — مهندس نظم أول / متخصص)",
+        l3_director: "المستوى الثالث (L3 — استشاري تقني / الإدارة العليا)",
+      };
+
+      // Add escalation message
+      await supabaseAdmin.from("ticket_messages").insert({
+        ticket_id: ticket.id,
+        sender_id: context.userId,
+        message: `⚡ [تصعيد رسمي للتذكرة — ${tierLabels[data.escalateToTier]}]:\nسبب التصعيد: ${data.escalationReason}\nالأولوية الجديدة: [${newPriority}].`,
+        is_internal_note: true,
+      });
+
+      // Send notification to target assignee if defined
+      if (data.targetAssigneeId && data.targetAssigneeId !== context.userId) {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: data.targetAssigneeId,
+          type: "ticket_escalated",
+          title: `تم تصعيد التذكرة #${ticket.ticket_number} إليك`,
+          body: `السبب: ${data.escalationReason.slice(0, 100)}`,
+          link: "/tickets",
+        });
+      }
+
+      return {
+        ok: true,
+        message: "تم تصعيد التذكرة وتوثيق الإجراء بنجاح",
+      };
+    } catch (err: any) {
+      console.error("[escalateSupportTicket] Exception:", err);
+      return { ok: false, error: err?.message || "خطأ أثناء تصعيد التذكرة" };
+    }
+  });
+
+/**
+ * Fetch linked tasks for a ticket.
+ */
+export const getLinkedTasksForTicket = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ ticketId: z.string().uuid() }).parse(input)
+  )
+  .handler(async ({ data }) => {
+    try {
+      const { data: tasks, error } = await supabaseAdmin
+        .from("tasks")
+        .select(`
+          id,
+          title,
+          status,
+          priority,
+          start_at,
+          end_at,
+          project_id,
+          project:projects(name),
+          owner:profiles!tasks_user_id_fkey(full_name, email)
+        `)
+        .contains("tags", [`ticket_id:${data.ticketId}`]);
+
+      if (error) {
+        return { ok: false, error: error.message, tasks: [] };
+      }
+
+      return { ok: true, tasks: tasks || [] };
+    } catch (err: any) {
+      console.error("[getLinkedTasksForTicket] Exception:", err);
+      return { ok: false, error: err?.message || "تعذّر جلب المهام المرتبطة", tasks: [] };
+    }
+  });
+
 
