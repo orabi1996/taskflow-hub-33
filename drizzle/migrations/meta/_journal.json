@@ -8,6 +8,13 @@
       "when": 1791410412774,
       "tag": "0000_create_contracts_invoices",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794739336359,
+      "tag": "0001_tighten_permissive_policies",
+      "breakpoints": true
     }
   ]
 }

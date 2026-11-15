@@ -2191,12 +2191,20 @@ export type Database = {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
+      can_access_ticket: {
+        Args: { _ticket_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_project: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
       can_manage_project_v2: {
         Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_objective: {
+        Args: { _objective_id: string; _user_id: string }
         Returns: boolean
       }
       can_view_project: {
@@ -2222,6 +2230,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_employee: { Args: { _user_id: string }; Returns: boolean }
       is_admin_or_gm: { Args: { _user_id: string }; Returns: boolean }
       is_chain_manager_of: {
         Args: { _employee_id: string; _manager_id: string }
