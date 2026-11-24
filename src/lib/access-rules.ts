@@ -16,6 +16,12 @@ export const ACCESS_RULES: AccessRule[] = [
   { key: "time", label: "الوقت", path: "/time", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
   { key: "my-projects", label: "مشاريعي", path: "/my-projects", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
   { key: "profile", label: "الملف الشخصي", path: "/profile", group: "التنقل الرئيسي", allow: [], rule: "متاح لكل مستخدم مسجّل الدخول." },
+  { key: "tickets", label: "تذاكر الدعم", path: "/tickets", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager", "support"], rule: "يتطلب دور مدير أو دعم فني." },
+  { key: "clients", label: "العملاء والشركاء", path: "/clients", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager", "support"], rule: "يتطلب دور مدير أو دعم فني." },
+  { key: "portal", label: "بوابة العميل", path: "/portal", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager", "support"], rule: "يتطلب دور مدير أو دعم فني." },
+  { key: "performance", label: "الأداء والأهداف", path: "/performance", group: "التنقل الرئيسي", allow: [], rule: "متاح للجميع؛ الموظف يرى أهدافه وتقييماته فقط." },
+  { key: "analytics", label: "التحليلات", path: "/analytics", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager"], rule: "يتطلب دور مدير أو أعلى." },
+  { key: "billing", label: "العقود والفواتير", path: "/billing", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager"], rule: "يتطلب دور مدير أو أعلى." },
   { key: "team", label: "الفريق", path: "/team", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager"], rule: "يتطلب دور مدير أو أعلى (manager / general_manager / admin)." },
   { key: "projects", label: "المشاريع", path: "/projects", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager"], rule: "يتطلب دور مدير أو أعلى (manager / general_manager / admin)." },
   { key: "reports", label: "التقارير", path: "/reports", group: "التنقل الرئيسي", allow: ["admin", "general_manager", "manager"], rule: "يتطلب دور مدير أو أعلى (manager / general_manager / admin)." },
@@ -47,4 +53,16 @@ export function evaluateRule(rule: AccessRule, roles: string[]) {
       ? "محجوب: المستخدم لا يملك أي دور في جدول user_roles."
       : `محجوب: الأدوار الحالية (${roles.join("، ")}) لا تتضمن أيًا من الأدوار المطلوبة (${rule.allow.join("، ")}).`;
   return { allowed, reason };
+}
+
+/** Most specific rule matching a pathname (prefix match on segments). */
+export function findRuleForPath(pathname: string): AccessRule | undefined {
+  return ACCESS_RULES
+    .filter((r) => pathname === r.path || pathname.startsWith(r.path + "/"))
+    .sort((a, b) => b.path.length - a.path.length)[0];
+}
+
+export function canAccessPath(pathname: string, roles: string[]): boolean {
+  const rule = findRuleForPath(pathname);
+  return !rule || evaluateRule(rule, roles).allowed;
 }

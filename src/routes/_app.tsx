@@ -1,3 +1,4 @@
+import { canAccessPath, findRuleForPath } from "@/lib/access-rules";
 import React from "react";
 import { Link, Outlet, createFileRoute, redirect, useNavigate, isRedirect, useRouterState, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,11 +112,8 @@ function AppLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const motionLevel = getRouteMotionLevel(pathname);
 
-  const isManager = roles.some((r) => ["admin", "general_manager", "manager"].includes(r));
   const isAdmin = roles.includes("admin");
   const isAdminOrGM = roles.some((r) => ["admin", "general_manager"].includes(r));
-  const isSupport = (roles as string[]).includes("support");
-  const canSettings = isAdmin || isSupport;
 
   const handleSignOut = async () => {
     await signOut();
@@ -151,19 +149,17 @@ function AppLayout() {
   ];
 
   const manageItems: NavItem[] = [
-    ...(isManager
-      ? [
           { to: "/team", icon: Users2, label: "الفريق" },
           { to: "/projects", icon: FolderKanban, label: "المشاريع" },
           { to: "/reports", icon: BarChart3, label: "التقارير" },
           { to: "/analytics", icon: LineChart, label: "التحليلات ومؤشرات الـ SLA" },
           { to: "/billing", icon: Receipt, label: "العقود والفواتير" },
-        ]
-      : []),
-    ...(isAdminOrGM ? [{ to: "/admin/overview", icon: Activity, label: "مركز القيادة" }] : []),
-    ...(isAdmin ? [{ to: "/admin", icon: ShieldCheck, label: "إدارة المستخدمين" }] : []),
-    ...(canSettings ? [{ to: "/settings", icon: SettingsIcon, label: "مركز الإعدادات" }] : []),
+    { to: "/admin/overview", icon: Activity, label: "مركز القيادة" },
+    { to: "/admin", icon: ShieldCheck, label: "إدارة المستخدمين" },
+    { to: "/settings", icon: SettingsIcon, label: "مركز الإعدادات" },
   ];
+  const allowedNav = (items: NavItem[]) => items.filter((i) => canAccessPath(i.to, roles as string[]));
+  const pageAllowed = authLoading || canAccessPath(pathname, roles as string[]);
 
   const triggerCmdK = () => {
     const event = new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true });
@@ -203,19 +199,19 @@ function AppLayout() {
             <SidebarGroupLabel>العمل اليومي</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {mainItems.map((item) => (
+                {allowedNav(mainItems).map((item) => (
                   <SidebarNavItem key={item.to} item={item} />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {manageItems.length > 0 && (
+          {allowedNav(manageItems).length > 0 && (
             <SidebarGroup>
               <SidebarGroupLabel>الإدارة</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {manageItems.map((item) => (
+                  {allowedNav(manageItems).map((item) => (
                     <SidebarNavItem key={item.to} item={item} />
                   ))}
                 </SidebarMenu>
@@ -289,7 +285,16 @@ function AppLayout() {
 
         <main className="px-3 py-4 sm:px-6 sm:py-8 relative z-10" data-motion-level={motionLevel}>
           <PageEntrance level={motionLevel} key={pathname}>
-            <Outlet />
+            {pageAllowed ? (
+              <Outlet />
+            ) : (
+              <div className="mx-auto max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
+                <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground" />
+                <h2 className="mt-3 text-lg font-semibold">لا تملك صلاحية لهذه الشاشة</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{findRuleForPath(pathname)?.rule}</p>
+                <Button className="mt-4" onClick={() => navigate({ to: "/dashboard" })}>العودة للوحة</Button>
+              </div>
+            )}
           </PageEntrance>
         </main>
       </SidebarInset>
