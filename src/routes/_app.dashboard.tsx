@@ -40,6 +40,14 @@ import {
 import { toast } from "sonner";
 
 
+const DASH_ROLE_LABEL: Record<string, string> = {
+  admin: "مدير النظام",
+  general_manager: "مدير عام",
+  manager: "مدير",
+  employee: "موظف",
+  support: "دعم فني",
+};
+
 export const Route = createFileRoute("/_app/dashboard")({
   component: Dashboard,
 });
@@ -126,6 +134,8 @@ function Dashboard() {
   const [projectFilter, setProjectFilter] = useState<string>("all");
   const [employeeFilter, setEmployeeFilter] = useState<string>("all");
   const [empSort, setEmpSort] = useState<string>("total");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [empMeta, setEmpMeta] = useState<Record<string, { roles: string[]; active: boolean }>>({});
 
   // Time range (days; 0 = all time), persisted.
   const [rangeDays, setRangeDays] = useState<number>(30);
@@ -171,6 +181,16 @@ function Dashboard() {
     ]);
 
     setTasks((tasksRes.data ?? []) as unknown as TaskRow[]);
+    if (isAdminOrGM) {
+      const [rolesRes, profRes] = await Promise.all([
+        supabase.from("user_roles").select("user_id, role"),
+        supabase.from("profiles").select("id, is_active"),
+      ]);
+      const meta: Record<string, { roles: string[]; active: boolean }> = {};
+      for (const p of profRes.data ?? []) meta[p.id] = { roles: [], active: p.is_active };
+      for (const r of rolesRes.data ?? []) (meta[r.user_id] ??= { roles: [], active: true }).roles.push(r.role);
+      setEmpMeta(meta);
+    }
     setProjectsCount(projectsRes.count ?? 0);
 
     // Compute soon-to-expire contracts
@@ -233,7 +253,14 @@ function Dashboard() {
         if (ms > 0) row.minutes += Math.round(ms / 60000);
       }
     }
-    const rows = Array.from(map.values()).map((r) => ({
+    const rows = Array.from(map.values())
+      .filter((r) => {
+        const m = empMeta[r.id];
+        if (roleFilter === "all") return true;
+        if (roleFilter === "inactive") return m ? !m.active : false;
+        return m ? m.active && m.roles.includes(roleFilter) : false;
+      })
+      .map((r) => ({
       ...r,
       projectCount: r.projects.size,
       rate: r.total ? Math.round((r.completed / r.total) * 100) : 0,
@@ -247,7 +274,7 @@ function Dashboard() {
       projects: (a, b) => b.projectCount - a.projectCount,
     };
     return rows.sort(cmp[empSort] ?? cmp.total);
-  }, [tasks, empSort, projectFilter]);
+  }, [tasks, empSort, projectFilter, roleFilter, empMeta]);
 
 
 
@@ -654,6 +681,14 @@ function Dashboard() {
               </Badge>
             )}
             <div className="ms-auto flex items-center gap-2">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">كل الأدوار</SelectItem>
+                  {Object.entries(DASH_ROLE_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  <SelectItem value="inactive">الموقوفون</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={empSort} onValueChange={setEmpSort}>
                 <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -702,6 +737,14 @@ function Dashboard() {
                           <div>
                             <div className="font-medium">{e.name}</div>
                             {e.job && <div className="text-xs text-muted-foreground">{e.job}</div>}
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {(empMeta[e.id]?.roles ?? []).map((r) => (
+                                <Badge key={r} variant="secondary" className="text-[10px] px-1.5 py-0">{DASH_ROLE_LABEL[r] ?? r}</Badge>
+                              ))}
+                              {empMeta[e.id] && !empMeta[e.id]!.active && (
+                                <Badge variant="destructive" className="text-[10px] px-1.5 py-0">موقوف</Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
